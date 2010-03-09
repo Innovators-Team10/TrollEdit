@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/" >
+        <file>res/Untitled.png</file>
+        <file>res/textbold.png</file>
+        <file>res/textitalic.png</file>
+        <file>res/textunder.png</file>
+    </qresource>
+</RCC>
