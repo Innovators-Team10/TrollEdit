@@ -17,9 +17,11 @@ void HideBlockButton::paint(QPainter *painter,
 
 void HideBlockButton::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    Block *block = qgraphicsitem_cast<Block*>(parentItem());
-    block->setFolded(!block->isFolded());
-    //QGraphicsPixmapItem::mousePressEvent(event);  // ?
+    if (event->button() == Qt::LeftButton) {
+        Block *block = qgraphicsitem_cast<Block*>(parentItem());
+        if (block != 0)
+            block->setFolded(!block->isFolded());
+    }
 }
 
 int HideBlockButton::type() const

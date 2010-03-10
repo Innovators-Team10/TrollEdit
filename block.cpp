@@ -6,9 +6,12 @@ static int counter = 0;
 Block::Block(QGraphicsScene *parentScene, Block *parentBlock)
     : QGraphicsRectItem(parentBlock)
 {
-    if (parentBlock == 0) parentScene->addItem(this);
+    if (parentBlock == 0)
+        parentScene->addItem(this);
+
     setRect(0, 0, 100, 50);
 
+    setAcceptHoverEvents(true);
     setFlag(QGraphicsItem::ItemIsMovable);
     //setFlag(QGraphicsItem::ItemIsSelectable);
     //setFlag(QGraphicsItem::ItemNegativeZStacksBehindParent);
@@ -19,12 +22,14 @@ Block::Block(QGraphicsScene *parentScene, Block *parentBlock)
 
     folded = false;
     pressed = false;
+    changed = true;
     //backupText = new QTextDocument();
 
     hideButton = new HideBlockButton(this);
     hideButton->setPixmap(QPixmap(":/res/Untitled.png"));
     QRectF rect = QGraphicsRectItem::boundingRect();
     hideButton->setPos(rect.topLeft());
+    hideButton->setVisible(false);
 
     // testing
     //setTextInteractionFlags(Qt::NoTextInteraction);
@@ -36,22 +41,62 @@ Block::Block(QGraphicsScene *parentScene, Block *parentBlock)
     //    setToolTip(QString("-blok-\nid: %1\n\nz: %2").arg(id).arg(zValue()));
     QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(QString(" blok %1").arg(id), this);
     text->setPos(hideButton->boundingRect().topRight());
+    if (parentBlock != 0)
+      parentBlock->setChanged();
+}
+
+void Block::childAdded(Block *newChild)
+{
+
+}
+
+void Block::childRemoved(Block *oldChild)
+{
+
 }
 
 QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
 {
-    //    if (change == QGraphicsItem::ItemChildAddedChange) {
-    //        QGraphicsItem *item = value.value<QGraphicsItem*>();
-    //        bool a = (type() == item->type());
-    //        Block *child = qgraphicsitem_cast<Block*>(item);
-    //
-    //        if (child != 0) {
-    //            child->setPos(10, 10);
-    //        }
-    //        a = false;
-    //    }
+    if (change == QGraphicsItem::ItemChildAddedChange
+            || change == QGraphicsItem::ItemChildRemovedChange) {
+        QGraphicsItem *item = value.value<QGraphicsItem*>();
+        Block *child = qgraphicsitem_cast<Block*>(item);
+        if (child != 0)
+            setChanged();
+    }
 
     return QGraphicsRectItem::itemChange(change, value);
+}
+
+void Block::setChanged() {
+    changed = true;
+    Block *parent = parentBlock();
+    if (parent != 0)
+        parent->setChanged();
+    else
+        updateLayout();
+}
+
+void Block::updateLayout() {
+    if (!changed)
+        return;
+    QList<Block*> blocks = blocklist_cast(childItems());
+    QPointF nextPos = QPointF(OFFS, OFFS);
+    qreal maxHeight = 0;
+    int i = 1;
+    foreach (Block *child, blocks) {
+        child->updateLayout();
+        child->setPos(nextPos);
+        QRectF rect = child->boundingRect();
+        rect = mapRectFromItem(child, rect);
+        if (rect.bottom() > maxHeight) maxHeight = rect.bottom();
+
+        if (i++ % 3 != 0)
+            nextPos = rect.topRight() + QPointF(OFFS, 0);//right
+        else
+            nextPos = QPointF(OFFS, maxHeight + OFFS);//down
+    }
+    changed = false;
 }
 
 int Block::type() const
@@ -63,6 +108,7 @@ QRectF Block::boundingRect() const
 {
     QRectF rect = QGraphicsRectItem::boundingRect();
     rect = rect.united(childrenBoundingRect());
+    rect.adjust(0, 0, OFFS, OFFS);
     return rect;
 }
 
@@ -160,17 +206,17 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void Block::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    //    setRotation(20);
-    QGraphicsRectItem::hoverEnterEvent(event);
+    hideButton->setVisible(true);
+    //QGraphicsRectItem::hoverEnterEvent(event);
 }
 void Block::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    //    setRotation(0);
-    QGraphicsRectItem::hoverLeaveEvent(event);
+    hideButton->setVisible(false);
+    //QGraphicsRectItem::hoverLeaveEvent(event);
 }
 void Block::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    QGraphicsRectItem::hoverMoveEvent(event);
+    //QGraphicsRectItem::hoverMoveEvent(event);
 }
 
 void Block::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)

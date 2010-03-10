@@ -18,10 +18,8 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if (parent == 0) {
             block->setPos(event->scenePos());
         } else {
-            block->setPos(parent->mapFromScene(event->scenePos()));
+            // parent sets position automatically
         }
-    } else {
-        QGraphicsScene::mousePressEvent(event);
     }
     // save clicked block
     if (event->button() == Qt::LeftButton) {
@@ -31,7 +29,7 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
             //text->setPos(clickedBlock->scenePos() - QPointF(0,20));
         //}
     }
-
+    QGraphicsScene::mousePressEvent(event);
 }
 
 void DocumentScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

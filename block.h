@@ -27,10 +27,14 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QList<Block*> blocklist_cast(QList<QGraphicsItem*> list);
 
+    void setChanged();
+
 signals:
     void lostFocus(Block *block);
 
 protected:
+    void updateLayout();
+
     void focusOutEvent(QFocusEvent *event);
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 
@@ -50,10 +54,14 @@ protected:
 private:
     bool folded;    // true when block is folded
     bool pressed;   // true while mouse is pressed
+    bool changed;   // changed after last updateLayout() call
 
     HideBlockButton *hideButton;
     qreal originalWidth;
-    static const int off = 10;
+    static const int OFFS = 20;
+
+    void childAdded(Block *newChild);
+    void childRemoved(Block *oldChild);
 
 // for testing
 private slots:
