@@ -8,7 +8,7 @@
 class LanguageManager
 {
 public:
-    LanguageManager();
+    LanguageManager(QString programPath);
     ~LanguageManager();
     Analyzer *getAnalyzerFor(QString suffix) const;
 private:

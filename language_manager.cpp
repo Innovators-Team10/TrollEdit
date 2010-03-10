@@ -3,23 +3,23 @@
 #include <QErrorMessage>
 #include <QMessageBox>
 
-const QString LanguageManager::GRAMMAR_DIR = "grammars";
-const QString LanguageManager::DEFAULT_GRAMMAR = "grammars/default_grammar.lua";
+const QString LanguageManager::GRAMMAR_DIR = "\\grammars";
+const QString LanguageManager::DEFAULT_GRAMMAR = "\\grammars\\default_grammar.lua";
 
-LanguageManager::LanguageManager()
+LanguageManager::LanguageManager(QString programPath)
 {
     QStringList files;
-    QDir dir = QDir(GRAMMAR_DIR);
+    QDir dir = QDir(programPath + GRAMMAR_DIR);
     files = dir.entryList(QStringList("*.lua"), QDir::Files | QDir::NoSymLinks);
     foreach (QString file, files) {
         try {
-            Analyzer *a = new Analyzer(GRAMMAR_DIR+"/"+file);
+            Analyzer *a = new Analyzer(programPath + GRAMMAR_DIR+ "\\" + file);
             analyzers.insert(a->getExtension(), a);
         } catch(...) {
             // analyzer is not inserted, messages were already displayed in Analyzer class
         }
     }
-    defaultAnalyzer = new Analyzer(DEFAULT_GRAMMAR);
+    defaultAnalyzer = new Analyzer(programPath + DEFAULT_GRAMMAR);
 }
 
 LanguageManager::~LanguageManager()

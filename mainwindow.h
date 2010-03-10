@@ -15,11 +15,12 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = 0);
+    MainWindow(QString programPath, QWidget *parent = 0);
 
 public slots:
     void setCurrentFile(int tabNumber);
     void applyChanges();
+    void open(QString fileName);
 
 signals:
     void apply(QBrush *brush, QPen *pen);
@@ -33,7 +34,7 @@ private slots:
     bool save();
     bool saveAs();
     void openRecentFile();
-    void about();    
+    void about();
     void help();
     void settings();
     bool closeTab();
@@ -86,10 +87,11 @@ private:
 
     void createActions();
     void createMenus();
-    void createToolBars();    
+    void createToolBars();
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
     void load(QString fileName);
+    DocumentScene* currentScene();
     //void writeSettings();
     //void readSettings();
 };
