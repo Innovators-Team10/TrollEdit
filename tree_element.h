@@ -35,6 +35,9 @@ public:
      QString getType();
      QString getText();
 
+     bool isMultiLine();
+     bool isImportant();
+
      bool hasNext();
      TreeElement *next();
 

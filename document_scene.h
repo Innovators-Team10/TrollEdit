@@ -8,19 +8,18 @@
 #include "tree_element.h"
 
 class DocumentTabs;
-class QGraphicsSceneMouseEvent;
 
 class DocumentScene : public QGraphicsScene
 {
     Q_OBJECT
 
 public:
-    DocumentScene(QObject *parent = 0);
+    DocumentScene(Analyzer *analyzer, QObject *parent = 0);
     //void setFont(const QFont &newFont);
     //void loadFile(const QString &fileName);
     //void saveFile(const QString &fileName);
 
-  //  Analyzer *analyzer;
+    Analyzer *analyzer;
     bool modified;
 
 public slots:
@@ -32,7 +31,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 private slots:
-    void lostFocus(Block*);
+    void lostFocus(Block *block);
 
 private:
     Block *clickedBlock;

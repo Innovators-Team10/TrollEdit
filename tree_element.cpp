@@ -48,6 +48,22 @@ bool TreeElement::isLeaf() {
     return !(children.count());
 }
 
+bool TreeElement::isImportant() {
+    return childCount() != 1;
+}
+
+bool TreeElement::isMultiLine() {
+    if (isLeaf()) {
+        return type.contains("\n");
+    }else {
+        foreach (TreeElement *el, children) {
+            if (el->isMultiLine())
+                return true;
+        }
+        return false;
+    }
+}
+
 bool TreeElement::hasSiblings()
 {
     if (parent != NULL)

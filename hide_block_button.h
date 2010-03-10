@@ -10,7 +10,7 @@ class HideBlockButton : public QGraphicsPixmapItem
 {
 public:
     HideBlockButton(QGraphicsItem *parent = 0);
-    enum { Type = UserType + 2 };
+    enum { Type = UserType + 10 };
 
 protected:
     void paint(QPainter *painter,

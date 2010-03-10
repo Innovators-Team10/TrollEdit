@@ -3,9 +3,9 @@
 
 #include <QMainWindow>
 #include <QtGui>
-#include "analyzer.h"
 #include "document_tabs.h"
 #include "document_scene.h"
+#include "language_manager.h"
 //#include "settingsDialog.h"
 //#include "helpbrowser.h"
 //#include "settingspages.h"
@@ -78,6 +78,7 @@ private:
 
    // Analyzer *cAnalyzer;
 
+    LanguageManager *langManager;
     DocumentTabs *documentTabs;
     QStringList recentFiles;
     QString currentFile;

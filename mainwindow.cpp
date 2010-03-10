@@ -1,10 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "analyzer.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
+    langManager = new LanguageManager();
     documentTabs = new DocumentTabs(this);
     setCentralWidget(documentTabs);
+
 
     //readSettings();
 
@@ -189,7 +192,7 @@ void MainWindow::createToolBars()
 
 void MainWindow::newFile()
 {
-    DocumentScene *scene = new DocumentScene();
+    DocumentScene *scene = new DocumentScene(langManager->getAnalyzerFor("c"));
     scene->setSceneRect(documentTabs->rect());
     //scene->analyzer = cAnalyzer;    // in future give scene appropriate analyzer when filetype is known
     QGraphicsView *view = new QGraphicsView(scene);

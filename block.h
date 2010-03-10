@@ -7,12 +7,14 @@
 #include "hide_block_button.h"
 #include "document_scene.h"
 
+class TreeElement;
+
 class Block : public QObject, public QGraphicsRectItem
 {
     Q_OBJECT
 
 public:
-    Block(QGraphicsScene *parentScene = 0, Block *parentBlock = 0);
+    Block(TreeElement *element, Block *parentBlock = 0, QGraphicsScene *parentScene = 0);
 
     enum { Type = UserType + 1 };
     int id;
@@ -20,6 +22,7 @@ public:
     void setFolded(bool folded);
     bool isFolded();
     Block *parentBlock();
+    QGraphicsTextItem *textItem();
 
     QPainterPath shape() const;
     int type() const;
@@ -56,10 +59,16 @@ private:
     bool pressed;   // true while mouse is pressed
     bool changed;   // changed after last updateLayout() call
 
-    HideBlockButton *hideButton;
-    qreal originalWidth;
-    static const int OFFS = 20;
+    TreeElement *element;
+    QGraphicsTextItem *text;
 
+
+    HideBlockButton *hideButton;
+
+    qreal originalWidth;
+    static const int OFFS = 5;
+
+    void createControls();
     void childAdded(Block *newChild);
     void childRemoved(Block *oldChild);
 

@@ -10,24 +10,26 @@ SOURCES += main.cpp \
     block.cpp \
     hide_block_button.cpp \
     analyzer.cpp \
-    tree_element.cpp \ # helpbrowser.cpp \
-# settingsdialog.cpp \
-# settingspages.cpp \ # \
+    language_manager.cpp \
+    tree_element.cpp \
     paired_tree_element.cpp
+# helpbrowser.cpp \
+# settingsdialog.cpp \
+# settingspages.cpp \
 
-# language_manager.cpp
 HEADERS += mainwindow.h \
     document_tabs.h \
     document_scene.h \
     block.h \
     hide_block_button.h \
     analyzer.h \
-    tree_element.h \ # helpbrowser.h \
+    language_manager.h \
+    tree_element.h \
+    paired_tree_element.h
+# helpbrowser.h \
 # settingsdialog.h \
 # settingspages.h \
-    paired_tree_element.h
 
-# language_manager.h
 RESOURCES += resources.qrc
 INCLUDEPATH += "lua\include"
 LIBS += "lua\lua5.1.dll"

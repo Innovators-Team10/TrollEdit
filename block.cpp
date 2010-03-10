@@ -3,15 +3,30 @@
 
 static int counter = 0;
 
-Block::Block(QGraphicsScene *parentScene, Block *parentBlock)
+Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentScene)
     : QGraphicsRectItem(parentBlock)
 {
     if (parentBlock == 0)
         parentScene->addItem(this);
+    this->element = element;
 
-    setRect(0, 0, 100, 50);
+    if (element->isLeaf()) {
+        text = new QGraphicsTextItem(element->getType(), this);
+        if (parentBlock != 0)
+            parentBlock->setChanged();
+    } else {
+        text = 0;
+        setToolTip(element->getType());
+        if (!element->isImportant()) {
+            setPen(QPen(Qt::lightGray));
+        }
+        foreach (TreeElement *childEl, element->getChildren()) {
+            new Block(childEl, this);
+        }
+    }
+    createControls();
 
-    setAcceptHoverEvents(true);
+    
     setFlag(QGraphicsItem::ItemIsMovable);
     //setFlag(QGraphicsItem::ItemIsSelectable);
     //setFlag(QGraphicsItem::ItemNegativeZStacksBehindParent);
@@ -23,26 +38,21 @@ Block::Block(QGraphicsScene *parentScene, Block *parentBlock)
     folded = false;
     pressed = false;
     changed = true;
-    //backupText = new QTextDocument();
 
-    hideButton = new HideBlockButton(this);
-    hideButton->setPixmap(QPixmap(":/res/Untitled.png"));
-    QRectF rect = QGraphicsRectItem::boundingRect();
-    hideButton->setPos(rect.topLeft());
-    hideButton->setVisible(false);
-
-    // testing
-    //setTextInteractionFlags(Qt::NoTextInteraction);
     id = counter++;
-    if (parentBlock!=0) writeToParent();
-    //setPlainText(QString("-blok-\nid: %1\n\nz: %2").arg(id).arg(zValue()));
+}
 
-    // setPlainText(QString("toto\nje\nblok s textom\n\n\n\n\n(slon slon slon slon)\nid: %1").arg(id));
-    //    setToolTip(QString("-blok-\nid: %1\n\nz: %2").arg(id).arg(zValue()));
-    QGraphicsSimpleTextItem *text = new QGraphicsSimpleTextItem(QString(" blok %1").arg(id), this);
-    text->setPos(hideButton->boundingRect().topRight());
-    if (parentBlock != 0)
-      parentBlock->setChanged();
+void Block::createControls() {
+    if (true) { // potom zmenit
+        hideButton = new HideBlockButton(this);
+        hideButton->setPixmap(QPixmap(":/res/Untitled.png"));
+        QRectF rect = QGraphicsRectItem::boundingRect();
+        hideButton->setPos(rect.topLeft());
+        hideButton->setVisible(false);
+        setAcceptHoverEvents(true);
+    } else {
+        hideButton = 0;
+    }
 }
 
 void Block::childAdded(Block *newChild)
@@ -55,10 +65,23 @@ void Block::childRemoved(Block *oldChild)
 
 }
 
+Block *Block::parentBlock()
+{
+    QGraphicsItem *parent = parentItem();
+    if (parent!=0 && parent->type() == type())
+        return qgraphicsitem_cast<Block*>(parent);
+    else return 0;
+}
+
+QGraphicsTextItem *Block::textItem()
+{
+    return text;
+}
+
 QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == QGraphicsItem::ItemChildAddedChange
-            || change == QGraphicsItem::ItemChildRemovedChange) {
+        || change == QGraphicsItem::ItemChildRemovedChange) {
         QGraphicsItem *item = value.value<QGraphicsItem*>();
         Block *child = qgraphicsitem_cast<Block*>(item);
         if (child != 0)
@@ -83,7 +106,6 @@ void Block::updateLayout() {
     QList<Block*> blocks = blocklist_cast(childItems());
     QPointF nextPos = QPointF(OFFS, OFFS);
     qreal maxHeight = 0;
-    int i = 1;
     foreach (Block *child, blocks) {
         child->updateLayout();
         child->setPos(nextPos);
@@ -91,7 +113,7 @@ void Block::updateLayout() {
         rect = mapRectFromItem(child, rect);
         if (rect.bottom() > maxHeight) maxHeight = rect.bottom();
 
-        if (i++ % 3 != 0)
+        if (child->element->getType() != "\n")   // toto nefunguje, preco??
             nextPos = rect.topRight() + QPointF(OFFS, 0);//right
         else
             nextPos = QPointF(OFFS, maxHeight + OFFS);//down
@@ -106,10 +128,14 @@ int Block::type() const
 
 QRectF Block::boundingRect() const
 {
-    QRectF rect = QGraphicsRectItem::boundingRect();
-    rect = rect.united(childrenBoundingRect());
-    rect.adjust(0, 0, OFFS, OFFS);
-    return rect;
+    if (text != 0)
+        return text->boundingRect();
+    else
+        return childrenBoundingRect().adjusted(0, 0, OFFS, OFFS);
+//    QRectF rect = QGraphicsRectItem::boundingRect();
+//    rect = rect.united(childrenBoundingRect());
+//    rect.adjust(0, 0, OFFS, OFFS);
+//    return rect;
 }
 
 QPainterPath Block::shape() const   // shape is used for collision detection
@@ -124,9 +150,11 @@ void Block::paint(QPainter *painter,
                   QWidget *widget)
 {
     QRectF rect = boundingRect();
-
+    painter->setPen(pen());
     painter->fillRect(rect, Qt::white);
     painter->drawRect(rect);
+    if (text != 0)
+        text->paint(painter, option, widget);
     //QGraphicsRectItem::paint(painter, option, widget);    // kresli original rect
     scene()->update(scene()->sceneRect());
 }
@@ -150,17 +178,8 @@ bool Block::isFolded()
     return folded;
 }
 
-Block *Block::parentBlock()
-{
-    QGraphicsItem *parent = parentItem();
-    if (parent!=0 && parent->type() == type())
-        return qgraphicsitem_cast<Block*>(parent);
-    else return 0;
-}
-
 void Block::focusOutEvent(QFocusEvent *event)
 {
-    emit lostFocus(this);
     QGraphicsRectItem::focusOutEvent(event);
 }
 
@@ -200,6 +219,7 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         setParentItem(target);
         prepareGeometryChange();    // used to update graphics
         setZValue(0);               // restore z-value
+        updateLayout();
     }
     QGraphicsRectItem::mouseReleaseEvent(event);
 }
@@ -239,19 +259,10 @@ void Block::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 
 void Block::writeZ()
 {
-    //document()->setPlainText(QString("-blok-\nid: %1\n\nz: %2").arg(id).arg(zValue()));
+
 }
 void Block::writeToParent()
 {
-    //document()->setPlainText(QString("-blok-\nid: %1\n\nz: %2\nin").arg(id).arg(zValue()));
-    /*
-    Block *p = parentBlock();
-    QString str;
-    if (p!=0) {
-        str = p->document()->toPlainText();
-        str.append(QString("\nch: %1").arg(id));
-        p->document()->setPlainText(str);
-    }*/
 }
 
 QList<Block*> Block::blocklist_cast(QList<QGraphicsItem*> list) {
