@@ -15,7 +15,7 @@ class DocumentScene : public QGraphicsScene
 
 public:
     DocumentScene(Analyzer *analyzer, QObject *parent = 0);
-    //void setFont(const QFont &newFont);
+
     //void loadFile(const QString &fileName);
     //void saveFile(const QString &fileName);
 

@@ -96,7 +96,7 @@ preprocessor = (NI'include' + ((TK"#define" + TK"#elif" + TK"#else" + TK"#endif"
 include = TK"#include" * T"<" * T((1 - P">")^1) * T">",
 
 funct_definition =
-	NI'declaration_specifiers'^-1 * N'declarator' *N'declaration'^0 * N'block',
+	NI'declaration_specifiers'^-1 * N'declarator' *N'declaration'^0 * T"{" * N'block' * T"}",
 
 declaration =  NI'declaration_specifiers' * N'init_declarator' * (T"," * N'init_declarator')^0 * T";",
 
@@ -166,7 +166,7 @@ abstract_declarator =
 statement =
 -- 	((N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":")^0 * 
 	(N'expression'^-1 * T";" +
-	N'block' +
+	T"{" * N'block' * T"}" +
 	TK"if" * T"(" * N'expression' * T")" * N'statement' * TK"else" * N'statement' +
 	TK"if" * T"(" * N'expression' * T")" * N'statement' +
 	TK"switch" * T"(" * N'expression' * T")" * T"{" * N'case_statement'^0 * T"}" +
@@ -179,7 +179,7 @@ statement =
 	TK"return" * N'expression'^-1 * T";"
 	),
 
-block =  T"{" * (N'declaration' + N'statement')^0 * T"}",
+block =  (N'declaration' + N'statement')^0,
 
 case_statement = 
 	(N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":" * N'statement'^0,

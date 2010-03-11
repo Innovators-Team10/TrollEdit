@@ -15,10 +15,12 @@ public:
      void appendChildren(QList<TreeElement *> children);
      void insertChild(int index, TreeElement *child);
      void insertChildren(int index, QList<TreeElement *> children);
-     void removeChild(TreeElement *child);
-     void removeAllChildren();
+     int removeChild(TreeElement *child);
+     int removeDescendant(TreeElement *child);
+     int removeAllChildren();
      int childCount();
      int indexOfChild(TreeElement* child);
+     int indexOfDescendant(TreeElement *desc);
      bool isLeaf();
      bool hasSiblings();
 

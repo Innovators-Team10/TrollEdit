@@ -37,6 +37,8 @@ signals:
 
 protected:
     void updateLayout();
+    Block* findNextChildAt(QPointF pos);
+    void drawInsertLine(Block* nextBlock);
 
     void focusOutEvent(QFocusEvent *event);
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
@@ -55,6 +57,8 @@ protected:
 
 
 private:
+    static const int OFFS = 5;
+
     bool folded;    // true when block is folded
     bool pressed;   // true while mouse is pressed
     bool changed;   // changed after last updateLayout() call
@@ -62,15 +66,17 @@ private:
     TreeElement *element;
     QGraphicsTextItem *text;
 
-
+    // graphic elements
     HideBlockButton *hideButton;
+    QGraphicsLineItem *separatorLine;
 
-    qreal originalWidth;
-    static const int OFFS = 5;
 
-    void createControls();
+    void createControls();//todo
     void childAdded(Block *newChild);
     void childRemoved(Block *oldChild);
+
+    Block *futureParent;
+    Block *futureSibling;   // used for block insertion
 
 // for testing
 private slots:

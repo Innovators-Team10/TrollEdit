@@ -1,11 +1,13 @@
 #include "tree_element.h"
 
-TreeElement::TreeElement(QString type) {
+TreeElement::TreeElement(QString type)
+{
     parent = 0;
     this->type = type;
 }
 
-TreeElement::~TreeElement() {
+TreeElement::~TreeElement()
+{
     qDeleteAll(children);
 }
 
@@ -14,45 +16,72 @@ void TreeElement::setType(QString type)
     this->type = type;
 }
 
-void TreeElement::appendChild(TreeElement *child) {
+void TreeElement::appendChild(TreeElement *child)
+{
     children.append(child);
     child->parent = this;
 }
 
-void TreeElement::appendChildren(QList<TreeElement *> children) {
+void TreeElement::appendChildren(QList<TreeElement*> children)
+{
     foreach (TreeElement *child, children) {
         appendChild(child);
     }
 }
 
-void TreeElement::insertChild(int index, TreeElement *child) {
+void TreeElement::insertChild(int index, TreeElement *child)
+{
     children.insert(index,child);
     child->parent = this;
 }
 
-void TreeElement::insertChildren(int index, QList<TreeElement *> children) {
-    for (int i=0; i<children.size(); i++) {
+void TreeElement::insertChildren(int index, QList<TreeElement*> children)
+{
+    for (int i = 0; i < children.size(); i++) {
         insertChild(index+i, children.at(i));
     }
 }
 
-void TreeElement::removeChild(TreeElement *child){
-    children.removeOne(child);
+int TreeElement::removeChild(TreeElement *child)
+{
+    child->parent = 0;
+    return children.removeOne(child);
 }
 
-void TreeElement::removeAllChildren() {
-    children.clear();
+int TreeElement::removeDescendant(TreeElement *desc)
+{
+    if (children.removeOne(desc)) {
+        return true;
+    } else {
+        foreach (TreeElement *el, children) {
+            if (el->removeDescendant(desc))
+                return true;
+        }
+    }
+    return false;
 }
 
-bool TreeElement::isLeaf() {
+int TreeElement::removeAllChildren()
+{
+    if (children.isEmpty())
+        return false;
+    foreach (TreeElement *child, children)
+        removeChild(child);
+    return true;
+}
+
+bool TreeElement::isLeaf()
+{
     return !(children.count());
 }
 
-bool TreeElement::isImportant() {
+bool TreeElement::isImportant()
+{
     return childCount() != 1;
 }
 
-bool TreeElement::isMultiLine() {
+bool TreeElement::isMultiLine()
+{
     if (isLeaf()) {
         return type.contains("\n");
     }else {
@@ -66,21 +95,38 @@ bool TreeElement::isMultiLine() {
 
 bool TreeElement::hasSiblings()
 {
-    if (parent != NULL)
+    if (parent != 0)
         return parent->childCount() != 1;
     else
         return false;
 }
 
-int TreeElement::childCount() {
+int TreeElement::childCount()
+{
     return children.count();
 }
 
-int TreeElement::indexOfChild(TreeElement* child) {
+int TreeElement::indexOfChild(TreeElement *child)
+{
     return children.indexOf(child, 0);
 }
 
-QList<TreeElement *> TreeElement::getChildren() {
+int TreeElement::indexOfDescendant(TreeElement *desc)
+{
+    int i = indexOfChild(desc);
+    if (i > -1) {
+        return i;
+    } else {
+        for (i = 0; i < children.size(); i++) {
+            if (children[i]->indexOfDescendant(desc) > -1);
+            return i;
+        }
+    }
+    return -1;
+}
+
+QList<TreeElement *> TreeElement::getChildren()
+{
     return children;
 }
 
@@ -88,7 +134,7 @@ QList<TreeElement*> TreeElement::getAncestors()
 {
     QList<TreeElement*> list;
     TreeElement *e = this;
-    while ((e = e->getParent()) != NULL) {
+    while ((e = e->getParent()) != 0) {
         list << e;
     }
     return list;
@@ -106,7 +152,7 @@ QList<TreeElement*> TreeElement::getDescendants()
 
 TreeElement *TreeElement::getRoot()
 {
-    if (parent == NULL) return this;
+    if (parent == 0) return this;
     else return parent->getRoot();
 }
 
@@ -115,12 +161,14 @@ TreeElement *TreeElement::getParent()
     return parent;
 }
 
-QString TreeElement::getType() {
+QString TreeElement::getType()
+{
     return type;
 }
 
 // returns all text in this element and it's descendants
-QString TreeElement::getText() {
+QString TreeElement::getText()
+{
     if (isLeaf())
         return type;
     else {
@@ -146,14 +194,14 @@ TreeElement *TreeElement::next()
 bool TreeElement::hasNext(int index)
 {
     if (index < childCount()) return true;
-    if (parent == NULL) return false;
+    if (parent == 0) return false;
     return parent->hasNext((*parent)[this] + 1);
 }
 
 TreeElement *TreeElement::next(int index)
 {
     if (index < childCount()) return children.at(index);
-    if (parent == NULL) return NULL;
+    if (parent == 0) return 0;
     return parent->next((*parent)[this] + 1);
 }
 

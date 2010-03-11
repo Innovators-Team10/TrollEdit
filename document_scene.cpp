@@ -4,11 +4,11 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
     : QGraphicsScene(parent)
 {
     this->analyzer = analyzer;
-    QString sample = "int main() {\nif (true) quack();\nreturn 0;\n}";
+    QString sample = "int main() {\n/*aha*/ if (true) quack();\nreturn 0;\n}";
 
     root = analyzer->analyzeFull(sample);
     Block *block = new Block(root, 0, this);
-    block->setPos(10,10);
+    block->setPos(50,50);
 
     setFocus(Qt::MouseFocusReason);
     modified = false;
@@ -18,20 +18,20 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::MidButton) { // create new block
         Block *parent = blockAt(event->scenePos());
-        Block *block = new Block(0, parent, this);
+        if (parent != 0 && parent->textItem() != 0) { // is leaf, todo: better function
+            parent = parent->parentBlock();             // new blocks are only appended for now
+        }
+        Block *block = new Block(new TreeElement("TROLL!"), parent, this);
         if (parent == 0) {
             block->setPos(event->scenePos());
-        } else {
-            // parent sets position automatically
         }
     }
-    // save clicked block
     if (event->button() == Qt::LeftButton) {
-        clickedBlock = blockAt(event->scenePos());
-        //if (clickedBlock != 0) {
-        //QGraphicsItem *text = addText(QString("clicked on %1").arg(clickedBlock->id));
-        //text->setPos(clickedBlock->scenePos() - QPointF(0,20));
-        //}
+        //
+    }
+    if (event->button() == Qt::RightButton) { // AST testing
+        QGraphicsItem *text = addText(root->getText());
+        text->setPos(event->scenePos());
     }
     QGraphicsScene::mousePressEvent(event);
 }
@@ -58,15 +58,21 @@ void DocumentScene::lostFocus(Block *block)
         QTextCursor cursor = textItem->textCursor();
         cursor.clearSelection();
         //    block->setTextCursor(cursor);
-//        if (textItem->toPlainText().isEmpty()) {
-//            removeItem(bltextItemock);
-//            textItem->deleteLater();
-//        }
+        //        if (textItem->toPlainText().isEmpty()) {
+        //            removeItem(bltextItemock);
+        //            textItem->deleteLater();
+        //        }
     }
 }
 
 Block* DocumentScene::blockAt(QPointF pos)
 {
-    return qgraphicsitem_cast<Block*>(itemAt(pos));
+    QGraphicsItem *item = itemAt(pos);
+    if (item == 0)
+        return 0;
+    QGraphicsTextItem *textItem;    // leaf item would be covered by its QGraphicsTextItem child
+    if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
+        item = textItem->parentItem();
+    return qgraphicsitem_cast<Block*>(item);
 }
 
