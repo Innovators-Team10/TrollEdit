@@ -15,9 +15,10 @@ public:
      void appendChildren(QList<TreeElement *> children);
      void insertChild(int index, TreeElement *child);
      void insertChildren(int index, QList<TreeElement *> children);
-     int removeChild(TreeElement *child);
-     int removeDescendant(TreeElement *child);
-     int removeAllChildren();
+     bool removeChild(TreeElement *child);
+     bool removeDescendant(TreeElement *child);
+     bool deleteBranchTo(TreeElement *desc);
+     bool removeAllChildren();
      int childCount();
      int indexOfChild(TreeElement* child);
      int indexOfDescendant(TreeElement *desc);

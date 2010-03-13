@@ -57,7 +57,7 @@ protected:
 
 
 private:
-    static const int OFFS = 5;
+    static const int OFFS = 10;
 
     bool folded;    // true when block is folded
     bool pressed;   // true while mouse is pressed

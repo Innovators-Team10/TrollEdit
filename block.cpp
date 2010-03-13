@@ -8,10 +8,10 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
 {
     if (parentBlock == 0) { // adding directly to scene, no parent blocks
         parentScene->addItem(this);
-    } else {
+    }/* else {
         if (element->getParent() == 0) // no parent element, connect to parent block's element
             parentBlock->element->appendChild(element);
-    }
+    }*/
     while (!element->isImportant()) // skip "unimportant" elements
         element = (*element)[0];
 
@@ -97,99 +97,6 @@ QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
     return QGraphicsRectItem::itemChange(change, value);
 }
 
-void Block::setChanged()
-{
-    changed = true;
-    Block *parent = parentBlock();
-    if (parent != 0)
-        parent->setChanged();
-    else
-        updateLayout();
-}
-
-void Block::updateLayout()
-{
-    if (!changed)
-        return;
-
-    //    if (element->isMultiLine())
-    //        setAcceptHoverEvents(true);
-
-    QList<Block*> blocks = blocklist_cast(childItems());
-    QPointF nextPos = QPointF(OFFS, OFFS);
-    qreal maxHeight = 0;
-    foreach (Block *child, blocks) {
-        child->updateLayout();
-        child->setPos(nextPos);
-        QRectF rect = child->boundingRect();
-        rect = mapRectFromItem(child, rect);
-        if (rect.bottom() > maxHeight) maxHeight = rect.bottom();
-
-        if (child->element->getType().contains("\n"))// temporary
-            nextPos = QPointF(OFFS, maxHeight + OFFS);//down
-        else
-            nextPos = rect.topRight() + QPointF(OFFS, 0);//right
-    }
-    changed = false;
-}
-
-int Block::type() const
-{
-    return Type;
-}
-
-QRectF Block::boundingRect() const
-{
-    if (text != 0)
-        return text->boundingRect();
-    else
-        //        if (element->isImportant())
-        return childrenBoundingRect().adjusted(-OFFS, -OFFS, OFFS, OFFS);
-    //        else
-    //            return childrenBoundingRect();
-}
-
-QPainterPath Block::shape() const   // shape is used for collision detection
-{
-    QPainterPath path;
-    path.addRect(boundingRect());
-    return path;
-}
-
-void Block::paint(QPainter *painter,
-                  const QStyleOptionGraphicsItem *option,
-                  QWidget *widget)
-{
-    QRectF rect = boundingRect();
-    painter->setPen(pen());
-    painter->fillRect(rect, Qt::white);
-    painter->drawRect(rect);
-    if (text != 0)
-        text->paint(painter, option, widget);
-    //QGraphicsRectItem::paint(painter, option, widget);    // kresli original rect
-    scene()->update(scene()->sceneRect());
-}
-
-void Block::setFolded(bool fold)
-{
-    if (fold == folded) return; // do nothing
-    if (fold) {
-        ;// todo fold
-    } else {
-        ;//todo unfold
-    }
-
-    foreach (Block *child, blocklist_cast(childItems()))     // hide/unhide children
-        child->setVisible(!fold);
-
-    folded = fold;                          // update folded flag
-}
-
-bool Block::isFolded()
-{
-    return folded;
-}
-
 void Block::focusOutEvent(QFocusEvent *event)
 {
     QGraphicsRectItem::focusOutEvent(event);
@@ -205,7 +112,7 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
             futureParent = parentBlock();
             setPos(scenePos());
             setParentItem(0);
-            element->getParent()->removeDescendant(element);
+            futureParent->element->deleteBranchTo(element);
         } else {
             futureParent = 0;
             // we cannot remove from scene direcly (data is lost in this process)
@@ -244,18 +151,14 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
         if (futureParent != 0 && futureParent->element->isLeaf()) {// leaf test - cannot add child to leaf
             futureParent = futureParent->parentBlock();
-            if (futureParent != 0) {
-                futureSibling = futureParent->findNextChildAt(mapToItem(futureParent, event->pos()));
-                //futureParent->drawInsertLine(futureSibling);
-            } else {
-                futureSibling = 0;
-            }
+        }
+
+        if (futureParent != 0) {
+            futureSibling = futureParent->findNextChildAt(mapToItem(futureParent, event->pos()));
         } else {
             futureSibling = 0;
         }
 // POTIALTO - presunut hore
-
-
 
 
         setZValue(0);               // restore z-value
@@ -358,6 +261,99 @@ void Block::writeZ()
 }
 void Block::writeToParent()
 {
+}
+
+void Block::setChanged()
+{
+    changed = true;
+    Block *parent = parentBlock();
+    if (parent != 0)
+        parent->setChanged();
+    else
+        updateLayout();
+}
+
+void Block::updateLayout()
+{
+    if (!changed)
+        return;
+
+    //    if (element->isMultiLine())
+    //        setAcceptHoverEvents(true);
+
+    QList<Block*> blocks = blocklist_cast(childItems());
+    QPointF nextPos = QPointF(OFFS, OFFS);
+    qreal maxHeight = 0;
+    foreach (Block *child, blocks) {
+        child->updateLayout();
+        child->setPos(nextPos);
+        QRectF rect = child->boundingRect();
+        rect = mapRectFromItem(child, rect);
+        if (rect.bottom() > maxHeight) maxHeight = rect.bottom();
+
+        if (child->element->getType().contains("\n"))// temporary
+            nextPos = QPointF(OFFS, maxHeight + OFFS);//down
+        else
+            nextPos = rect.topRight() + QPointF(OFFS, 0);//right
+    }
+    changed = false;
+}
+
+int Block::type() const
+{
+    return Type;
+}
+
+QRectF Block::boundingRect() const
+{
+    if (text != 0)
+        return text->boundingRect();
+    else
+        //        if (element->isImportant())
+        return childrenBoundingRect().adjusted(-OFFS, -OFFS, OFFS, OFFS);
+    //        else
+    //            return childrenBoundingRect();
+}
+
+QPainterPath Block::shape() const   // shape is used for collision detection
+{
+    QPainterPath path;
+    path.addRect(boundingRect());
+    return path;
+}
+
+void Block::paint(QPainter *painter,
+                  const QStyleOptionGraphicsItem *option,
+                  QWidget *widget)
+{
+    QRectF rect = boundingRect();
+    painter->setPen(pen());
+    painter->fillRect(rect, Qt::white);
+    painter->drawRect(rect);
+    if (text != 0)
+        text->paint(painter, option, widget);
+    //QGraphicsRectItem::paint(painter, option, widget);    // kresli original rect
+    scene()->update(scene()->sceneRect());
+}
+
+void Block::setFolded(bool fold)
+{
+    if (fold == folded) return; // do nothing
+    if (fold) {
+        ;// todo fold
+    } else {
+        ;//todo unfold
+    }
+
+    foreach (Block *child, blocklist_cast(childItems()))     // hide/unhide children
+        child->setVisible(!fold);
+
+    folded = fold;                          // update folded flag
+}
+
+bool Block::isFolded()
+{
+    return folded;
 }
 
 QList<Block*> Block::blocklist_cast(QList<QGraphicsItem*> list) {

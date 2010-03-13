@@ -4,7 +4,7 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
     : QGraphicsScene(parent)
 {
     this->analyzer = analyzer;
-    QString sample = "int main() {\n/*aha*/ if (true) quack();\nreturn 0;\n}";
+    QString sample = "int   p  = 9;";//"int main() {\n/*aha*/ if (true) quack();\nreturn 0;\n}";
 
     root = analyzer->analyzeFull(sample);
     Block *block = new Block(root, 0, this);
@@ -17,14 +17,14 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
 void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::MidButton) { // create new block
-        Block *parent = blockAt(event->scenePos());
-        if (parent != 0 && parent->textItem() != 0) { // is leaf, todo: better function
-            parent = parent->parentBlock();             // new blocks are only appended for now
-        }
-        Block *block = new Block(new TreeElement("TROLL!"), parent, this);
-        if (parent == 0) {
-            block->setPos(event->scenePos());
-        }
+//        Block *parent = blockAt(event->scenePos());
+//        if (parent != 0 && parent->textItem() != 0) { // is leaf, todo: better function
+//            parent = parent->parentBlock();             // new blocks are only appended for now
+//        }
+//        Block *block = new Block(new TreeElement("TROLL!"), parent, this);
+//        if (parent == 0) {
+//            block->setPos(event->scenePos());
+//        }
     }
     if (event->button() == Qt::LeftButton) {
         //

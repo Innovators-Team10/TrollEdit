@@ -9,6 +9,9 @@ TreeElement::TreeElement(QString type)
 TreeElement::~TreeElement()
 {
     qDeleteAll(children);
+    if (parent != 0) {
+        parent->removeChild(this);
+    }
 }
 
 void TreeElement::setType(QString type)
@@ -42,15 +45,31 @@ void TreeElement::insertChildren(int index, QList<TreeElement*> children)
     }
 }
 
-int TreeElement::removeChild(TreeElement *child)
+bool TreeElement::removeChild(TreeElement *child)
 {
     child->parent = 0;
     return children.removeOne(child);
 }
 
-int TreeElement::removeDescendant(TreeElement *desc)
+bool TreeElement::deleteBranchTo(TreeElement *desc)
 {
-    if (children.removeOne(desc)) {
+    if (!desc->getAncestors().contains(this))
+        return false;
+
+    TreeElement *temp = 0;
+    TreeElement *el = desc->parent;
+    el->removeChild(desc);
+
+    while(el != this) {
+        temp = el->parent;
+        delete(el);
+        el = temp;
+    }
+    return true;
+}
+
+bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
+    if (removeChild(desc)) {
         return true;
     } else {
         foreach (TreeElement *el, children) {
@@ -61,7 +80,7 @@ int TreeElement::removeDescendant(TreeElement *desc)
     return false;
 }
 
-int TreeElement::removeAllChildren()
+bool TreeElement::removeAllChildren()
 {
     if (children.isEmpty())
         return false;
