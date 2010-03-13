@@ -19,6 +19,10 @@ public:
     enum { Type = UserType + 1 };
     int id;
 
+    // overriden methods to provide AST consistency
+    void setParentItem (QGraphicsItem *parent);
+    void stackBefore (const QGraphicsItem *sibling);
+
     void setFolded(bool folded);
     bool isFolded();
     Block *parentBlock();
@@ -38,7 +42,7 @@ signals:
 protected:
     void updateLayout();
     Block* findNextChildAt(QPointF pos);
-    void drawInsertLine(Block* nextBlock);
+    QLineF getInsertLineAt(Block* nextBlock);
 
     void focusOutEvent(QFocusEvent *event);
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
@@ -68,8 +72,6 @@ private:
 
     // graphic elements
     HideBlockButton *hideButton;
-    QGraphicsLineItem *separatorLine;
-
 
     void createControls();//todo
     void childAdded(Block *newChild);

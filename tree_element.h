@@ -20,6 +20,7 @@ public:
      bool deleteBranchTo(TreeElement *desc);
      bool removeAllChildren();
      int childCount();
+     int index();
      int indexOfChild(TreeElement* child);
      int indexOfDescendant(TreeElement *desc);
      bool isLeaf();

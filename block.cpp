@@ -54,10 +54,6 @@ void Block::createControls()
     //    hideButton->setVisible(false);
     //    setAcceptHoverEvents(true);
     hideButton = 0;
-
-    separatorLine = new QGraphicsLineItem(this);
-    separatorLine->setVisible(false);
-    separatorLine->setPen(QPen(QBrush(), 2));
 }
 
 void Block::childAdded(Block *newChild)
@@ -67,7 +63,19 @@ void Block::childAdded(Block *newChild)
 
 void Block::childRemoved(Block *oldChild)
 {
+}
 
+void Block::setParentItem (QGraphicsItem *parent) {
+    QGraphicsRectItem::setParentItem(parent);
+//    TreeElement *oldParent = element->getParent();
+//    if (oldParent != 0) {
+//        oldParent->removeChild(element);
+//    }
+
+}
+
+void Block::stackBefore (const QGraphicsItem *sibling) {
+    QGraphicsRectItem::stackBefore(sibling);
 }
 
 Block *Block::parentBlock()
@@ -105,31 +113,54 @@ void Block::focusOutEvent(QFocusEvent *event)
 void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
+        Block *oldParent = parentBlock();
         // remove from parent and add directly to scene
         // item is now on top of everything (that have z-value==0)
         // new parent will be resolved after mouse is released
-        if (parentItem() != 0) {
-            futureParent = parentBlock();
+        if (oldParent != 0) {
+            oldParent->element->deleteBranchTo(element);
+
+            // temporary: if non-leaf element becomes leaf, fill it with text
+            if (oldParent->element->isLeaf()) {
+                oldParent->text = new QGraphicsTextItem(oldParent->element->getType(), oldParent);
+            }
+
             setPos(scenePos());
             setParentItem(0);
-            futureParent->element->deleteBranchTo(element);
-        } else {
-            futureParent = 0;
-            // we cannot remove from scene direcly (data is lost in this process)
-            // z-value is used to get this item to front
-            setZValue(100);
-        }        
-        futureSibling = 0;
-        //mouseMoveEvent(event);  // to update futureSibling and draw separator line immediatelly
+        }
+        setZValue(100);
+        QPointF curPos = pos();
+        mouseMoveEvent(event);  // to update futureParent/Sibling and draw separator line immediatelly
+        setPos(curPos);
     }
     QGraphicsRectItem::mousePressEvent(event);
 }
 
 void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
-        // SEM
+    if (futureParent != 0) {//
+        futureParent = 0;
+    }
+    QList<Block*> blocks = blocklist_cast(scene()->items(event->scenePos()));
 
+    // list of blocks under this block's top left edge (including this one!)
+    foreach (Block *block, blocks) { // find next different block
+        if (block != this) {
+            futureParent = block;
+            break;
+        }
+    }
+
+    if (futureParent != 0 && futureParent->element->isLeaf()) {// leaf test - cannot add child to leaf
+        futureParent = futureParent->parentBlock();
+    }
+
+    if (futureParent != 0) {
+        futureSibling = futureParent->findNextChildAt(futureParent->mapFromScene(event->scenePos()));
+        ((DocumentScene*)scene())->showInsertLine(futureParent->getInsertLineAt(futureSibling));
+    } else {
+        futureSibling = 0;
+        ((DocumentScene*)scene())->hideInsertLine();
     }
     QGraphicsRectItem::mouseMoveEvent(event);
 }
@@ -137,30 +168,6 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
-//ODTIALTO
-        futureParent = 0;
-        QList<Block*> blocks = blocklist_cast(scene()->items(scenePos()));
-
-        // list of blocks under this block's top left edge (including this one!)
-        foreach (Block *block, blocks) { // find next different block
-            if (block != this) {
-                futureParent = block;
-                break;
-            }
-        }
-
-        if (futureParent != 0 && futureParent->element->isLeaf()) {// leaf test - cannot add child to leaf
-            futureParent = futureParent->parentBlock();
-        }
-
-        if (futureParent != 0) {
-            futureSibling = futureParent->findNextChildAt(mapToItem(futureParent, event->pos()));
-        } else {
-            futureSibling = 0;
-        }
-// POTIALTO - presunut hore
-
-
         setZValue(0);               // restore z-value
 
         if (futureParent != 0) {
@@ -178,6 +185,7 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         }
         futureParent = 0;
         futureSibling = 0;
+        ((DocumentScene*)scene())->hideInsertLine();
     }
     QGraphicsRectItem::mouseReleaseEvent(event);
 }
@@ -209,17 +217,20 @@ Block* Block::findNextChildAt(QPointF pos)
     return nextBlock;
 }
 
-void Block::drawInsertLine(Block* nextBlock)
+QLineF Block::getInsertLineAt(Block* nextBlock)
 {
+    QLineF line;
     if (nextBlock != 0) {
-        QRectF rect = mapRectFromItem(nextBlock, nextBlock->boundingRect());
-        rect.translate(-OFFS/2, 0);
-        separatorLine->setLine(QLineF(rect.topLeft(), rect.bottomLeft()));
+        QRectF rect = nextBlock->mapRectToScene(nextBlock->boundingRect());
+        line = QLineF(rect.topLeft(), rect.bottomLeft());
+        line.translate(-OFFS/2, 0);
     } else {
-        //todo
+        Block *lastChild = blocklist_cast(childItems()).last();// must have at least 1 child
+        QRectF rect = lastChild->mapRectToScene(lastChild->boundingRect());
+        line = QLineF(rect.topRight(), rect.bottomRight());
+        line.translate(OFFS/2, 0);
     }
-
-    separatorLine->setVisible(true);
+    return line;
 }
 
 void Block::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
@@ -328,11 +339,12 @@ void Block::paint(QPainter *painter,
 {
     QRectF rect = boundingRect();
     painter->setPen(pen());
-    painter->fillRect(rect, Qt::white);
-    painter->drawRect(rect);
-    if (text != 0)
+    if (text != 0) {
+        painter->fillRect(rect, Qt::white);
         text->paint(painter, option, widget);
-    //QGraphicsRectItem::paint(painter, option, widget);    // kresli original rect
+    }
+    painter->drawRect(rect);
+
     scene()->update(scene()->sceneRect());
 }
 

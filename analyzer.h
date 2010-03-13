@@ -41,6 +41,7 @@ private:
     TreeElement* analyzeString(QString grammar, QString input);
     TreeElement* createTreeFromLuaStack();
     void checkPairing(TreeElement *element);
+    void shiftWhites(TreeElement *element); // move all whites as high as possible without changing tree text
 
     QMessageBox *msgBox; // for (error) mesasage
 };

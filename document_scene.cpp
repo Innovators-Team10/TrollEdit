@@ -4,7 +4,8 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
     : QGraphicsScene(parent)
 {
     this->analyzer = analyzer;
-    QString sample = "int   p  = 9;";//"int main() {\n/*aha*/ if (true) quack();\nreturn 0;\n}";
+//    QString sample = "int   p  = 9;";
+    QString sample = "int main() {//aha\n if (true) quack();\nreturn 0;\n}";
 
     root = analyzer->analyzeFull(sample);
     Block *block = new Block(root, 0, this);
@@ -12,6 +13,21 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
 
     setFocus(Qt::MouseFocusReason);
     modified = false;
+
+
+    insertLine = new QGraphicsLineItem(0, this);
+    insertLine->setVisible(false);
+    insertLine->setPen(QPen(QBrush(Qt::red), 2));
+    insertLine->setZValue(1);
+}
+
+void DocumentScene::showInsertLine(QLineF line) {
+    insertLine->setLine(line);
+    insertLine->setVisible(true);
+}
+
+void DocumentScene::hideInsertLine() {
+    insertLine->setVisible(false);
 }
 
 void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)

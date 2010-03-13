@@ -125,6 +125,14 @@ int TreeElement::childCount()
     return children.count();
 }
 
+int TreeElement::index()
+{
+    if (parent == 0)
+        return -1;
+    else
+        return parent->indexOfChild(this);
+}
+
 int TreeElement::indexOfChild(TreeElement *child)
 {
     return children.indexOf(child, 0);

@@ -18,6 +18,8 @@ public:
 
     //void loadFile(const QString &fileName);
     //void saveFile(const QString &fileName);
+    void showInsertLine(QLineF line);
+    void hideInsertLine();
 
     Analyzer *analyzer;
     bool modified;
@@ -34,8 +36,9 @@ private slots:
     void lostFocus(Block *block);
 
 private:
-    Block *clickedBlock;
     TreeElement *root;
+
+    QGraphicsLineItem *insertLine;
 
     Block* blockAt(QPointF pos);
 };

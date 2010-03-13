@@ -55,7 +55,7 @@ void Analyzer::setupConstants()
         lua_pop(L, 1);
     }
 
-/* // get tokens representing whitespace characters
+    /* // get tokens representing whitespace characters
     lua_getfield(L, LUA_GLOBALSINDEX, "white_chars");
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
@@ -74,8 +74,9 @@ Analyzer::~Analyzer()
     lua_close(L);               // cleanup Lua
 }
 
-QString Analyzer::getExtension() const {
-        return extension;
+QString Analyzer::getExtension() const
+{
+    return extension;
 }
 
 // analyze string by provided grammar
@@ -96,7 +97,33 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
     if(lua_istable(L, -1)) {
         root = createTreeFromLuaStack();                    // print result
     }
+
+    shiftWhites(root);
+
     return root;
+}
+
+void Analyzer::shiftWhites(TreeElement* element)
+{
+    QList<TreeElement*> whites;
+    for (TreeElement *el = element; el->hasNext(); el = el->next()) {
+        if (el->getType() == "whites")  //todo change to constant
+            whites << el;
+    }
+    foreach (TreeElement *el, whites) {
+        TreeElement *parent = el->getParent();
+        int index;
+        if (parent != 0) {
+            while(parent->indexOfChild(el) == parent->childCount()-1) {// el is the last child
+                if (parent->getParent() == 0)
+                    break;
+                parent->removeChild(el);
+                index = parent->index();
+                parent = parent->getParent();
+                parent->insertChild(index+1, el);   // insert after original parent
+            }
+        }
+    }
 }
 
 // analyze string, creates AST and returns root
