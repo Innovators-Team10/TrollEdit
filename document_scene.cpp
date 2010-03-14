@@ -1,11 +1,15 @@
 #include "document_scene.h"
+#include "analyzer.h"
+#include "tree_element.h"
+#include "block.h"
+
 
 DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
     : QGraphicsScene(parent)
 {
     this->analyzer = analyzer;
 //    QString sample = "int   p  = 9;";
-    QString sample = "int main() {//aha\n if (true) quack();\nreturn 0;\n}";
+    QString sample = "int main() {//...\n if (isDuck) quack();\nreturn 0;\n}";
 
     root = analyzer->analyzeFull(sample);
     Block *block = new Block(root, 0, this);
@@ -33,14 +37,16 @@ void DocumentScene::hideInsertLine() {
 void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::MidButton) { // create new block
-//        Block *parent = blockAt(event->scenePos());
-//        if (parent != 0 && parent->textItem() != 0) { // is leaf, todo: better function
-//            parent = parent->parentBlock();             // new blocks are only appended for now
-//        }
-//        Block *block = new Block(new TreeElement("TROLL!"), parent, this);
-//        if (parent == 0) {
-//            block->setPos(event->scenePos());
-//        }
+        Block *parent = blockAt(event->scenePos());
+        if (parent != 0 && parent->textItem() != 0) { // is leaf, todo: better function
+            parent = parent->parentBlock();             // new blocks are only appended for now
+        }
+        Block *block = new Block(new TreeElement("TROLL!"), 0, this);
+        if (parent != 0) {
+            block->setParentItem(parent);
+        } else {
+            block->setPos(event->scenePos());
+        }
     }
     if (event->button() == Qt::LeftButton) {
         //
@@ -81,7 +87,7 @@ void DocumentScene::lostFocus(Block *block)
     }
 }
 
-Block* DocumentScene::blockAt(QPointF pos)
+Block* DocumentScene::blockAt(QPointF pos) const
 {
     QGraphicsItem *item = itemAt(pos);
     if (item == 0)

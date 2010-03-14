@@ -2,12 +2,11 @@
 #define BLOCK_H
 
 #include <QGraphicsRectItem>
-#include <QWidget>
 #include <QtGui>
-#include "hide_block_button.h"
-#include "document_scene.h"
 
 class TreeElement;
+class DocumentScene;
+class HideBlockButton;
 
 class Block : public QObject, public QGraphicsRectItem
 {
@@ -15,6 +14,7 @@ class Block : public QObject, public QGraphicsRectItem
 
 public:
     Block(TreeElement *element, Block *parentBlock = 0, QGraphicsScene *parentScene = 0);
+    ~Block();
 
     enum { Type = UserType + 1 };
     int id;
@@ -24,15 +24,16 @@ public:
     void stackBefore (const QGraphicsItem *sibling);
 
     void setFolded(bool folded);
-    bool isFolded();
-    Block *parentBlock();
-    QGraphicsTextItem *textItem();
+    bool isFolded() const;
+    DocumentScene *scene() const;
+    Block *parentBlock() const;
+    QGraphicsTextItem *textItem() const;
 
     QPainterPath shape() const;
     int type() const;
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    QList<Block*> blocklist_cast(QList<QGraphicsItem*> list);
+    QList<Block*> blocklist_cast(QList<QGraphicsItem*> list) const;
 
     void setChanged();
 
@@ -41,8 +42,8 @@ signals:
 
 protected:
     void updateLayout();
-    Block* findNextChildAt(QPointF pos);
-    QLineF getInsertLineAt(Block* nextBlock);
+    Block* findNextChildAt(QPointF pos) const;
+    QLineF getInsertLineAt(const Block* nextBlock) const;
 
     void focusOutEvent(QFocusEvent *event);
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
@@ -79,11 +80,6 @@ private:
 
     Block *futureParent;
     Block *futureSibling;   // used for block insertion
-
-// for testing
-private slots:
-    void writeZ();
-    void writeToParent();
 };
 
 #endif // BLOCK_H

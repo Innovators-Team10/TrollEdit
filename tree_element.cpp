@@ -145,8 +145,8 @@ int TreeElement::indexOfDescendant(TreeElement *desc)
         return i;
     } else {
         for (i = 0; i < children.size(); i++) {
-            if (children[i]->indexOfDescendant(desc) > -1);
-            return i;
+            if (children[i]->indexOfDescendant(desc) > -1)
+                return i;
         }
     }
     return -1;

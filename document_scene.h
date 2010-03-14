@@ -2,11 +2,10 @@
 #define DOCUMENTSCENE_H
 
 #include <QGraphicsScene>
-#include <QtGui>
-#include "block.h"
-#include "analyzer.h"
-#include "tree_element.h"
 
+class TreeElement;
+class Analyzer;
+class Block;
 class DocumentTabs;
 
 class DocumentScene : public QGraphicsScene
@@ -40,7 +39,7 @@ private:
 
     QGraphicsLineItem *insertLine;
 
-    Block* blockAt(QPointF pos);
+    Block* blockAt(QPointF pos) const;
 };
 
 #endif // DOCUMENTSCENE_H
