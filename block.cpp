@@ -134,6 +134,7 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
         setPos(curPos);
     }
     QGraphicsRectItem::mousePressEvent(event);
+    scene()->update(scene()->sceneRect());
 }
 
 void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -188,6 +189,7 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         ((DocumentScene*)scene())->hideInsertLine();
     }
     QGraphicsRectItem::mouseReleaseEvent(event);
+    scene()->update(scene()->sceneRect());
 }
 
 Block* Block::findNextChildAt(QPointF pos)
@@ -344,8 +346,6 @@ void Block::paint(QPainter *painter,
         text->paint(painter, option, widget);
     }
     painter->drawRect(rect);
-
-    scene()->update(scene()->sceneRect());
 }
 
 void Block::setFolded(bool fold)
