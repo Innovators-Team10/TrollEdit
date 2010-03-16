@@ -7,6 +7,7 @@
 class TreeElement;
 class DocumentScene;
 class HideBlockButton;
+class TextItem;
 
 class Block : public QObject, public QGraphicsRectItem
 {
@@ -25,9 +26,12 @@ public:
 
     void setFolded(bool folded);
     bool isFolded() const;
+    bool isTextBlock() const;
+
     DocumentScene *scene() const;
     Block *parentBlock() const;
-    QGraphicsTextItem *textItem() const;
+    QList<Block*> childBlocks() const;
+    TextItem *textItem() const;
 
     QPainterPath shape() const;
     int type() const;
@@ -40,8 +44,17 @@ public:
 signals:
     void lostFocus(Block *block);
 
+public slots:
+    void textFocusChanged(QFocusEvent* event);
+    void textChanged();
+    void moveCursorLR(int key);
+    void moveCursorUD(int key);
+
 protected:
     void updateLayout();
+    qreal updateLine(int line, qreal yPos);
+    void updateChildrenPosAfter(Block *child);
+    void updateChildrenPosInLine(int line);
     Block* findNextChildAt(QPointF pos) const;
     QLineF getInsertLineAt(const Block* nextBlock) const;
 
@@ -51,6 +64,7 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
@@ -69,7 +83,8 @@ private:
     bool changed;   // changed after last updateLayout() call
 
     TreeElement *element;
-    QGraphicsTextItem *text;
+    TextItem *myTextItem;
+    int line;       // index of line in multiline parent
 
     // graphic elements
     HideBlockButton *hideButton;

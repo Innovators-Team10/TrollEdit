@@ -93,7 +93,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
         throw "Error in grammar \"" + grammar + "\" in script \"" + file_name + "\"";
     }
 
-    TreeElement *root = NULL;
+    TreeElement *root = 0;
     if(lua_istable(L, -1)) {
         root = createTreeFromLuaStack();                    // print result
     }
@@ -133,7 +133,7 @@ TreeElement* Analyzer::analyzeFull(QString input)
         return analyzeString(mainGrammar, input);
     } catch(QString exMsg) {
         msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
-        return NULL;
+        return 0;
     }
 }
 
@@ -142,14 +142,14 @@ TreeElement *Analyzer::analyzeElement(TreeElement* source)
 {
     TreeElement *element = source;
     QString grammar;
-    while (element->getParent() != NULL) {
+    while (element->getParent() != 0) {
         if (subGrammars.contains(element->getType())) {
             grammar = subGrammars[element->getType()];
             break;
         }
         element = element->getParent();
     }
-    if (element->getParent() != NULL && !grammar.isNull()) {
+    if (element->getParent() != 0 && !grammar.isNull()) {
         TreeElement *parent = element->getParent();
         int index = (*parent)[element];
         parent->removeChild(element);
@@ -201,12 +201,12 @@ int indentLevel = 0;
 // creates AST from recursive lua tables (from stack), returns root(s)
 TreeElement *Analyzer::createTreeFromLuaStack()
 {
-    TreeElement *root = NULL;
+    TreeElement *root = 0;
     lua_pushnil(L);               // first key
     while (lua_next(L, -2) != 0) {// uses 'key' (at index -2) and 'value' (at index -1)
         if(lua_istable(L, -1)) {
             TreeElement *child = createTreeFromLuaStack();
-            if (root == NULL) { // should not happen when tables are properly nested
+            if (root == 0) { // should not happen when tables are properly nested
                 root = child;
             } else {
                 root->appendChild(child);
@@ -245,7 +245,7 @@ void Analyzer::checkPairing(TreeElement *element)
                 TreeElement *item = siblings[index];
                 if (item->getType() == openString) {    // is matching?
                     PairedTreeElement *openEl = (PairedTreeElement *)siblings[index];
-                    if (openEl->getPair() == NULL) {  // is unused?
+                    if (openEl->getPair() == 0) {  // is unused?
                         openEl->setPair(pairedEl);
                         pairedEl->setPair(openEl);
                         break;

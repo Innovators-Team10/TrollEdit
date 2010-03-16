@@ -75,16 +75,6 @@ void DocumentScene::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
 
 void DocumentScene::lostFocus(Block *block)
 {
-    QGraphicsTextItem *textItem = block->textItem();
-    if (textItem != 0) {
-        QTextCursor cursor = textItem->textCursor();
-        cursor.clearSelection();
-        //    block->setTextCursor(cursor);
-        //        if (textItem->toPlainText().isEmpty()) {
-        //            removeItem(bltextItemock);
-        //            textItem->deleteLater();
-        //        }
-    }
 }
 
 Block* DocumentScene::blockAt(QPointF pos) const

@@ -1,6 +1,7 @@
 #include "block.h"
 #include "tree_element.h"
 #include "hide_block_button.h"
+#include "text_item.h"
 #include "document_scene.h"
 
 static int counter = 0;// testing only
@@ -10,6 +11,7 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
 {
     if (parentBlock == 0) { // adding directly to scene, no parent blocks
         parentScene->addItem(this);
+
     }
 
     while (!element->isImportant()) // skip "unimportant" elements
@@ -18,11 +20,12 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     this->element = element;
 
     if (element->isLeaf()) {
-        text = new QGraphicsTextItem(element->getType(), this);
-        if (parentBlock != 0)
-            parentBlock->setChanged();
+        myTextItem = new TextItem(element->getType(), this);     
+        myTextItem->setPos(OFFS, 0);
+        //        if (parentBlock != 0)
+        //            parentBlock->setChanged();
     } else {
-        text = 0;
+        myTextItem = 0;
         setToolTip(element->getType());
         foreach (TreeElement *childEl, element->getChildren()) {
             new Block(childEl, this);
@@ -31,15 +34,17 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     createControls();
     
     setFlag(QGraphicsItem::ItemIsMovable);
-    //setFlag(QGraphicsItem::ItemIsSelectable);
+    setFlag(QGraphicsItem::ItemIsFocusable);
 
     // connect(this, SIGNAL(lostFocus(Block*)), scene(), SLOT(lostFocus(Block*)));
 
     folded = false;
     pressed = false;
-    changed = true;
+
+    line = 0;
 
     id = counter++;
+    setChanged();  // this block (root) will update layout when first painted
 }
 
 Block::~Block()
@@ -48,14 +53,13 @@ Block::~Block()
 
 void Block::createControls()
 {
-//    if (element->isMultiLine()) {
-//        hideButton = new HideBlockButton(this);
-//        hideButton->setPixmap(QPixmap(":/res/Untitled.png"));
-//        hideButton->setPos(0,0);
-//        hideButton->setVisible(false);
-//        setAcceptHoverEvents(true);
-//    } else
-        hideButton = 0;
+    //    if (element->isMultiLine()) {
+    //        hideButton = new HideBlockButton(this);
+    //        hideButton->setPos(0,0);
+    //        hideButton->setVisible(false);
+    //        setAcceptHoverEvents(true);
+    //    } else
+    hideButton = 0;
 }
 
 void Block::childAdded(Block *newChild)
@@ -80,7 +84,7 @@ void Block::setParentItem (QGraphicsItem *parent)
         oldParentEl->deleteBranchTo(element);
         // temporary: if non-leaf element becomes leaf, fill it with text
         if (oldParentEl->isLeaf()) {
-            oldParent->text = new QGraphicsTextItem(oldParentEl->getType(), oldParent);
+            oldParent->myTextItem = new TextItem(oldParentEl->getType(), oldParent);
         }
     }
     // append to new parent element
@@ -124,10 +128,14 @@ Block *Block::parentBlock() const
     else
         return 0;
 }
-
-QGraphicsTextItem *Block::textItem() const
+QList<Block*> Block::childBlocks() const
 {
-    return text;
+    return blocklist_cast(childItems());
+}
+
+TextItem *Block::textItem() const
+{
+    return myTextItem;
 }
 
 QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -145,11 +153,116 @@ QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
 
 void Block::focusOutEvent(QFocusEvent *event)
 {
-    QGraphicsRectItem::focusOutEvent(event);
+
+    if (isTextBlock()) {
+        element->setType(myTextItem->toPlainText());
+        //        setChanged();
+    }
+}
+void Block::textFocusChanged(QFocusEvent* event)
+{
+    //    if (event->gotFocus())
+    //        focusInEvent(event);
+    if (event->lostFocus())
+        focusOutEvent(event);
+}
+void Block::textChanged()
+{
+    element->setType(myTextItem->toPlainText());
+    if (element->getType().contains("\n")) {
+        parentBlock()->updateChildrenPosAfter(this);
+    } else {
+        parentBlock()->updateChildrenPosInLine(line);
+    }
+}
+// original prehladny algoritmus
+//void Block::moveCursorLR(int key)
+//{
+//    Block *target = 0;
+//    Block *parent = parentBlock();
+//    if (parent != 0) {
+//        QList<Block*> children = parent->childBlocks();
+//        int index = children.indexOf(this);
+//        if (key == Qt::Key_Left) {
+//            if (index == 0) {
+//                parentBlock()->moveCursorLR(key);
+//                return;
+//            } else {
+//                target = children.at(index-1);
+//            }
+//            while (!target->isTextBlock()) {
+//                target = target->childBlocks().last();
+//            }
+//            target->textItem()->setTextCursorPosition(-1);
+//        }
+//        if (key == Qt::Key_Right) {
+//            if (index == children.size()-1) {
+//                parentBlock()->moveCursorLR(key);
+//                return;
+//            } else {
+//                target = children.at(index+1);
+//            }
+//            while (!target->isTextBlock()) {
+//                target = target->childBlocks().first();
+//            }
+//            target->textItem()->setTextCursorPosition(0);
+//        }
+//    } else {
+//        target = this;
+//        if (key == Qt::Key_Left) {
+//            while (!target->isTextBlock()) {
+//                target = target->childBlocks().last();
+//            }
+//            target->textItem()->setTextCursorPosition(-1);
+//        }
+//        if (key == Qt::Key_Right) {
+//            while (!target->isTextBlock()) {
+//                target = target->childBlocks().first();
+//            }
+//            target->textItem()->setTextCursorPosition(0);
+//        }
+//    }
+//}
+void Block::moveCursorLR(int key)
+{
+    Block *target = 0;
+    Block *parent = parentBlock();
+
+    if (parent != 0) {
+        QList<Block*> children = parent->childBlocks();
+        int index = children.indexOf(this);
+        if (key == Qt::Key_Left && index > 0) {
+            target = children.at(index-1);
+        } else if (key == Qt::Key_Right && index < children.size()-1) {
+            target = children.at(index+1);
+        } else {
+            parentBlock()->moveCursorLR(key);
+            return;
+        }
+    } else {
+        target = this;
+    }
+    if (key == Qt::Key_Left) {
+        while (!target->isTextBlock()) {
+            target = target->childBlocks().last();
+        }
+        target->textItem()->setTextCursorPosition(-1);
+    } else if (key == Qt::Key_Right) {
+        while (!target->isTextBlock()) {
+            target = target->childBlocks().first();
+        }
+        target->textItem()->setTextCursorPosition(0);
+    }
+}
+void Block::moveCursorUD(int key)
+{
 }
 
 void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    if (!QRectF(0,0,OFFS,boundingRect().height()).contains(event->pos()))
+        return;
+
     if (event->button() == Qt::LeftButton) {
         Block *oldParent = parentBlock();
         // remove from parent and add directly to scene
@@ -200,6 +313,8 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    if (!pressed) return;
+
     if (event->button() == Qt::LeftButton) {
         setZValue(0);               // restore z-value
 
@@ -214,15 +329,15 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         futureParent = 0;
         futureSibling = 0;
         scene()->hideInsertLine();
-        pressed = false;
     }
+    pressed = false;
     QGraphicsRectItem::mouseReleaseEvent(event);
     scene()->update(scene()->sceneRect());
 }
 
 Block* Block::findNextChildAt(QPointF pos) const
 {// note: distance is computed from pot left corner of block's bounding rect
-    QList<Block*> blocks = blocklist_cast(childItems());
+    QList<Block*> blocks = childBlocks();
     if (blocks.isEmpty())
         return 0;
 
@@ -255,7 +370,7 @@ QLineF Block::getInsertLineAt(const Block* nextBlock) const
         line = QLineF(rect.topLeft(), rect.bottomLeft());
         line.translate(-OFFS/2, 0);
     } else {                // after child if not provided
-        Block *lastChild = blocklist_cast(childItems()).last();// must have at least 1 child
+        Block *lastChild = childBlocks().last();// must have at least 1 child
         QRectF rect = lastChild->mapRectToScene(lastChild->boundingRect());
         line = QLineF(rect.topRight(), rect.bottomRight());
         line.translate(OFFS/2, 0);
@@ -293,38 +408,138 @@ void Block::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 
 void Block::setChanged()
 {
-    changed = true;
     Block *parent = parentBlock();
     if (parent != 0)
         parent->setChanged();
     else
-        updateLayout();
+        changed = true;
 }
 
 void Block::updateLayout()
 {
-    if (!changed)
-        return;
+    //    if (element->isMultiLine())
+    //        setAcceptHoverEvents(true);
 
-//    if (element->isMultiLine())
-//        setAcceptHoverEvents(true);
-
-    QList<Block*> blocks = blocklist_cast(childItems());
+    QList<Block*> blocks = childBlocks();
     QPointF nextPos = QPointF(OFFS, OFFS);
+    int line = 0;
     qreal maxHeight = 0;
+
     foreach (Block *child, blocks) {
+        child->line = line;
         child->updateLayout();
         child->setPos(nextPos);
-        QRectF rect = child->boundingRect();
-        rect = mapRectFromItem(child, rect);
-        if (rect.bottom() > maxHeight) maxHeight = rect.bottom();
 
-        if (child->element->getType().contains("\n"))// temporary
-            nextPos = QPointF(OFFS, maxHeight + OFFS);//down
-        else
-            nextPos = rect.topRight() + QPointF(OFFS, 0);//right
+        QSizeF size = child->boundingRect().size();
+        if (size.height() > maxHeight) maxHeight = size.height();
+
+        if (child->element->getType().contains("\n")) {// temporary
+            nextPos.rx() = OFFS;
+            nextPos.ry() += maxHeight + OFFS;   // down
+            line++;
+            maxHeight = 0;
+        } else {
+            nextPos.rx() += size.width() + OFFS;// right
+        }
     }
-    changed = false;
+}
+
+/*void Block::updateLayout()
+{
+    //    if (element->isMultiLine())
+    //        setAcceptHoverEvents(true);
+
+    QList<Block*> blocks = blocklist_cast(childItems());
+    qreal yPos = OFFS;
+    int line = 0;
+
+    foreach (Block *child, blocks) {
+        child->line = line;
+        if (child->element->getType().contains("\n")) {// temporary
+            line++;
+        }
+    }
+    for (int i = 0; i <= line; i++) {
+        yPos = updateLine(i, yPos);
+    }
+}
+qreal Block::updateLine(int line, qreal yPos)
+{
+    QList<Block*> blocks = blocklist_cast(childItems());
+    QPointF nextPos = QPointF(OFFS, yPos);
+    qreal maxHeight = 0;
+
+    foreach (Block *child, blocks) {
+        if (child->line < line)
+            continue;
+        if (child->line > line)
+            break;
+
+        child->updateLayout();
+        child->setPos(nextPos);
+        QSizeF size = child->boundingRect().size();
+        nextPos += QPointF(size.width() + OFFS, 0);
+
+        if (size.height() > maxHeight) maxHeight = size.height();
+    }
+    return yPos + maxHeight + OFFS;
+}*/
+
+void Block::updateChildrenPosAfter(Block *child)
+{
+    QList<Block*> blocks = childBlocks();
+    int index = blocks.indexOf(child);
+    if (index < 0) index = 0;
+
+    Block *firstBlock = blocks.at(index);
+    QPointF nextPos = firstBlock->pos();
+    int line = firstBlock->line;
+    qreal maxHeight = 0;
+
+    for (int i = 0; i < index; i++) {
+        Block *child = blocks.at(i);
+        qreal height = child->boundingRect().height();
+        if (height > maxHeight) maxHeight = height;
+    }
+    for (int i = index; i < blocks.size(); i++) {
+        Block *child = blocks.at(i);
+        child->line = line;
+        child->setPos(nextPos);
+
+        QSizeF size = child->boundingRect().size();
+        if (size.height() > maxHeight) maxHeight = size.height();
+
+        if (child->element->getType().contains("\n")) {// temporary
+            nextPos.rx() = OFFS;
+            nextPos.ry() += maxHeight + OFFS;   // down
+            line++;
+            maxHeight = 0;
+        } else {
+            nextPos.rx() += size.width() + OFFS;// right
+        }
+    }
+
+    Block *parent = parentBlock();
+    if (parent != 0)
+        parent->updateChildrenPosAfter(this);
+}
+
+void Block::updateChildrenPosInLine(int line) {
+
+    QList<Block*> blocks = childBlocks();
+    qreal xPos = OFFS;
+
+    foreach (Block *child, blocks) {
+        if (child->line < line)
+            continue;
+        if (child->line > line)
+            break;
+        child->setX(xPos);
+        xPos = xPos + child->boundingRect().width() + OFFS;
+    }
+    Block *parent = parentBlock();
+    if (parent != 0)
+        parent->updateChildrenPosInLine(this->line);
 }
 
 int Block::type() const
@@ -334,8 +549,8 @@ int Block::type() const
 
 QRectF Block::boundingRect() const
 {
-    if (text != 0)
-        return text->boundingRect(); 
+    if (isTextBlock())
+        return childrenBoundingRect().adjusted(-OFFS,0,0,0);
     QRectF rect = childrenBoundingRect();
     if (hideButton != 0)
         return rect.adjusted(0, 0, OFFS, OFFS);
@@ -343,7 +558,7 @@ QRectF Block::boundingRect() const
         return rect.adjusted(-OFFS, -OFFS, OFFS, OFFS);
 }
 
-QPainterPath Block::shape() const   // shape is used for collision detection
+QPainterPath Block::shape() const   // default implementation
 {
     QPainterPath path;
     path.addRect(boundingRect());
@@ -354,11 +569,20 @@ void Block::paint(QPainter *painter,
                   const QStyleOptionGraphicsItem *option,
                   QWidget *widget)
 {
+    if (changed) {
+        updateLayout();
+        changed = false;
+        //        return;
+    }
+
     QRectF rect = boundingRect();
     painter->setPen(pen());
     painter->fillRect(rect, Qt::white);
-    if (text != 0) {
-        text->paint(painter, option, widget);
+
+    painter->fillRect(QRectF(0,0,OFFS,rect.height()), Qt::lightGray);
+
+    if (isTextBlock()) {
+        // myTextItem->paint(painter, option, widget);
     }
     painter->drawRect(rect);
 }
@@ -371,23 +595,23 @@ void Block::setFolded(bool fold)
     } else {
         ;//todo unfold
     }
-
-    bool firstLine = true;
-    foreach (Block *child, blocklist_cast(childItems())) {    // hide/unhide children
-        if (firstLine) {
-            if (child->element->getType().contains("\n")) // todo: change to constant
-                firstLine = false;
-        } else {
+    foreach (Block *child, childBlocks()) {    // hide/unhide children
+        if (child->line > 0) {
             child->setVisible(!fold);
         }
     }
     folded = fold;                          // update folded flag
-//    setChanged();
+    setChanged();
 }
 
 bool Block::isFolded() const
 {
     return folded;
+}
+
+bool Block::isTextBlock() const
+{
+    return myTextItem != 0;
 }
 
 QList<Block*> Block::blocklist_cast(QList<QGraphicsItem*> list) const

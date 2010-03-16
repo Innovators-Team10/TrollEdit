@@ -12,11 +12,12 @@ SOURCES += main.cpp \
     analyzer.cpp \
     language_manager.cpp \
     tree_element.cpp \
-    paired_tree_element.cpp
+    paired_tree_element.cpp \
+    text_item.cpp
+
 # helpbrowser.cpp \
 # settingsdialog.cpp \
 # settingspages.cpp \
-
 HEADERS += mainwindow.h \
     document_tabs.h \
     document_scene.h \
@@ -25,11 +26,12 @@ HEADERS += mainwindow.h \
     analyzer.h \
     language_manager.h \
     tree_element.h \
-    paired_tree_element.h
+    paired_tree_element.h \
+    text_item.h
+
 # helpbrowser.h \
 # settingsdialog.h \
 # settingspages.h \
-
 RESOURCES += resources.qrc
 INCLUDEPATH += "lua\include"
 LIBS += "lua\lua5.1.dll"

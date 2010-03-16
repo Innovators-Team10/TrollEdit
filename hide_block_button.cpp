@@ -2,9 +2,9 @@
 #include "block.h"
 
 HideBlockButton::HideBlockButton(QGraphicsItem *parent)
-    : QGraphicsPixmapItem(parent)
+    : QGraphicsPixmapItem(QPixmap(":/res/Untitled.png"), parent)
 {
-    setAcceptHoverEvents(true);
+//    setAcceptHoverEvents(true);
 }
 
 void HideBlockButton::paint(QPainter *painter,
