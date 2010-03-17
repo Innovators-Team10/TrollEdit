@@ -8,5 +8,26 @@ DocumentTabs::DocumentTabs(QWidget *parent)
     documentNumber = 1;
     MainWindow *win = qobject_cast<MainWindow*>(parent);
     connect(this, SIGNAL(currentChanged(int)), win, SLOT(setCurrentFile(int)));
+
+    // this makes tabs to have close button
+    setTabsClosable(true);
+
+    // connect it to some close action, otherwise close button does nothing
+    QTabBar *tabs = tabBar();
+    connect(tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 }
-// zeby anonymna trieda??
+
+void DocumentTabs::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::MidButton) {
+        QTabBar *tabs = tabBar();
+        removeTab(tabs->tabAt(event->pos()));
+    }
+
+    QTabWidget::mousePressEvent(event);
+}
+
+void DocumentTabs::closeTab(int index)
+{
+    removeTab(index);
+}

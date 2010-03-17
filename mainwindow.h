@@ -29,6 +29,7 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private slots:
+    void setCurrentScene(int tabNumber);
     void newFile();
     void open();
     bool save();
@@ -77,10 +78,9 @@ private:
 
     QToolBar *formatToolBar;
 
-   // Analyzer *cAnalyzer;
-
     LanguageManager *langManager;
     DocumentTabs *documentTabs;
+    DocumentScene *currentScene;
     QStringList recentFiles;
     QString currentFile;
     //SettingsDialog *settingsDialog;
@@ -91,7 +91,6 @@ private:
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
     void load(QString fileName);
-    DocumentScene* currentScene();
     //void writeSettings();
     //void readSettings();
 };

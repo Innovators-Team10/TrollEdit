@@ -6,13 +6,10 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 {
     langManager = new LanguageManager(programPath);
     documentTabs = new DocumentTabs(this);
+    connect(documentTabs, SIGNAL(currentChanged(int)), this, SLOT(setCurrentScene(int)));
     setCentralWidget(documentTabs);
 
-
     //readSettings();
-
-    // single instance; scenes has only pointers set to this analyzer
-    //cAnalyzer = new Analyzer("grammars/c_grammar.lua");
 
     createActions();
     createMenus();
@@ -214,7 +211,7 @@ void MainWindow::open()
 void MainWindow::open(QString fileName)
 {
     if (!fileName.isEmpty() && QFile::exists(fileName)) {
-        DocumentScene *scene = currentScene();
+        DocumentScene *scene = currentScene;
 
         if (scene->modified) {
             newFile();
@@ -228,7 +225,7 @@ void MainWindow::open(QString fileName)
 void MainWindow::load(QString fileName)
 {
     /*QGraphicsView *view = static_cast<QGraphicsView*>(documentTabs->currentWidget());
-    DocumentScene *scene = currentScene();
+    DocumentScene *scene = currentScene;
     view->setObjectName(fileName);
     documentTabs->setTabText(documentTabs->currentIndex(), strippedName(fileName));
     setCurrentFile(documentTabs->currentIndex());
@@ -237,7 +234,7 @@ void MainWindow::load(QString fileName)
 
 bool MainWindow::save()
 {
-    /*DocumentScene *scene = currentScene();
+    /*DocumentScene *scene = currentScene;
     if(currentFile.isEmpty())
       return saveAs();
     else
@@ -250,7 +247,7 @@ bool MainWindow::saveAs()
 {
    /* QString fileFilters = tr("C Header file (*.h)\n" "C Source file (*.c)\n" "All files (*)");    // add support for other file types
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save file as..."), ".", fileFilters);
-    DocumentScene *scene = currentScene();
+    DocumentScene *scene = currentScene;
 
     if (!fileName.isEmpty())
     {
@@ -264,7 +261,7 @@ void MainWindow::openRecentFile()
 {
   /*  QAction *action = qobject_cast<QAction *>(sender());
     if (action) {
-        DocumentScene *scene = currentScene();
+        DocumentScene *scene = currentScene;
 
         if (scene->modified) {
             newFile();
@@ -318,7 +315,7 @@ void MainWindow::handleFontChange()
     font.setItalic(textItalicAction->isChecked());
     font.setUnderline(textUnderlineAction->isChecked());
 
-    DocumentScene *scene = currentScene();
+    DocumentScene *scene = currentScene;
     scene->setFont(font);*/
 }
 
@@ -381,7 +378,7 @@ void MainWindow::settings()
 
 bool MainWindow::closeTab()
 {
-    /*DocumentScene *scene = currentScene();
+    /*DocumentScene *scene = currentScene;
     if (scene->modified) {
         int ret = QMessageBox::warning(this, QString(tr("TrollText")),
             QString(tr("Do you want to save file %1?").arg(documentTabs->tabText(documentTabs->currentIndex()))),
@@ -397,9 +394,11 @@ bool MainWindow::closeTab()
     return true;
 }
 
-DocumentScene* MainWindow::currentScene() {
-    QGraphicsView *view = static_cast<QGraphicsView*>(documentTabs->currentWidget());
-    return static_cast<DocumentScene*>(view->scene());
+void MainWindow::setCurrentScene(int tabNumber) {
+    if (tabNumber >= 0) {
+        QGraphicsView *view = static_cast<QGraphicsView*>(documentTabs->currentWidget());
+        currentScene = static_cast<DocumentScene*>(view->scene());
+    }
 }
 
 void MainWindow::applyChanges()
