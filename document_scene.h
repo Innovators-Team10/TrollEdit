@@ -22,6 +22,7 @@ public:
 
     Analyzer *analyzer;
     bool modified;
+    void reanalyze();
 
 public slots:
 
@@ -36,6 +37,7 @@ private slots:
 
 private:
     TreeElement *root;
+    Block *mainBlock;
 
     QGraphicsLineItem *insertLine;
 

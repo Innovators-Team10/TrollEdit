@@ -179,7 +179,7 @@ statement =
 	TK"return" * N'expression'^-1 * T";"
 	),
 
-block =  (N'declaration' + N'statement')^0,
+block =  (N'declaration' + N'statement' + N'preprocessor')^0,
 
 case_statement = 
 	(N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":" * N'statement'^0,

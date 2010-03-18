@@ -12,8 +12,8 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
     QString sample = "int main() {//...\n if (isDuck) quack();\nreturn 0;\n}";
 
     root = analyzer->analyzeFull(sample);
-    Block *block = new Block(root, 0, this);
-    block->setPos(50,50);
+    mainBlock = new Block(root, 0, this);
+    mainBlock->setPos(50,50);
 
     setFocus(Qt::MouseFocusReason);
     modified = false;
@@ -75,6 +75,11 @@ void DocumentScene::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
 
 void DocumentScene::lostFocus(Block *block)
 {
+}
+
+void DocumentScene::reanalyze() {
+    mainBlock->setChanged();
+    update();
 }
 
 Block* DocumentScene::blockAt(QPointF pos) const

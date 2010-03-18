@@ -27,8 +27,12 @@ public:
     void setFolded(bool folded);
     bool isFolded() const;
     bool isTextBlock() const;
+    Block *getNextSibling() const;
+    Block *getPreviousSibling() const;
+    int numberOfLines() const;
+    int getLineAfter() const;
 
-    DocumentScene *scene() const;
+    DocumentScene *docScene() const;
     Block *parentBlock() const;
     QList<Block*> childBlocks() const;
     TextItem *textItem() const;
@@ -47,14 +51,16 @@ signals:
 public slots:
     void textFocusChanged(QFocusEvent* event);
     void textChanged();
+    void addNewLineAfterThis();
     void moveCursorLR(int key);
     void moveCursorUD(int key);
 
 protected:
-    void updateLayout();
-    qreal updateLine(int line, qreal yPos);
-    void updateChildrenPosAfter(Block *child);
-    void updateChildrenPosInLine(int line);
+    int getLineYPos(int line) const;
+
+    int updateLayout(int lineNo);
+    void updateChildrenPosAfter(Block *child, int lineNo);
+    void updateChildrenPosInLine(int lineNo);
     Block* findNextChildAt(QPointF pos) const;
     QLineF getInsertLineAt(const Block* nextBlock) const;
 

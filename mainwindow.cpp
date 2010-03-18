@@ -283,7 +283,7 @@ void MainWindow::about()
 
 void MainWindow::analyzeTab()
 {
-
+    currentScene()->reanalyze();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
