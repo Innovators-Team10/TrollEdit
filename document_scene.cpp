@@ -38,8 +38,8 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::MidButton) { // create new block
         Block *parent = blockAt(event->scenePos());
-        if (parent != 0 && parent->textItem() != 0) { // is leaf, todo: better function
-            parent = parent->parentBlock();             // new blocks are only appended for now
+        if (parent != 0 && parent->isTextBlock()) { // is leaf
+            parent = parent->getParentBlock();
         }
         Block *block = new Block(new TreeElement("TROLL!"), 0, this);
         if (parent != 0) {

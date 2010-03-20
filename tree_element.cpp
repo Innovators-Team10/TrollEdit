@@ -1,5 +1,7 @@
 #include "tree_element.h"
 
+const char *TreeElement::WHITE_EL = "whites";
+
 TreeElement::TreeElement(QString type)
 {
     parent = 0;
@@ -111,7 +113,14 @@ bool TreeElement::isMultiLine()
         return false;
     }
 }
-
+bool TreeElement::isNewline()
+{
+    return type.contains("\n");
+}
+bool TreeElement::isWhite()
+{
+    return (parent != 0 && parent->getType() == WHITE_EL);
+}
 bool TreeElement::hasSiblings()
 {
     if (parent != 0)

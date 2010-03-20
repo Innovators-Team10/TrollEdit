@@ -24,6 +24,8 @@ public:
      int indexOfChild(TreeElement* child);
      int indexOfDescendant(TreeElement *desc);
      bool isLeaf();
+     bool isNewline();
+     bool isWhite();
      bool hasSiblings();
 
      TreeElement *operator<<(TreeElement *child);
@@ -49,6 +51,8 @@ public:
      TreeElement *parent;
 
  private:
+     static const char *WHITE_EL;
+
      QList<TreeElement *> children;
      QString type;
      bool hasNext(int index);

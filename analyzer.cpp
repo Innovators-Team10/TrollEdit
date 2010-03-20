@@ -107,8 +107,8 @@ void Analyzer::shiftWhites(TreeElement* element)
 {
     QList<TreeElement*> whites;
     for (TreeElement *el = element; el->hasNext(); el = el->next()) {
-        if (el->getType() == "whites")  //todo change to constant
-            whites << el;
+        if (el->isWhite())
+            whites << el->getParent();
     }
     foreach (TreeElement *el, whites) {
         TreeElement *parent = el->getParent();

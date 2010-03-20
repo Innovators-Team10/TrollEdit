@@ -23,17 +23,18 @@ public:
     // overriden methods to provide AST consistency
     void setParentItem (QGraphicsItem *parent);
     void stackBefore (const QGraphicsItem *sibling);
+    Block *getParentBlock() const;
 
     void setFolded(bool folded);
     bool isFolded() const;
     bool isTextBlock() const;
     Block *getNextSibling() const;
-    Block *getPreviousSibling() const;
-    int numberOfLines() const;
-    int getLineAfter() const;
+    Block *getPrevSibling() const;
+    Block *getNextBlock(bool textOnly = false) const;
+    Block *getPrevBlock(bool textOnly = false) const;
+//    int numberOfLines() const;
+    void setLine(int newLine);
 
-    DocumentScene *docScene() const;
-    Block *parentBlock() const;
     QList<Block*> childBlocks() const;
     TextItem *textItem() const;
 
@@ -51,16 +52,15 @@ signals:
 public slots:
     void textFocusChanged(QFocusEvent* event);
     void textChanged();
-    void addNewLineAfterThis();
+    void addNewLineAfterThis(QString text);
     void moveCursorLR(int key);
     void moveCursorUD(int key);
 
 protected:
-    int getLineYPos(int line) const;
-
-    int updateLayout(int lineNo);
-    void updateChildrenPosAfter(Block *child, int lineNo);
-    void updateChildrenPosInLine(int lineNo);
+    QPointF computeNextSiblingPos() const;
+    void updateLayout(int lineNo);
+    void updatePos();
+    void updateXPosInLine();
     Block* findNextChildAt(QPointF pos) const;
     QLineF getInsertLineAt(const Block* nextBlock) const;
 
@@ -88,9 +88,11 @@ private:
     bool pressed;   // true while mouse is pressed
     bool changed;   // changed after last updateLayout() call
 
+    DocumentScene *docScene;
+    Block *parent;
     TreeElement *element;
     TextItem *myTextItem;
-    int line;       // index of line in multiline parent
+    int line;       // global index of line
 
     // graphic elements
     HideBlockButton *hideButton;
