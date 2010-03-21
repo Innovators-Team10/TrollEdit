@@ -19,30 +19,31 @@ public:
      bool removeDescendant(TreeElement *child);
      bool deleteBranchTo(TreeElement *desc);
      bool removeAllChildren();
-     int childCount();
-     int index();
-     int indexOfChild(TreeElement* child);
-     int indexOfDescendant(TreeElement *desc);
-     bool isLeaf();
-     bool isNewline();
-     bool isWhite();
-     bool hasSiblings();
+     int childCount() const;
+     int index() const;
+     int indexOfChild(const TreeElement* child) const;
+     int indexOfDescendant(const TreeElement *desc) const;
+     bool isLeaf() const;
+     bool isNewline() const;
+     bool isWhite() const;
+     bool isUnknown() const;
+     bool hasSiblings() const;
 
      TreeElement *operator<<(TreeElement *child);
      TreeElement *operator<<(QList<TreeElement *> children);
      TreeElement *operator[](int index);
      int operator[](TreeElement* child);
 
-     QList<TreeElement *> getChildren();
-     QList<TreeElement *> getAncestors();
-     QList<TreeElement *> getDescendants();
+     QList<TreeElement *> getChildren() const;
+     QList<TreeElement *> getAncestors() const;
+     QList<TreeElement *> getDescendants() const;
      TreeElement *getRoot();
-     TreeElement *getParent();
-     QString getType();
-     QString getText();
+     TreeElement *getParent() const;
+     QString getType() const;
+     QString getText() const;
 
-     bool isMultiLine();
-     bool isImportant();
+     bool isMultiLine() const;
+     bool isImportant() const;
 
      bool hasNext();
      TreeElement *next();
@@ -52,6 +53,7 @@ public:
 
  private:
      static const char *WHITE_EL;
+     static const char *UNKNOWN_EL;
 
      QList<TreeElement *> children;
      QString type;

@@ -3,7 +3,8 @@
 
 #include <QString>
 #include <QHash>
-#include "analyzer.h"
+
+class Analyzer;
 
 class LanguageManager
 {

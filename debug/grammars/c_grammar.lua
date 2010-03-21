@@ -40,8 +40,9 @@ end
 -- terminal, text node
 function T(arg)
 return
+	N'whites'^-1 *
 	Ct(C(arg)) *
-	WC()
+	N'comments'^-1
 end
 
 -- terminal, keyword text node
@@ -55,15 +56,8 @@ end
 -- terminal, comment node
 function TC(arg)
 return
-	Ct(C(arg)) *
-	N'whites'^-1
-end
-
--- terminal, whites and/or comments
-function WC()
-return
 	N'whites'^-1 *
-	N'comments'^-1
+	Ct(C(arg))
 end
 
 -- ***  GRAMMAR  ****
@@ -72,17 +66,17 @@ local grammar = {"S",
 -- ENTRY POINTS
 program =  
 	Ct(Cc("program") *
-	WC() *
+	N'comments'^-1 *
 	N'translation_unit'^0	*
 	N'unknown'^-1 *-1),
 top_element =  
 	Ct(
-	WC() *
+	N'comments'^-1 *
 	N'translation_unit'^0 *
 	N'unknown'^-1 *-1),
 in_block = 
 	Ct (
-	WC() *
+	N'comments'^-1 *
 	N'block'^-1 *
 	N'unknown'^-1),
 

@@ -1,6 +1,7 @@
 #include "tree_element.h"
 
 const char *TreeElement::WHITE_EL = "whites";
+const char *TreeElement::UNKNOWN_EL = "unknown";
 
 TreeElement::TreeElement(QString type)
 {
@@ -91,17 +92,17 @@ bool TreeElement::removeAllChildren()
     return true;
 }
 
-bool TreeElement::isLeaf()
+bool TreeElement::isLeaf() const
 {
     return !(children.count());
 }
 
-bool TreeElement::isImportant()
+bool TreeElement::isImportant() const
 {
     return childCount() != 1;
 }
 
-bool TreeElement::isMultiLine()
+bool TreeElement::isMultiLine() const
 {
     if (isLeaf()) {
         return type.contains("\n");
@@ -113,15 +114,19 @@ bool TreeElement::isMultiLine()
         return false;
     }
 }
-bool TreeElement::isNewline()
+bool TreeElement::isNewline() const
 {
     return type.contains("\n");
 }
-bool TreeElement::isWhite()
+bool TreeElement::isWhite() const
 {
     return (parent != 0 && parent->getType() == WHITE_EL);
 }
-bool TreeElement::hasSiblings()
+bool TreeElement::isUnknown() const
+{
+    return (parent != 0 && parent->getType() == UNKNOWN_EL);
+}
+bool TreeElement::hasSiblings() const
 {
     if (parent != 0)
         return parent->childCount() != 1;
@@ -129,12 +134,12 @@ bool TreeElement::hasSiblings()
         return false;
 }
 
-int TreeElement::childCount()
+int TreeElement::childCount() const
 {
     return children.count();
 }
 
-int TreeElement::index()
+int TreeElement::index() const
 {
     if (parent == 0)
         return -1;
@@ -142,12 +147,13 @@ int TreeElement::index()
         return parent->indexOfChild(this);
 }
 
-int TreeElement::indexOfChild(TreeElement *child)
+int TreeElement::indexOfChild(const TreeElement *child) const
 {
-    return children.indexOf(child, 0);
+    int p = children.indexOf(const_cast<TreeElement*>(child), 0);
+    return p;
 }
 
-int TreeElement::indexOfDescendant(TreeElement *desc)
+int TreeElement::indexOfDescendant(const TreeElement *desc) const
 {
     int i = indexOfChild(desc);
     if (i > -1) {
@@ -161,22 +167,23 @@ int TreeElement::indexOfDescendant(TreeElement *desc)
     return -1;
 }
 
-QList<TreeElement *> TreeElement::getChildren()
+QList<TreeElement *> TreeElement::getChildren() const
 {
     return children;
 }
 
-QList<TreeElement*> TreeElement::getAncestors()
+QList<TreeElement*> TreeElement::getAncestors() const
 {
     QList<TreeElement*> list;
-    TreeElement *e = this;
-    while ((e = e->getParent()) != 0) {
+    TreeElement *e = parent;
+    while (e != 0) {
         list << e;
+        e = e->getParent();
     }
     return list;
 }
 
-QList<TreeElement*> TreeElement::getDescendants()
+QList<TreeElement*> TreeElement::getDescendants() const
 {
     QList<TreeElement*> list;
     foreach (TreeElement *child, children) {
@@ -188,22 +195,24 @@ QList<TreeElement*> TreeElement::getDescendants()
 
 TreeElement *TreeElement::getRoot()
 {
-    if (parent == 0) return this;
-    else return parent->getRoot();
+    if (parent == 0)
+        return this;
+    else
+        return parent->getRoot();
 }
 
-TreeElement *TreeElement::getParent()
+TreeElement *TreeElement::getParent() const
 {
     return parent;
 }
 
-QString TreeElement::getType()
+QString TreeElement::getType() const
 {
     return type;
 }
 
 // returns all text in this element and it's descendants
-QString TreeElement::getText()
+QString TreeElement::getText() const
 {
     if (isLeaf())
         return type;
@@ -231,7 +240,7 @@ bool TreeElement::hasNext(int index)
 {
     if (index < childCount()) return true;
     if (parent == 0) return false;
-    return parent->hasNext((*parent)[this] + 1);
+    return parent->hasNext(parent->indexOfChild(this) + 1);
 }
 
 TreeElement *TreeElement::next(int index)

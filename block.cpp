@@ -16,6 +16,10 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     } else {
         parent = parentBlock;
         docScene = parent->docScene;
+
+        if (element->getParent() == 0) {
+            parentBlock->element->appendChild(element);
+        }
     }
 
     while (!element->isImportant()) // skip "unimportant" elements
@@ -40,6 +44,7 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
 
     folded = false;
     pressed = false;
+    edited = false;
 
     line = 0;
 
@@ -77,6 +82,7 @@ void Block::setParentItem (QGraphicsItem *parentItem)
         // temporary: if non-leaf element becomes leaf, fill it with text
         if (oldParentEl->isLeaf()) {
             oldParent->myTextItem = new TextItem(oldParentEl->getType(), oldParent);
+            oldParent->myTextItem->setPos(OFFS, 0);
         }
     }
     // append to new parent element
@@ -223,6 +229,12 @@ QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
     return ret;
 }
 
+void Block::focusInEvent(QFocusEvent *event)
+{
+    if (isTextBlock())
+        textItem()->setFocus();
+}
+
 void Block::focusOutEvent(QFocusEvent *event)
 {
     if (isTextBlock()) {
@@ -238,16 +250,15 @@ void Block::textChanged()
 {
     element->setType(myTextItem->toPlainText());
     updateXPosInLine();
+    edited = true;
 }
 void Block::addNewLineAfterThis(QString text)
 {
     if (parent != 0) {
-        Block *newBlock = new Block(new TreeElement(text), 0, docScene);
-        newBlock->setParentItem(parent);
+        Block *newBlock = new Block(new TreeElement(text), parent);
         newBlock->stackBefore(getNextSibling());
 
-        Block *newLine = new Block(new TreeElement("\n"), 0, docScene);
-        newLine->setParentItem(parent);
+        Block *newLine = new Block(new TreeElement("\n"), parent, docScene);
         newLine->stackBefore(newBlock);
         newLine->updatePos();
 
@@ -273,8 +284,10 @@ void Block::moveCursorUD(int key)
 
 void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (!QRectF(0,0,OFFS,boundingRect().height()).contains(event->pos()))
+    if (!QRectF(0,0,OFFS,boundingRect().height()).contains(event->pos())) {
+        QGraphicsRectItem::mousePressEvent(event);
         return;
+    }
 
     if (event->button() == Qt::LeftButton) {
         Block *oldParent = parent;
@@ -286,15 +299,17 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
             setPos(scenePos());
             setParentItem(0);
             next->updatePos();  // update blocks after removal
+            oldParent->edited = true;
         }
         pressed = true;
+        edited = true;
         setZValue(100);
         QPointF curPos = pos();
         mouseMoveEvent(event);  // updates futureParent/Sibling and draw separator line immediatelly
         setPos(curPos);
+        docScene->update();
     }
     QGraphicsRectItem::mousePressEvent(event);
-    docScene->update();
 }
 void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
@@ -337,6 +352,7 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
                 stackBefore(futureSibling);
             }
             futureParent->prepareGeometryChange();    // used to update graphics
+            futureParent->edited = true;
             updatePos();
         }
         futureParent = 0;
@@ -442,6 +458,7 @@ void Block::updateLayout(int lineNo) // parent to child updater
         if (child->element->isNewline()) lineNo++;
         nextPos = child->computeNextSiblingPos();
     }
+    edited = false;
 }
 
 void Block::updatePos() // child to parent updater
@@ -503,12 +520,16 @@ int Block::type() const
 
 QRectF Block::boundingRect() const
 {
-    if (isTextBlock())
-        return childrenBoundingRect().adjusted(-OFFS,0,0,0);
     QRectF rect = childrenBoundingRect();
-    if (hideButton != 0)
-        return rect.adjusted(0, 0, OFFS, OFFS);
-    else
+    if (isTextBlock()) {
+        if (element->isNewline())
+            rect.setHeight(rect.height()/2);
+        return rect.adjusted(-OFFS,0,0,0);
+    }
+
+//    if (hideButton != 0)
+//        return rect.adjusted(0, 0, OFFS, OFFS);
+//    else
         return rect.adjusted(-OFFS, -OFFS, OFFS, OFFS);
 }
 
@@ -534,10 +555,12 @@ void Block::paint(QPainter *painter,
 
     painter->fillRect(QRectF(0,0,OFFS,rect.height()), Qt::lightGray);
     painter->drawText(3, 15, QString("%1").arg(line));
+    QColor color = Qt::black;
+    if (element->isWhite()) color = Qt::darkGray;
+    else if (element->isUnknown()) color = Qt::darkRed;
+    else if (edited) color = Qt::darkYellow;
+    painter->setPen(color);
 
-    if (isTextBlock()) {
-        // myTextItem->paint(painter, option, widget);
-    }
     painter->drawRect(rect);
 }
 

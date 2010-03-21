@@ -28,7 +28,7 @@ void PairedTreeElement::setPair(PairedTreeElement *element)
     pair = element;
 }
 
-PairedTreeElement *PairedTreeElement::getPair()
+PairedTreeElement *PairedTreeElement::getPair() const
 {
     return pair;
 }

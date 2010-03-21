@@ -9,7 +9,7 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
 {
     this->analyzer = analyzer;
 //    QString sample = "int   p  = 9;";
-    QString sample = "int main() {//...\n if (isDuck) quack();\nreturn 0;\n}";
+    QString sample = "int main() {//comment\nif (isDuck)\n\tquack();\nreturn 0;\n}";
 
     root = analyzer->analyzeFull(sample);
     mainBlock = new Block(root, 0, this);
@@ -41,15 +41,19 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if (parent != 0 && parent->isTextBlock()) { // is leaf
             parent = parent->getParentBlock();
         }
-        Block *block = new Block(new TreeElement("TROLL!"), 0, this);
+        Block *block = new Block(new TreeElement("TROLL!"), parent, this);
         if (parent != 0) {
-            block->setParentItem(parent);
+            Block * next = parent->findNextChildAt(parent->mapFromScene(event->scenePos()));
+            block->stackBefore(next);
+            block->updatePos();
+            block->setFocus();
         } else {
             block->setPos(event->scenePos());
         }
+        update();
     }
     if (event->button() == Qt::LeftButton) {
-        //
+
     }
     if (event->button() == Qt::RightButton) { // AST testing
         QGraphicsItem *text = addText(root->getText());

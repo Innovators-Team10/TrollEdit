@@ -3,7 +3,6 @@
 
 #include <QList>
 #include <QString>
-#include <QTreeWidgetItem>
 #include "tree_element.h"
 
 class PairedTreeElement : public TreeElement
@@ -12,7 +11,7 @@ public:
     PairedTreeElement(QString type);
     PairedTreeElement(TreeElement *source);
     void setPair(PairedTreeElement *element);
-    PairedTreeElement *getPair();
+    PairedTreeElement *getPair() const;
 
     void select();
 

@@ -1,4 +1,6 @@
 #include "analyzer.h"
+#include "tree_element.h"
+#include "paired_tree_element.h"
 
 const char *Analyzer::EXTENSION_FIELD = "extension";
 const char *Analyzer::MAIN_GRAMMAR_FIELD = "full_grammar";
@@ -114,15 +116,46 @@ void Analyzer::shiftWhites(TreeElement* element)
         TreeElement *parent = el->getParent();
         int index;
         if (parent != 0) {
-            while(parent->indexOfChild(el) == parent->childCount()-1) {// el is the last child
+            while(parent->indexOfChild(el) == 0) {// el is the first child
                 if (parent->getParent() == 0)
                     break;
                 parent->removeChild(el);
                 index = parent->index();
                 parent = parent->getParent();
-                parent->insertChild(index+1, el);   // insert after original parent
+                parent->insertChild(index, el);   // insert before original parent
             }
+            if ((*el)[0]->isNewline())
+                splitNewlines(el);
         }
+    }
+}
+void Analyzer::splitNewlines(TreeElement *element)
+{
+    TreeElement *parent = element->getParent();
+    int index = element->index();
+    QString type = (*element)[0]->getType();
+    QString whites = element->getType();
+    QStringList list = type.split("\n");
+    if (list.size() > 1) {
+        parent->removeChild(element);
+        delete(element);
+        TreeElement *whiteEl;
+        foreach (QString str, list) {
+            if (!str.isEmpty()) {
+                whiteEl = new TreeElement(whites);
+                TreeElement *leafEl = new TreeElement(str);
+                whiteEl->appendChild(leafEl);
+                parent->insertChild(index, whiteEl);
+                index++;
+            }
+            whiteEl = new TreeElement(whites);
+            TreeElement *newlineEl = new TreeElement("\n");
+            whiteEl->appendChild(newlineEl);
+            parent->insertChild(index, whiteEl);
+            index++;
+        }
+        parent->removeChild(whiteEl);
+        delete(whiteEl);
     }
 }
 

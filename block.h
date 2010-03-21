@@ -14,7 +14,7 @@ class Block : public QObject, public QGraphicsRectItem
     Q_OBJECT
 
 public:
-    Block(TreeElement *element, Block *parentBlock = 0, QGraphicsScene *parentScene = 0);
+    Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentScene = 0);
     ~Block();
 
     enum { Type = UserType + 1 };
@@ -46,6 +46,11 @@ public:
 
     void setChanged();
 
+    Block* findNextChildAt(QPointF pos) const;
+    void updateLayout(int lineNo);
+    void updatePos();
+    void updateXPosInLine();
+
 signals:
     void lostFocus(Block *block);
 
@@ -58,12 +63,9 @@ public slots:
 
 protected:
     QPointF computeNextSiblingPos() const;
-    void updateLayout(int lineNo);
-    void updatePos();
-    void updateXPosInLine();
-    Block* findNextChildAt(QPointF pos) const;
     QLineF getInsertLineAt(const Block* nextBlock) const;
 
+    void focusInEvent(QFocusEvent *event);
     void focusOutEvent(QFocusEvent *event);
     QVariant itemChange(GraphicsItemChange change, const QVariant & value);
 
@@ -86,6 +88,7 @@ private:
 
     bool folded;    // true when block is folded
     bool pressed;   // true while mouse is pressed
+    bool edited;    // edited after last AST analysis
     bool changed;   // changed after last updateLayout() call
 
     DocumentScene *docScene;

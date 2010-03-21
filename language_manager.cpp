@@ -1,4 +1,5 @@
 #include "language_manager.h"
+#include "analyzer.h"
 #include <QDir>
 #include <QErrorMessage>
 #include <QMessageBox>

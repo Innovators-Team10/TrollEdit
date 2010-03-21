@@ -5,8 +5,9 @@
 #include <QString>
 #include <QMessageBox>
 #include <QMap>
-#include "tree_element.h"
-#include "paired_tree_element.h"
+
+class TreeElement;
+class PairedTreeElement;
 
 extern "C" {
 #include "lua.h"
@@ -42,6 +43,7 @@ private:
     TreeElement* createTreeFromLuaStack();
     void checkPairing(TreeElement *element);
     void shiftWhites(TreeElement *element); // move all whites as high as possible without changing tree text
+    void splitNewlines(TreeElement *element); // find all newlines in whites and split to independent elements
 
     QMessageBox *msgBox; // for (error) mesasage
 };
