@@ -244,7 +244,7 @@ line_comment = TC(P"//" * (1 - P"\n")^0),
 unknown = Ct(C(P(1)^1)), -- anything
 
 -- LITERALS
-whites = Ct(C(S(" \t\n")^1)),
+whites = Ct(C(S(" \t\n\r")^1)),
 
 digit = R"09",
 hex = R("af", "AF", "09"),
