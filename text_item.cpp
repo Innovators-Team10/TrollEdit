@@ -13,14 +13,25 @@ TextItem::TextItem(const QString &text, Block *parent)
     connect(this, SIGNAL(moveCursorUD(int)), parent, SLOT(moveCursorUD(int)));
 }
 
-void TextItem::setTextCursorPosition(int i) {
+void TextItem::setTextCursorPosition(int i) 
+{
     if (i < 0)
         i = toPlainText().length();
     textCursor().setPosition(i);
     setFocus();
 }
 
-void TextItem::keyPressEvent(QKeyEvent *event) {
+void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    // turn off dashed frame (which is present when edited) and do normal painting
+    QStyleOptionGraphicsItem *opt = const_cast<QStyleOptionGraphicsItem*>(option);
+    opt->state &= ~QStyle::State_Selected;
+    opt->state &= ~QStyle::State_HasFocus;
+    QGraphicsTextItem::paint(painter, opt, widget);
+}
+
+void TextItem::keyPressEvent(QKeyEvent *event) 
+{
     int cursorPos = textCursor().position();
     QString oldText = toPlainText();
 

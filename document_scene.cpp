@@ -18,11 +18,60 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
     setFocus(Qt::MouseFocusReason);
     modified = false;
 
-
     insertLine = new QGraphicsLineItem(0, this);
     insertLine->setVisible(false);
     insertLine->setPen(QPen(QBrush(Qt::red), 2));
     insertLine->setZValue(1);
+}
+
+void DocumentScene::loadFile(const QString &fileName)
+{
+    QFile file(fileName);
+
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(new QWidget, tr("TrollEdit"),
+                             tr("Cannot read file %1:\n%2.").arg(file.fileName()).arg(file.errorString()));
+        return;
+    }
+
+    QTextStream in(&file);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QString content = in.readAll();
+
+    // we have things from constructor we need to ged rid of
+    delete(mainBlock);
+    delete(root);
+
+    // these three lines almost same in constructor
+    root = analyzer->analyzeFull(content);
+    mainBlock = new Block(root, 0, this);
+    mainBlock->setPos(50,50);
+
+    // not needed later, but now we are painting all blocks
+    update();
+
+    QApplication::restoreOverrideCursor();
+}
+
+void DocumentScene::saveFile(const QString &fileName)
+{
+    QFile file(fileName);
+
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(new QWidget, tr("TrollEdit"),
+                             tr("Cannot write file %1:\n%2.").arg(file.fileName()).arg(file.errorString()));
+        return;
+    }
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QTextStream out(&file);
+
+    if (root)
+        out << root->getText();
+
+    QApplication::restoreOverrideCursor();
+
+    modified = false;
 }
 
 void DocumentScene::showInsertLine(QLineF line) {

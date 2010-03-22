@@ -189,9 +189,8 @@ void MainWindow::createToolBars()
 
 void MainWindow::newFile()
 {
-    DocumentScene *scene = new DocumentScene(langManager->getAnalyzerFor("c"));
+    DocumentScene *scene = new DocumentScene(langManager->getAnalyzerFor("c"));	// in future give default grammar to new file
     scene->setSceneRect(documentTabs->rect());
-    //scene->analyzer = cAnalyzer;    // in future give scene appropriate analyzer when filetype is known
     QGraphicsView *view = new QGraphicsView(scene);
     documentTabs->addTab(view, tr("Untitled %1").arg(DocumentTabs::documentNumber)); // nejde nieco ako pri title bare, ze indikujeme hviezdickou neulozene zmeny?
     documentTabs->setCurrentIndex(documentTabs->count() - 1);
@@ -213,7 +212,7 @@ void MainWindow::open(QString fileName)
     if (!fileName.isEmpty() && QFile::exists(fileName)) {
         DocumentScene *scene = currentScene;
 
-        if (scene->modified) {
+        if (!scene || scene->modified) {
             newFile();
             DocumentTabs::documentNumber--;
         }
@@ -224,42 +223,45 @@ void MainWindow::open(QString fileName)
 
 void MainWindow::load(QString fileName)
 {
-    /*QGraphicsView *view = static_cast<QGraphicsView*>(documentTabs->currentWidget());
+    QGraphicsView *view = static_cast<QGraphicsView*>(documentTabs->currentWidget());
     DocumentScene *scene = currentScene;
     view->setObjectName(fileName);
     documentTabs->setTabText(documentTabs->currentIndex(), strippedName(fileName));
     setCurrentFile(documentTabs->currentIndex());
-    scene->loadFile(fileName);*/
+    scene->analyzer = langManager->getAnalyzerFor("c"); // TODO: get analyzer based on extension
+    scene->loadFile(fileName);
 }
 
 bool MainWindow::save()
 {
-    /*DocumentScene *scene = currentScene;
-    if(currentFile.isEmpty())
+    DocumentScene *scene = currentScene;
+    if(!scene)
+        return false;
+
+    if (currentFile.isEmpty())
       return saveAs();
     else
       scene->saveFile(currentFile);
-    return true;*/
-    return false;//temp
+    return true;
 }
 
 bool MainWindow::saveAs()
 {
-   /* QString fileFilters = tr("C Header file (*.h)\n" "C Source file (*.c)\n" "All files (*)");    // add support for other file types
+    QString fileFilters = tr("C Header file (*.h)\n" "C Source file (*.c)\n" "All files (*)");    // add support for other file types
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save file as..."), ".", fileFilters);
     DocumentScene *scene = currentScene;
 
-    if (!fileName.isEmpty())
+    if (scene && !fileName.isEmpty())
     {
         scene->saveFile(fileName);
         return true;
-    } else*/
+    } else
         return false;
 }
 
 void MainWindow::openRecentFile()
 {
-  /*  QAction *action = qobject_cast<QAction *>(sender());
+    QAction *action = qobject_cast<QAction *>(sender());
     if (action) {
         DocumentScene *scene = currentScene;
 
@@ -269,7 +271,7 @@ void MainWindow::openRecentFile()
         }
 
         load(action->data().toString());
-  }*/
+  }
 }
 
 void MainWindow::about()
@@ -321,7 +323,7 @@ void MainWindow::handleFontChange()
 
 void MainWindow::updateRecentFileActions()
 {
-    /*QMutableStringListIterator i(recentFiles);
+    QMutableStringListIterator i(recentFiles);
     while (i.hasNext()) {
         if (!QFile::exists(i.next()))
             i.remove();
@@ -338,7 +340,7 @@ void MainWindow::updateRecentFileActions()
         }
     }
 
-    separatorAction->setVisible(!recentFiles.isEmpty());*/
+    separatorAction->setVisible(!recentFiles.isEmpty());
 }
 
 void MainWindow::setCurrentFile(int tabNumber)
@@ -398,7 +400,8 @@ void MainWindow::setCurrentScene(int tabNumber) {
     if (tabNumber >= 0) {
         QGraphicsView *view = static_cast<QGraphicsView*>(documentTabs->currentWidget());
         currentScene = static_cast<DocumentScene*>(view->scene());
-    }
+    } else
+        currentScene = 0;
 }
 
 void MainWindow::applyChanges()

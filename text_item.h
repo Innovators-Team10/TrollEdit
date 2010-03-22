@@ -12,10 +12,13 @@ class TextItem : public QGraphicsTextItem
 public:
     TextItem(const QString &text, Block *parent = 0);
     void setTextCursorPosition(int i);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
 protected:
     void keyPressEvent(QKeyEvent *event);
     void focusInEvent(QFocusEvent *event);
     void focusOutEvent(QFocusEvent *event);
+
 signals:
     void textChanged(QKeyEvent *event);
     void focusChanged(QFocusEvent *event);
