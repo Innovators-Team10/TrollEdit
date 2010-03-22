@@ -1,4 +1,5 @@
 #include "document_tabs.h"
+#include "main_window.h"
 
 int DocumentTabs::documentNumber;
 

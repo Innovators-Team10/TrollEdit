@@ -1,6 +1,9 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "analyzer.h"
+#include "main_window.h"
+#include "ui_main_window.h"
+#include "document_tabs.h"
+#include "document_scene.h"
+#include "../analysis/language_manager.h"
+#include "../analysis/analyzer.h"
 
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
@@ -202,7 +205,7 @@ void MainWindow::newFile()
 
 void MainWindow::open()
 {
-    QString fileFilters = tr("C Header file (*.h)\n" "C Source file (*.c)\n" "All files (*)");    // add support for other file types
+    QString fileFilters = tr("C Source file (*.c)\n" "All files (*)");    // add support for other file types
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), ".", fileFilters);
     open(fileName);
 }

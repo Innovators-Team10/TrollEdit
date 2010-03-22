@@ -3,12 +3,10 @@
 
 #include <QMainWindow>
 #include <QtGui>
-#include "document_tabs.h"
-#include "document_scene.h"
-#include "language_manager.h"
-//#include "settingsDialog.h"
-//#include "helpbrowser.h"
-//#include "settingspages.h"
+
+class DocumentTabs;
+class DocumentScene;
+class LanguageManager;
 
 class MainWindow : public QMainWindow
 {

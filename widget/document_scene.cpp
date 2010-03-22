@@ -1,7 +1,7 @@
 #include "document_scene.h"
-#include "analyzer.h"
-#include "tree_element.h"
-#include "block.h"
+#include "../analysis/analyzer.h"
+#include "../analysis/tree_element.h"
+#include "../gui/block.h"
 
 
 DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)

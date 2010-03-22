@@ -3,8 +3,6 @@
 
 #include <QTabWidget>
 
-#include "mainwindow.h"
-
 class DocumentTabs : public QTabWidget
 {
     Q_OBJECT

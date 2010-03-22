@@ -3,35 +3,33 @@
 # -------------------------------------------------
 TARGET = TrollEditor
 TEMPLATE = app
-SOURCES += main.cpp \
-    mainwindow.cpp \
-    document_tabs.cpp \
-    document_scene.cpp \
-    block.cpp \
-    hide_block_button.cpp \
-    analyzer.cpp \
-    language_manager.cpp \
-    tree_element.cpp \
-    paired_tree_element.cpp \
-    text_item.cpp
-
-# helpbrowser.cpp \
-# settingsdialog.cpp \
-# settingspages.cpp \
-HEADERS += mainwindow.h \
-    document_tabs.h \
-    document_scene.h \
-    block.h \
-    hide_block_button.h \
-    analyzer.h \
-    language_manager.h \
-    tree_element.h \
-    paired_tree_element.h \
-    text_item.h
-
-# helpbrowser.h \
-# settingsdialog.h \
-# settingspages.h \
+SOURCES += widget/main.cpp \
+    widget/main_window.cpp \
+    widget/document_tabs.cpp \
+    widget/document_scene.cpp \
+#
+    gui/block.cpp \
+    gui/hide_block_button.cpp \
+    gui/text_item.cpp \
+#
+    analysis/language_manager.cpp \
+    analysis/analyzer.cpp \
+    analysis/tree_element.cpp \
+    analysis/paired_tree_element.cpp
+#
+HEADERS += widget/main_window.h \
+    widget/document_tabs.h \
+    widget/document_scene.h \
+#
+    gui/block.h \
+    gui/hide_block_button.h \
+    gui/text_item.h \
+#
+    analysis/language_manager.h \
+    analysis/analyzer.h \
+    analysis/tree_element.h \
+    analysis/paired_tree_element.h
+#
 RESOURCES += resources.qrc
 INCLUDEPATH += "lua\include"
 LIBS += "lua\lua5.1.dll"

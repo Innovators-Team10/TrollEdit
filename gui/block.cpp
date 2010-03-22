@@ -1,8 +1,8 @@
 #include "block.h"
-#include "tree_element.h"
 #include "hide_block_button.h"
 #include "text_item.h"
-#include "document_scene.h"
+#include "../analysis/tree_element.h"
+#include "../widget/document_scene.h"
 
 static int counter = 0;// testing only
 

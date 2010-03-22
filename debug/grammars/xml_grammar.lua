@@ -79,7 +79,7 @@ number = T(NI'digit'^1),
 unknown = Ct(C(P(1)^1)), -- anything
 	
 -- LITERALS
-white = TP(S(" \t\n")^1),
+white = TP(S(" \t\n\r")^1),
 
 letter = R("az", "AZ"),
 digit = R("09"),
