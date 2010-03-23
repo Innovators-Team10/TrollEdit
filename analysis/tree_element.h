@@ -7,7 +7,7 @@
 class TreeElement
 {
 public:
-     TreeElement(QString type);
+     TreeElement(QString type = "");
      ~TreeElement();
 
      void setType(QString type);
@@ -25,6 +25,8 @@ public:
      int indexOfDescendant(const TreeElement *desc) const;
      bool isLeaf() const;
      bool isNewline() const;
+     bool setLineBreaking(bool flag);
+     bool isLineBreaking() const;
      bool isWhite() const;
      bool isUnknown() const;
      bool hasSiblings() const;
@@ -57,6 +59,7 @@ public:
 
      QList<TreeElement *> children;
      QString type;
+     bool lineBreaking;
      bool hasNext(int index);
      TreeElement *next(int index);
 };

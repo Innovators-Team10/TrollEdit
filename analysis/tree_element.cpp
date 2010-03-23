@@ -7,6 +7,7 @@ TreeElement::TreeElement(QString type)
 {
     parent = 0;
     this->type = type;
+    lineBreaking = false;
 }
 
 TreeElement::~TreeElement()
@@ -118,6 +119,18 @@ bool TreeElement::isNewline() const
 {
     return type.contains("\n");
 }
+bool TreeElement::setLineBreaking(bool flag)
+{
+    if (!isImportant())
+        return children[0]->setLineBreaking(flag);
+    if (lineBreaking == flag) return false;
+    lineBreaking = flag;
+    return true;
+}
+bool TreeElement::isLineBreaking() const
+{
+    return lineBreaking;
+}
 bool TreeElement::isWhite() const
 {
     return (parent != 0 && parent->getType() == WHITE_EL);
@@ -214,15 +227,16 @@ QString TreeElement::getType() const
 // returns all text in this element and it's descendants
 QString TreeElement::getText() const
 {
+    QString text;
     if (isLeaf())
-        return type;
+        text = type;
     else {
-        QString text;
         foreach (TreeElement *e, children) {
             text.append(e->getText());
         }
-        return text;
     }
+    if (lineBreaking) text.append("\n");
+    return text;
 }
 
 // iterator methods

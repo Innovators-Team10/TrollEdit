@@ -36,8 +36,16 @@ end
 -- terminal, text node
 function T(arg)
 return
+	N'whites'^-1 *
 	TP(arg) *
-	N'white'^-1
+	NI'nl'^0
+end
+
+-- terminal, without nwlines or comments
+function TC(arg)
+return
+	N'whites'^-1 *
+	Ct(C(arg))
 end
 
 -- terminal, plain node without comment or whitespaces
@@ -51,13 +59,16 @@ local grammar = {"S",
 
 -- ENTRY POINTS
 document =  
-	Ct(Cc("document") *
-	N'white'^-1 *
+	Ct(
+	Cc("document") *
+	NI'nl'^0 *
 	N'header'^-1 * N'element' *
 	N'unknown'^-1 *-1),
 	
 in_element =  
-	Ct(N'white'^-1 *
+	Ct(
+	N'whites'^-1 *
+	NI'nl'^0 *
 	(N'element')^0 *
 	N'unknown'^-1 *-1),
 	
@@ -76,10 +87,12 @@ name = T((NI'letter' + S("_:")) * NI'name_char'^0),
 word = T(NI'char'^1),
 number = T(NI'digit'^1),
 
-unknown = Ct(C(P(1)^1)), -- anything
+unknown = TP(P(1)^1), -- anything
 	
 -- LITERALS
-white = TP(S(" \t\n\r")^1),
+-- whites = TP(S(" \t\n\r")^1),
+whites = TP(S(" \t")^1),
+nl = TC(P"\r"^-1*P"\n"),
 
 letter = R("az", "AZ"),
 digit = R("09"),
@@ -98,4 +111,4 @@ in_element = P(grammar)
 -- TESTING - this script cannot be used by Analyzer.cpp when these lines are uncommented !!!
 
 -- dofile('default_grammar.lua')
--- test("../input.xml", document)
+-- test("../../input/input.xml", document)

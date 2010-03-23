@@ -1,0 +1,6 @@
+if (nieco) potom
+novy riadok
+  dalsi
+este jeden
+
+koniec

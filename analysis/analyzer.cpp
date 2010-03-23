@@ -108,54 +108,60 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 void Analyzer::shiftWhites(TreeElement* element)
 {
     QList<TreeElement*> whites;
+    QList<TreeElement*> newlines;
     for (TreeElement *el = element; el->hasNext(); el = el->next()) {
         if (el->isWhite())
             whites << el->getParent();
+        if (el->isNewline())
+            newlines << el;
     }
+    // process newlines: shift right as far as possible, remove and set lineBreaking flag
+    while (!newlines.isEmpty()) {
+        TreeElement *el = newlines.takeLast();  // list is traversed backwards
+        TreeElement *parent = el->getParent();
+        int index;
+        if (parent != 0) {
+            index = parent->indexOfChild(el) - 1;   // -1 because el will be removed before checking
+            parent->removeChild(el);   // destroy newline element
+            delete(el);
+            while(index == parent->childCount()-1) {// el was the last child
+                if (parent->getParent() == 0)
+                    break;
+                index = parent->index();
+                parent = parent->getParent();
+            }
+            TreeElement *nl = 0;
+            if (index < 0) { // add an empty line-breaking element at index = 0;
+                index = 0;
+                nl = new TreeElement();
+            } else {
+                if (!parent->getChildren().at(index)->setLineBreaking(true)) { // set newline flag
+                    // flag was already set -> add an empty line-breaking element at index+1
+                    index++;
+                    nl = new TreeElement();
+                }
+            }
+            if (nl != 0) {
+                nl->setLineBreaking(true);
+                parent->insertChild(index, nl);
+            }
+        }
+    }
+    // process other whites: shift left as far as possible, don't shift when in line-breaking element
     foreach (TreeElement *el, whites) {
         TreeElement *parent = el->getParent();
         int index;
         if (parent != 0) {
-            while(parent->indexOfChild(el) == 0) {// el is the first child
-                if (parent->getParent() == 0)
+            index = parent->indexOfChild(el);
+            parent->removeChild(el);        // remove
+            while(index == 0) {// el was the first child
+                if (parent->getParent() == 0 || parent->isLineBreaking())
                     break;
-                parent->removeChild(el);
                 index = parent->index();
                 parent = parent->getParent();
-                parent->insertChild(index, el);   // insert before original parent
             }
-            if ((*el)[0]->isNewline())
-                splitNewlines(el);
+            parent->insertChild(index, el); // insert
         }
-    }
-}
-void Analyzer::splitNewlines(TreeElement *element)
-{
-    TreeElement *parent = element->getParent();
-    int index = element->index();
-    QString type = (*element)[0]->getType();
-    QString whites = element->getType();
-    QStringList list = type.split("\n");
-    if (list.size() > 1) {
-        parent->removeChild(element);
-        delete(element);
-        TreeElement *whiteEl;
-        foreach (QString str, list) {
-            if (!str.isEmpty()) {
-                whiteEl = new TreeElement(whites);
-                TreeElement *leafEl = new TreeElement(str);
-                whiteEl->appendChild(leafEl);
-                parent->insertChild(index, whiteEl);
-                index++;
-            }
-            whiteEl = new TreeElement(whites);
-            TreeElement *newlineEl = new TreeElement("\n");
-            whiteEl->appendChild(newlineEl);
-            parent->insertChild(index, whiteEl);
-            index++;
-        }
-        parent->removeChild(whiteEl);
-        delete(whiteEl);
     }
 }
 

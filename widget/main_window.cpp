@@ -192,7 +192,7 @@ void MainWindow::createToolBars()
 
 void MainWindow::newFile()
 {
-    DocumentScene *scene = new DocumentScene(langManager->getAnalyzerFor("c"));	// in future give default grammar to new file
+    DocumentScene *scene = new DocumentScene(langManager->getAnalyzerFor("*")); // default grammar
     scene->setSceneRect(documentTabs->rect());
     QGraphicsView *view = new QGraphicsView(scene);
     documentTabs->addTab(view, tr("Untitled %1").arg(DocumentTabs::documentNumber)); // nejde nieco ako pri title bare, ze indikujeme hviezdickou neulozene zmeny?
@@ -205,7 +205,7 @@ void MainWindow::newFile()
 
 void MainWindow::open()
 {
-    QString fileFilters = tr("C Source file (*.c)\n" "All files (*)");    // add support for other file types
+    QString fileFilters = tr("All files (*)");
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), ".", fileFilters);
     open(fileName);
 }
@@ -231,7 +231,7 @@ void MainWindow::load(QString fileName)
     view->setObjectName(fileName);
     documentTabs->setTabText(documentTabs->currentIndex(), strippedName(fileName));
     setCurrentFile(documentTabs->currentIndex());
-    scene->analyzer = langManager->getAnalyzerFor("c"); // TODO: get analyzer based on extension
+    scene->analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
     scene->loadFile(fileName);
 }
 

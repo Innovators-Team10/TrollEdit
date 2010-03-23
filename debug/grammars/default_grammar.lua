@@ -11,14 +11,39 @@ paired = {}
 require 'lpeg'
 
 --patterns
-local P, V = lpeg.P, lpeg.V
+local P, V, S = lpeg.P, lpeg.V, lpeg.S
 --captures
 local C, Ct, Cc = lpeg.C, lpeg.Ct, lpeg.Cc
 
+
+-- nonterminal, general node
+function N(arg)
+return Ct(
+	Cc(arg) *
+	V(arg)
+	)
+end
+-- terminal, text node
+function T(arg)
+return
+	N'whites'^-1 *
+	Ct(C(arg))
+end
+
 -- ***  GRAMMAR  ****
 grammar = P{"text",
-text = Ct(Cc("text") * Ct(V'line')^1 * Ct(C(P(1)^0))),
-line = C((P(1)-P"\n")^0 * P"\n"),
+text = Ct(Cc("text") *
+	N'line'^0 *
+	N'unknown'^-1),
+line = N'word'^1 * V'nl'^1,
+word = T(V'char'^1),
+
+unknown = Ct(C(P(1)^1)), -- anything
+
+whites = Ct(C(S(" \t")^1)),
+nl = N'whites'^-1 * Ct(C(P"\r"^-1*P"\n")),
+char = P(1) - S(" \t\r\n")
+
 }
 -- ***  END OF GRAMMAR  ****
 
@@ -48,4 +73,4 @@ end
 --*******************************************************************
 -- TESTING - this script cannot be used by Analyzer.cpp when this line is uncommented !!!
 
--- test("../qrc_input.cpp", grammar)
+-- test("../../input/in.c", grammar)

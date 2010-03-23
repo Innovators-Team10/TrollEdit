@@ -41,8 +41,8 @@ end
 function T(arg)
 return
 	N'whites'^-1 *
-	Ct(C(arg)) *
-	N'comments'^-1
+	TP(arg) *
+	(NI'nl'^1 + N'comments')^0
 end
 
 -- terminal, keyword text node
@@ -53,10 +53,16 @@ return
 	T(arg))
 end
 
--- terminal, comment node
+-- terminal, without nwlines or comments
 function TC(arg)
 return
 	N'whites'^-1 *
+	TP(arg)
+end
+
+-- terminal, plain node without comment or whitespaces
+function TP(arg)
+return
 	Ct(C(arg))
 end
 
@@ -66,17 +72,17 @@ local grammar = {"S",
 -- ENTRY POINTS
 program =  
 	Ct(Cc("program") *
-	N'comments'^-1 *
-	N'translation_unit'^0	*
+	(NI'nl'^1 + N'comments')^0 *
+	N'translation_unit'^0 *
 	N'unknown'^-1 *-1),
 top_element =  
 	Ct(
-	N'comments'^-1 *
+	(NI'nl'^1 + N'comments')^0 *
 	N'translation_unit'^0 *
 	N'unknown'^-1 *-1),
 in_block = 
 	Ct (
-	N'comments'^-1 *
+	(NI'nl'^1 + N'comments')^0 *
 	N'block'^-1 *
 	N'unknown'^-1),
 
@@ -85,7 +91,7 @@ translation_unit = N'preprocessor' + N'funct_definition' + N'declaration',
 
 preprocessor = (NI'include' + ((TK"#define" + TK"#elif" + TK"#else" + TK"#endif" +
 	TK"#error" + TK"#ifdef" + TK"#ifndef" + TK"#if" + TK"#import" + TK"#include" + TK"#line" +
-	TK"#pragma" + TK"#undef") * T((1 - P"\n")^0))),
+	TK"#pragma" + TK"#undef") * T((1 - S"\n\r")^0))),
 	
 include = TK"#include" * T"<" * T((1 - P">")^1) * T">",
 
@@ -239,12 +245,13 @@ typedef_name = NI'identifier_name',
 
 doc_comment = TC(P"/**" * (1 - P"*/")^0 * P"*/"),
 multi_comment = TC(P"/*" * (1 - P"*/")^0 * P"*/"),
-line_comment = TC(P"//" * (1 - P"\n")^0),
+line_comment = TC(P"//" * (1 - S"\n\r")^0),
 
-unknown = Ct(C(P(1)^1)), -- anything
+unknown = TP(P(1)^1), -- anything
 
 -- LITERALS
-whites = Ct(C(S(" \t\n\r")^1)),
+whites = TP(S(" \t")^1),
+nl = TC(P"\r"^-1*P"\n"),
 
 digit = R"09",
 hex = R("af", "AF", "09"),
@@ -287,4 +294,4 @@ in_block = P(grammar)
 -- TESTING - this script cannot be used by Analyzer.cpp when these lines are uncommented !!!
 
 -- dofile('default_grammar.lua')
--- test("../input.c", program)
+-- test("../../input/in.c", program)

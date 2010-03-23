@@ -44,7 +44,7 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
 
     folded = false;
     pressed = false;
-    edited = false;
+    edited = true;
 
     line = 0;
 
@@ -154,8 +154,8 @@ Block *Block::getNextBlock(bool textOnly) const
         while (!next->isTextBlock()) {
             next = next->childBlocks().first();
         }
-        if (next->element->isNewline())
-            return next->getNextBlock(textOnly);
+//        if (next->element->isNewline())
+//            return next->getNextBlock(textOnly);
     }
     return next;
 }
@@ -173,8 +173,8 @@ Block *Block::getPrevBlock(bool textOnly) const
         while (!prev->isTextBlock()) {
             prev = prev->childBlocks().last();
         }
-        if (prev->element->isNewline())
-            return prev->getPrevBlock(textOnly);
+//        if (prev->element->isNewline())
+//            return prev->getPrevBlock(textOnly);
     }
     return prev;
 }
@@ -190,7 +190,7 @@ Block *Block::getPrevBlock(bool textOnly) const
 QPointF Block::computeNextSiblingPos() const
 {
     QPointF position = pos();
-    if (!element->isNewline() || parent == 0) {
+    if (!element->isLineBreaking() || parent == 0) {
         position.rx() += OFFS + boundingRect().width();
     } else {
         position.rx() = OFFS;
@@ -198,9 +198,11 @@ QPointF Block::computeNextSiblingPos() const
         qreal maxHeight = 0;
         foreach (Block *child, parent->childBlocks()) {
             maxHeight = qMax(maxHeight, child->boundingRect().height());
+            if (child->element->isLineBreaking() && child != this)
+                maxHeight = 0;
             if (child == this) break;
         }
-        position.ry() += OFFS + maxHeight;
+        position.ry() += OFFS/2 + maxHeight;//boundingRect().height();
     }
     return position;
 }
@@ -251,16 +253,16 @@ void Block::textChanged()
     element->setType(myTextItem->toPlainText());
     updateXPosInLine();
     edited = true;
+    docScene->update();
 }
 void Block::addNewLineAfterThis(QString text)
 {
     if (parent != 0) {
+        this->element->setLineBreaking(true);
+        Block *next = getNextSibling();
         Block *newBlock = new Block(new TreeElement(text), parent);
-        newBlock->stackBefore(getNextSibling());
-
-        Block *newLine = new Block(new TreeElement("\n"), parent, docScene);
-        newLine->stackBefore(newBlock);
-        newLine->updatePos();
+        newBlock->stackBefore(next);
+        newBlock->updatePos();
 
         newBlock->textItem()->setFocus();
         docScene->update();
@@ -449,13 +451,13 @@ void Block::updateLayout(int lineNo) // parent to child updater
         // used to update everything from root up, updates line numbers
 {
     line = lineNo;
-    QPointF nextPos = QPointF(OFFS, OFFS);
+    QPointF nextPos = QPointF(OFFS, OFFS/2);
     foreach (Block *child, childBlocks()) {
         child->line = lineNo;
         child->updateLayout(lineNo);
         child->setPos(nextPos);
 
-        if (child->element->isNewline()) lineNo++;
+        if (child->element->isLineBreaking()) lineNo++;
         nextPos = child->computeNextSiblingPos();
     }
     edited = false;
@@ -473,11 +475,11 @@ void Block::updatePos() // child to parent updater
 
     if (prevSibling != 0) {
         lineNo = prevSibling->line;
-        if (prevSibling->element->isNewline()) lineNo++;
+        if (prevSibling->element->isLineBreaking()) lineNo++;
         nextPos = prevSibling->computeNextSiblingPos();
     } else {
         lineNo = parent->line;
-        nextPos = QPointF(OFFS, OFFS);
+        nextPos = QPointF(OFFS, OFFS/2);
     }
 
     QList<Block*> children = parent->childBlocks();
@@ -488,7 +490,7 @@ void Block::updatePos() // child to parent updater
         child->setLine(lineNo);
 
         nextPos = child->computeNextSiblingPos();
-        if (child->element->isNewline()) lineNo++;
+        if (child->element->isLineBreaking()) lineNo++;
     }
     // this block and its siblings are updated, repeat with parent
     parent->updatePos();
@@ -522,15 +524,13 @@ QRectF Block::boundingRect() const
 {
     QRectF rect = childrenBoundingRect();
     if (isTextBlock()) {
-        if (element->isNewline())
-            rect.setHeight(rect.height()/2);
         return rect.adjusted(-OFFS,0,0,0);
     }
 
 //    if (hideButton != 0)
 //        return rect.adjusted(0, 0, OFFS, OFFS);
 //    else
-        return rect.adjusted(-OFFS, -OFFS, OFFS, OFFS);
+        return rect.adjusted(-OFFS, -OFFS/2, OFFS, OFFS/2);
 }
 
 QPainterPath Block::shape() const   // default implementation
@@ -552,15 +552,16 @@ void Block::paint(QPainter *painter,
     QRectF rect = boundingRect();
     painter->setPen(pen());
     painter->fillRect(rect, Qt::white);
+    
+    QColor color = Qt::lightGray;
+    if (element->isWhite()) color = Qt::lightGray;
+    else if (element->isUnknown()) color = Qt::red;
+    if (edited) color = Qt::yellow;
 
-    painter->fillRect(QRectF(0,0,OFFS,rect.height()), Qt::lightGray);
+    if (element->isLineBreaking()) color = Qt::blue;
+
+    painter->fillRect(QRectF(0,0,OFFS,rect.height()), color);
     painter->drawText(3, 15, QString("%1").arg(line));
-    QColor color = Qt::black;
-    if (element->isWhite()) color = Qt::darkGray;
-    else if (element->isUnknown()) color = Qt::darkRed;
-    else if (edited) color = Qt::darkYellow;
-    painter->setPen(color);
-
     painter->drawRect(rect);
 }
 
