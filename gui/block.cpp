@@ -154,8 +154,8 @@ Block *Block::getNextBlock(bool textOnly) const
         while (!next->isTextBlock()) {
             next = next->childBlocks().first();
         }
-//        if (next->element->isNewline())
-//            return next->getNextBlock(textOnly);
+        //        if (next->element->isNewline())
+        //            return next->getNextBlock(textOnly);
     }
     return next;
 }
@@ -173,8 +173,8 @@ Block *Block::getPrevBlock(bool textOnly) const
         while (!prev->isTextBlock()) {
             prev = prev->childBlocks().last();
         }
-//        if (prev->element->isNewline())
-//            return prev->getPrevBlock(textOnly);
+        //        if (prev->element->isNewline())
+        //            return prev->getPrevBlock(textOnly);
     }
     return prev;
 }
@@ -220,14 +220,14 @@ TextItem *Block::textItem() const
 QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     QVariant ret = QGraphicsRectItem::itemChange(change, value);
-//    if (change == QGraphicsItem::ItemChildAddedChange
-//        || change == QGraphicsItem::ItemChildRemovedChange) {
-//        QGraphicsItem *item = value.value<QGraphicsItem*>();
-//        Block *child = qgraphicsitem_cast<Block*>(item);
-//        if (child != 0) {
-//            setChanged();
-//        }
-//    }
+    //    if (change == QGraphicsItem::ItemChildAddedChange
+    //        || change == QGraphicsItem::ItemChildRemovedChange) {
+    //        QGraphicsItem *item = value.value<QGraphicsItem*>();
+    //        Block *child = qgraphicsitem_cast<Block*>(item);
+    //        if (child != 0) {
+    //            setChanged();
+    //        }
+    //    }
     return ret;
 }
 
@@ -255,20 +255,43 @@ void Block::textChanged()
     edited = true;
     docScene->update();
 }
-void Block::addNewLineAfterThis(QString text)
+void Block::splitLine(int cursorPos)    // algorithm still in construction
 {
-    if (parent != 0) {
-        this->element->setLineBreaking(true);
-        Block *next = getNextSibling();
-        Block *newBlock = new Block(new TreeElement(text), parent);
-        newBlock->stackBefore(next);
-        newBlock->updatePos();
+    if (parent == 0) return;
+    if (parent->element->isLineBreaking()) {
+        // update this
+        QString text = "";
+        if (cursorPos >= 0) {
+            text = textItem()->toPlainText();
+            textItem()->setPlainText(text.left(cursorPos));
+            text.remove(0,cursorPos);
+        }
+        bool alreadyBreaking = !this->element->setLineBreaking(true);
 
-        newBlock->textItem()->setFocus();
+        // create new block
+        if (!text.isEmpty() || alreadyBreaking) {
+            Block *next = getNextSibling();
+            Block *newBlock = new Block(new TreeElement(text), parent);
+            newBlock->element->setLineBreaking(alreadyBreaking);
+            newBlock->stackBefore(next);
+        }
+
+        updatePos();
+        getNextBlock(true)->setFocus();
         docScene->update();
+    } else if (cursorPos >= 0) {
+        if (cursorPos == 0) {
+            Block *block = getPrevBlock();
+            if (block->parent != 0 && block->parent->element->isLineBreaking())
+                block->splitLine();
+        } else if (cursorPos == textItem()->toPlainText().length()) {
+            Block *block = getNextBlock();
+            if (block->parent != 0 && block->parent->element->isLineBreaking())
+                block->getPrevBlock()->splitLine();
+        }
     }
-
 }
+
 void Block::moveCursorLR(int key)
 {
     Block *target = 0;
@@ -527,10 +550,10 @@ QRectF Block::boundingRect() const
         return rect.adjusted(-OFFS,0,0,0);
     }
 
-//    if (hideButton != 0)
-//        return rect.adjusted(0, 0, OFFS, OFFS);
-//    else
-        return rect.adjusted(-OFFS, -OFFS/2, OFFS, OFFS/2);
+    //    if (hideButton != 0)
+    //        return rect.adjusted(0, 0, OFFS, OFFS);
+    //    else
+    return rect.adjusted(-OFFS, -OFFS/2, OFFS, OFFS/2);
 }
 
 QPainterPath Block::shape() const   // default implementation
@@ -554,14 +577,18 @@ void Block::paint(QPainter *painter,
     painter->fillRect(rect, Qt::white);
     
     QColor color = Qt::lightGray;
-    if (element->isWhite()) color = Qt::lightGray;
-    else if (element->isUnknown()) color = Qt::red;
+    if (element->isUnknown()) color = Qt::red;
     if (edited) color = Qt::yellow;
-
-    if (element->isLineBreaking()) color = Qt::blue;
-
     painter->fillRect(QRectF(0,0,OFFS,rect.height()), color);
-    painter->drawText(3, 15, QString("%1").arg(line));
+
+    //*****
+//    if (element->isLineBreaking())
+//        painter->fillRect(QRectF(0,0,OFFS,OFFS), Qt::blue);
+//    if (element->allowsMultiline())
+//        painter->fillRect(QRectF(0,OFFS,OFFS,OFFS), Qt::green);
+    //*****
+
+//    painter->drawText(3, 15, QString("%1").arg(line));
     painter->drawRect(rect);
 }
 

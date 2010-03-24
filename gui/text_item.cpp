@@ -8,7 +8,7 @@ TextItem::TextItem(const QString &text, Block *parent)
 //    myTextItem->setFont(QFont("Courier"));
     connect(this, SIGNAL(focusChanged(QFocusEvent*)), parent, SLOT(textFocusChanged(QFocusEvent*)));
     connect(document(), SIGNAL(contentsChanged()), parent, SLOT(textChanged()));
-    connect(this, SIGNAL(enterPressed(QString)), parent, SLOT(addNewLineAfterThis(QString)));
+    connect(this, SIGNAL(enterPressed(int)), parent, SLOT(splitLine(int)));
     connect(this, SIGNAL(moveCursorLR(int)), parent, SLOT(moveCursorLR(int)));
     connect(this, SIGNAL(moveCursorUD(int)), parent, SLOT(moveCursorUD(int)));
 }
@@ -36,10 +36,7 @@ void TextItem::keyPressEvent(QKeyEvent *event)
     QString oldText = toPlainText();
 
     if (event->key() == Qt::Key_Return) {
-        QString textAfter = oldText.right(oldText.length()-cursorPos);
-        oldText.truncate(cursorPos);
-        document()->setPlainText(oldText);
-        emit enterPressed(textAfter);
+        emit enterPressed(cursorPos);
         return;
     }
     QGraphicsTextItem::keyPressEvent(event);

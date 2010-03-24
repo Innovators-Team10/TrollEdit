@@ -7,7 +7,7 @@
 class TreeElement
 {
 public:
-     TreeElement(QString type = "");
+     TreeElement(QString type = "", bool multilineAllowed = false, bool lineBreaking = false);
      ~TreeElement();
 
      void setType(QString type);
@@ -27,6 +27,7 @@ public:
      bool isNewline() const;
      bool setLineBreaking(bool flag);
      bool isLineBreaking() const;
+     bool allowsMultiline() const;
      bool isWhite() const;
      bool isUnknown() const;
      bool hasSiblings() const;
@@ -44,7 +45,6 @@ public:
      QString getType() const;
      QString getText() const;
 
-     bool isMultiLine() const;
      bool isImportant() const;
 
      bool hasNext();
@@ -60,6 +60,7 @@ public:
      QList<TreeElement *> children;
      QString type;
      bool lineBreaking;
+     bool multiLineAllowed;
      bool hasNext(int index);
      TreeElement *next(int index);
 };

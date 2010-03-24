@@ -24,7 +24,7 @@ signals:
     void focusChanged(QFocusEvent *event);
     void moveCursorLR(int key);
     void moveCursorUD(int key);
-    void enterPressed(QString text);
+    void enterPressed(int cursorPos);
 };
 
 #endif // TEXT_ITEM_H

@@ -57,7 +57,7 @@ signals:
 public slots:
     void textFocusChanged(QFocusEvent* event);
     void textChanged();
-    void addNewLineAfterThis(QString text);
+    void splitLine(int cursorPos = -1);
     void moveCursorLR(int key);
     void moveCursorUD(int key);
 

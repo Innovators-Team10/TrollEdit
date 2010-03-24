@@ -4,7 +4,7 @@
 <message>    
   <event>
     <type>alert</type>
-
+	
     <priority>1.0</priority>
   </event>
   <event>

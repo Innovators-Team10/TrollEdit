@@ -11,6 +11,8 @@ other_grammars = {
 	element="in_element", 
 }
 paired = {"<", ">", "el_start", "el_end"}
+multi_line = {"unknown"}
+multi_block = {"document", "element"}
 
 require 'lpeg'
 
@@ -38,17 +40,10 @@ function T(arg)
 return
 	N'whites'^-1 *
 	TP(arg) *
-	NI'nl'^0
+	N'nl'^0
 end
 
--- terminal, without nwlines or comments
-function TC(arg)
-return
-	N'whites'^-1 *
-	Ct(C(arg))
-end
-
--- terminal, plain node without comment or whitespaces
+-- terminal, plain node without comments or whitespaces
 function TP(arg)
 return
 	Ct(C(arg))
@@ -61,14 +56,14 @@ local grammar = {"S",
 document =  
 	Ct(
 	Cc("document") *
-	NI'nl'^0 *
+	N'nl'^0 *
 	N'header'^-1 * N'element' *
 	N'unknown'^-1 *-1),
 	
 in_element =  
 	Ct(
 	N'whites'^-1 *
-	NI'nl'^0 *
+	N'nl'^0 *
 	(N'element')^0 *
 	N'unknown'^-1 *-1),
 	
@@ -90,9 +85,8 @@ number = T(NI'digit'^1),
 unknown = TP(P(1)^1), -- anything
 	
 -- LITERALS
--- whites = TP(S(" \t\n\r")^1),
-whites = TP(S(" \t")^1),
-nl = TC(P"\r"^-1*P"\n"),
+whites = TP(S(" \t")^1),	-- spaces and tabs
+nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), -- single newline, preceding spaces are ignored
 
 letter = R("az", "AZ"),
 digit = R("09"),

@@ -3,11 +3,12 @@
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
 
-TreeElement::TreeElement(QString type)
+TreeElement::TreeElement(QString type, bool multiLineAllowed, bool lineBreaking)
 {
     parent = 0;
     this->type = type;
-    lineBreaking = false;
+    this->lineBreaking = lineBreaking;
+    this->multiLineAllowed = multiLineAllowed;
 }
 
 TreeElement::~TreeElement()
@@ -103,21 +104,9 @@ bool TreeElement::isImportant() const
     return childCount() != 1;
 }
 
-bool TreeElement::isMultiLine() const
-{
-    if (isLeaf()) {
-        return type.contains("\n");
-    }else {
-        foreach (TreeElement *el, children) {
-            if (el->isMultiLine())
-                return true;
-        }
-        return false;
-    }
-}
 bool TreeElement::isNewline() const
 {
-    return type.contains("\n");
+    return (parent != 0 && parent->getType() == "nl"); // todo temp
 }
 bool TreeElement::setLineBreaking(bool flag)
 {
@@ -130,6 +119,10 @@ bool TreeElement::setLineBreaking(bool flag)
 bool TreeElement::isLineBreaking() const
 {
     return lineBreaking;
+}
+bool TreeElement::allowsMultiline() const
+{
+    return multiLineAllowed;
 }
 bool TreeElement::isWhite() const
 {
@@ -254,14 +247,15 @@ bool TreeElement::hasNext(int index)
 {
     if (index < childCount()) return true;
     if (parent == 0) return false;
-    return parent->hasNext(parent->indexOfChild(this) + 1);
+    return parent->hasNext(this->index() + 1);
 }
 
 TreeElement *TreeElement::next(int index)
 {
-    if (index < childCount()) return children.at(index);
+    if (index < childCount())
+        return children.at(index);
     if (parent == 0) return 0;
-    return parent->next((*parent)[this] + 1);
+    return parent->next(this->index() + 1);
 }
 
 // operators

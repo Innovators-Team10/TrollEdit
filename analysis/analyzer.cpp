@@ -6,6 +6,8 @@ const char *Analyzer::EXTENSION_FIELD = "extension";
 const char *Analyzer::MAIN_GRAMMAR_FIELD = "full_grammar";
 const char *Analyzer::SUB_GRAMMARS_FIELD = "other_grammars";
 const char *Analyzer::PAIRED_TOKENS_FIELD = "paired";
+const char *Analyzer::MULTI_LINE_TOKENS_FIELD = "multi_line";
+const char *Analyzer::MULTI_BLOCK_TOKENS_FIELD = "multi_block";
 const QString Analyzer::TAB = "    ";
 
 QString exception;
@@ -57,6 +59,20 @@ void Analyzer::setupConstants()
         lua_pop(L, 1);
     }
 
+    // get multi-line tokens
+    lua_getfield(L, LUA_GLOBALSINDEX, MULTI_LINE_TOKENS_FIELD);
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        multiLineTokens.append(QString(lua_tostring(L, -1)));
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, LUA_GLOBALSINDEX, MULTI_BLOCK_TOKENS_FIELD);
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        multiBlockTokens.append(QString(lua_tostring(L, -1)));
+        lua_pop(L, 1);
+    }
+
     /* // get tokens representing whitespace characters
     lua_getfield(L, LUA_GLOBALSINDEX, "white_chars");
     lua_pushnil(L);
@@ -105,15 +121,120 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
     return root;
 }
 
+// analyze string, creates AST and returns root
+TreeElement* Analyzer::analyzeFull(QString input)
+{
+    try {
+        return analyzeString(mainGrammar, input);
+    } catch(QString exMsg) {
+        msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
+        return 0;
+    }
+}
+
+// reanalyze text from element and it's descendants, modifies AST and returns root
+TreeElement *Analyzer::analyzeElement(TreeElement* source)
+{
+    TreeElement *element = source;
+    QString grammar;
+    while (element->getParent() != 0) {
+        if (subGrammars.contains(element->getType())) {
+            grammar = subGrammars[element->getType()];
+            break;
+        }
+        element = element->getParent();
+    }
+    if (element->getParent() != 0 && !grammar.isNull()) {
+        TreeElement *parent = element->getParent();
+        int index = (*parent)[element];
+        parent->removeChild(element);
+        try{
+            TreeElement *subRoot = analyzeString(grammar, element->getText());
+            parent->insertChild(index, subRoot);
+        } catch(QString exMsg) {
+            msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
+            return source;
+        }
+        delete element;
+        return parent->getRoot();
+    } else {
+        TreeElement *root = analyzeFull(element->getRoot()->getText());
+        delete element->getRoot();
+        return root;
+    }
+
+}
+
+// creates AST from recursive lua tables (from stack), returns root(s)
+TreeElement *Analyzer::createTreeFromLuaStack()
+{
+    TreeElement *root = 0;
+    lua_pushnil(L);               // first key
+    while (lua_next(L, -2) != 0) {// uses 'key' (at index -2) and 'value' (at index -1)
+        if(lua_istable(L, -1)) {
+            TreeElement *child = createTreeFromLuaStack();
+            if (root == 0) { // should not happen when tables are properly nested
+                root = child;
+            } else {
+                root->appendChild(child);
+                checkPairing(child);
+            }
+        } else {
+            QString nodeName = QString(lua_tostring(L, -1));
+            int pairIndex = pairedTokens.indexOf(nodeName, 0);
+
+            if (pairIndex >= 0) {               // pairing needed
+                root = new PairedTreeElement(nodeName);
+            } else {
+                root = new TreeElement(nodeName, multiBlockTokens.contains(nodeName));
+            }
+        }
+        lua_pop(L, 1); // removes 'value'; keeps 'key' for next iteration
+    }
+    return root;
+}
+
+void Analyzer::checkPairing(TreeElement *element)
+{
+    QString nodeName = element->getType();
+    int pairIndex = pairedTokens.indexOf(nodeName, 0);
+    if (pairIndex >= 0) {               // pairing needed
+        PairedTreeElement *pairedEl = (PairedTreeElement *)element;
+
+        if (pairIndex % 2 == 1) {   // closing element found
+            QList<TreeElement *> siblings = pairedEl->getParent()->getChildren();
+            siblings.removeOne(pairedEl);
+            int index = siblings.size()-1;
+
+            QString openString = pairedTokens[pairIndex-1];
+            while (index >= 0) {
+                // find closest matching unused opening element
+                TreeElement *item = siblings[index];
+                if (item->getType() == openString) {    // is matching?
+                    PairedTreeElement *openEl = (PairedTreeElement *)siblings[index];
+                    if (openEl->getPair() == 0) {  // is unused?
+                        openEl->setPair(pairedEl);
+                        pairedEl->setPair(openEl);
+                        break;
+                    }
+                }
+                index--;
+            }
+        }
+    }
+}
+
 void Analyzer::shiftWhites(TreeElement* element)
 {
     QList<TreeElement*> whites;
     QList<TreeElement*> newlines;
-    for (TreeElement *el = element; el->hasNext(); el = el->next()) {
+    TreeElement *el = element;
+    while (el->hasNext()) {
+        el = el->next();
         if (el->isWhite())
             whites << el->getParent();
         if (el->isNewline())
-            newlines << el;
+            newlines << el->getParent();
     }
     // process newlines: shift right as far as possible, remove and set lineBreaking flag
     while (!newlines.isEmpty()) {
@@ -161,137 +282,6 @@ void Analyzer::shiftWhites(TreeElement* element)
                 parent = parent->getParent();
             }
             parent->insertChild(index, el); // insert
-        }
-    }
-}
-
-// analyze string, creates AST and returns root
-TreeElement* Analyzer::analyzeFull(QString input)
-{
-    try {
-        return analyzeString(mainGrammar, input);
-    } catch(QString exMsg) {
-        msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
-        return 0;
-    }
-}
-
-// reanalyze text from element and it's descendants, modifies AST and returns root
-TreeElement *Analyzer::analyzeElement(TreeElement* source)
-{
-    TreeElement *element = source;
-    QString grammar;
-    while (element->getParent() != 0) {
-        if (subGrammars.contains(element->getType())) {
-            grammar = subGrammars[element->getType()];
-            break;
-        }
-        element = element->getParent();
-    }
-    if (element->getParent() != 0 && !grammar.isNull()) {
-        TreeElement *parent = element->getParent();
-        int index = (*parent)[element];
-        parent->removeChild(element);
-        try{
-            TreeElement *subRoot = analyzeString(grammar, element->getText());
-            parent->insertChild(index, subRoot);
-        } catch(QString exMsg) {
-            msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
-            return source;
-        }
-        delete element;
-        return parent->getRoot();
-    } else {
-        TreeElement *root = analyzeFull(element->getRoot()->getText());
-        delete element->getRoot();
-        return root;
-    }
-
-}
-
-int indentLevel = 0;
-
-// formats text from tree, original whitespaces supressed
-//QString Analyzer::formatTree(TreeElement *source)
-//{
-//    QString text;
-//    if (source->isLeaf()) {
-//        QString parentType = source->getParent()->getType();
-//        if (whiteSpaces.contains(parentType)) text.append(" ");
-//        else {
-//            text.append(source->getText());
-//            if (parentType == endLineToken) {
-//                text.append("\n");
-//                for(int i=0; i<indentLevel; i++) text.append(TAB);
-//            } /*else if (parentType == indentTokens[0])
-//                indentLevel++;
-//            else if (parentType == indentTokens[1])
-//                indentLevel--;*/
-//        }
-//    } else {
-//        foreach (TreeElement *e, source->getChildren()) {
-//            text.append(formatTree(e));
-//        }
-//
-//    }
-//    return text;
-//}
-
-// creates AST from recursive lua tables (from stack), returns root(s)
-TreeElement *Analyzer::createTreeFromLuaStack()
-{
-    TreeElement *root = 0;
-    lua_pushnil(L);               // first key
-    while (lua_next(L, -2) != 0) {// uses 'key' (at index -2) and 'value' (at index -1)
-        if(lua_istable(L, -1)) {
-            TreeElement *child = createTreeFromLuaStack();
-            if (root == 0) { // should not happen when tables are properly nested
-                root = child;
-            } else {
-                root->appendChild(child);
-                checkPairing(child);
-            }
-        } else {
-            QString nodeName = QString(lua_tostring(L, -1));
-            int pairIndex = pairedTokens.indexOf(nodeName, 0);
-
-            if (pairIndex >= 0) {               // pairing needed
-                root = new PairedTreeElement(nodeName);
-            } else {
-                root = new TreeElement(nodeName);
-            }
-        }
-        lua_pop(L, 1); // removes 'value'; keeps 'key' for next iteration
-    }
-    return root;
-}
-
-void Analyzer::checkPairing(TreeElement *element)
-{
-    QString nodeName = element->getType();
-    int pairIndex = pairedTokens.indexOf(nodeName, 0);
-    if (pairIndex >= 0) {               // pairing needed
-        PairedTreeElement *pairedEl = (PairedTreeElement *)element;
-
-        if (pairIndex % 2 == 1) {   // closing element found
-            QList<TreeElement *> siblings = pairedEl->getParent()->getChildren();
-            siblings.removeOne(pairedEl);
-            int index = siblings.size()-1;
-
-            QString openString = pairedTokens[pairIndex-1];
-            while (index >= 0) {
-                // find closest matching unused opening element
-                TreeElement *item = siblings[index];
-                if (item->getType() == openString) {    // is matching?
-                    PairedTreeElement *openEl = (PairedTreeElement *)siblings[index];
-                    if (openEl->getPair() == 0) {  // is unused?
-                        openEl->setPair(pairedEl);
-                        pairedEl->setPair(openEl);
-                        break;
-                    }
-                }
-                index--;
-            }
         }
     }
 }

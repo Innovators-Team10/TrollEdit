@@ -7,6 +7,8 @@ extension = ""
 full_grammar = "grammar"
 other_grammars = {}
 paired = {}
+multi_line = {"unknown"}
+multi_block = {"text"}
 
 require 'lpeg'
 
@@ -33,15 +35,16 @@ end
 -- ***  GRAMMAR  ****
 grammar = P{"text",
 text = Ct(Cc("text") *
+	N'nl'^0 *
 	N'line'^0 *
 	N'unknown'^-1),
-line = N'word'^1 * V'nl'^1,
+line = N'word'^1 * N'nl'^1,
 word = T(V'char'^1),
 
 unknown = Ct(C(P(1)^1)), -- anything
 
-whites = Ct(C(S(" \t")^1)),
-nl = N'whites'^-1 * Ct(C(P"\r"^-1*P"\n")),
+whites = Ct(C(S(" \t")^1)),	-- spaces and tabs
+nl = S(" \t")^0 * Ct(C(P"\r"^-1*P"\n")),	-- single newline, preceding spaces are ignored
 char = P(1) - S(" \t\r\n")
 
 }
@@ -73,4 +76,4 @@ end
 --*******************************************************************
 -- TESTING - this script cannot be used by Analyzer.cpp when this line is uncommented !!!
 
--- test("../../input/in.c", grammar)
+-- test("../../input/text.txt", grammar)

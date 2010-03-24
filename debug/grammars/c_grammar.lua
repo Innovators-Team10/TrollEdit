@@ -1,7 +1,6 @@
 -- C grammar
 --
 -- TODO:
--- preprocessing instructuions anywhere?
 -- enumeration constant?
 
 -- BUGS:
@@ -15,6 +14,11 @@ other_grammars = {
 	translation_unit="top_element"
 }
 paired = {"{", "}", "(", ")", "[", "]", }
+multi_line = {"multi_comment", "doc_comment", "unknown",}		-- terminals
+multi_block = {"program", "block", "translation_unit", "statement",		-- nonterminals
+	"funct_definition", 
+	"struct_or_union_specifier", "enum_specifier", "initializer",
+	}		
 
 require 'lpeg'
 
@@ -42,7 +46,7 @@ function T(arg)
 return
 	N'whites'^-1 *
 	TP(arg) *
-	(NI'nl'^1 + N'comments')^0
+	(N'nl'^1 + N'comment')^0
 end
 
 -- terminal, keyword text node
@@ -53,14 +57,7 @@ return
 	T(arg))
 end
 
--- terminal, without nwlines or comments
-function TC(arg)
-return
-	N'whites'^-1 *
-	TP(arg)
-end
-
--- terminal, plain node without comment or whitespaces
+-- terminal, plain node without comment or any whitespaces
 function TP(arg)
 return
 	Ct(C(arg))
@@ -72,17 +69,17 @@ local grammar = {"S",
 -- ENTRY POINTS
 program =  
 	Ct(Cc("program") *
-	(NI'nl'^1 + N'comments')^0 *
+	(N'nl'^1 + N'comment')^0 *
 	N'translation_unit'^0 *
 	N'unknown'^-1 *-1),
 top_element =  
 	Ct(
-	(NI'nl'^1 + N'comments')^0 *
+	(N'nl'^1 + N'comment')^0 *
 	N'translation_unit'^0 *
 	N'unknown'^-1 *-1),
 in_block = 
 	Ct (
-	(NI'nl'^1 + N'comments')^0 *
+	(N'nl'^1 + N'comment')^0 *
 	N'block'^-1 *
 	N'unknown'^-1),
 
@@ -158,13 +155,16 @@ initializer =  N'assignment_expression' +
 type_name =  (N'type_specifier' + N'type_qualifier')^1 * N'abstract_declarator'^-1,
 
 abstract_declarator =
-	N'pointer'^-1 * (T"(" * N'abstract_declarator' * T")")^-1 * (
+	N'pointer' * (T"(" * N'abstract_declarator' * T")")^-1 * (
 	T"[" * N'constant_expression'^-1 * T"]" +
 	T"(" * N'parameter_type_list'^-1 * T")"
-	)^0,
+	)^0 +
+	(T"(" * N'abstract_declarator' * T")")^-1 * (
+	T"[" * N'constant_expression'^-1 * T"]" +
+	T"(" * N'parameter_type_list'^-1 * T")"
+	)^1,
 	
 statement =
--- 	((N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":")^0 * 
 	(N'expression'^-1 * T";" +
 	T"{" * N'block' * T"}" +
 	TK"if" * T"(" * N'expression' * T")" * N'statement' * TK"else" * N'statement' +
@@ -233,7 +233,7 @@ constant =
 	-- N'enumeration_constant'
 	,
 
-comments = (N'doc_comment' + N'multi_comment' + N'line_comment')^1,
+comment = N'whites'^-1 * (N'doc_comment' + N'multi_comment' + N'line_comment'),
 
 -- TERMINALS
 number_constant = NI'number_literal',
@@ -243,15 +243,15 @@ string_constant = NI'string_literal',
 identifier = NI'identifier_name',
 typedef_name = NI'identifier_name',
 
-doc_comment = TC(P"/**" * (1 - P"*/")^0 * P"*/"),
-multi_comment = TC(P"/*" * (1 - P"*/")^0 * P"*/"),
-line_comment = TC(P"//" * (1 - S"\n\r")^0),
+doc_comment = TP(P"/**" * (1 - P"*/")^0 * P"*/"),
+multi_comment = TP(P"/*" * (1 - P"*/")^0 * P"*/"),
+line_comment = TP(P"//" * (1 - S"\r\n")^0),
 
 unknown = TP(P(1)^1), -- anything
 
 -- LITERALS
-whites = TP(S(" \t")^1),
-nl = TC(P"\r"^-1*P"\n"),
+whites = TP(S(" \t")^1),	-- spaces and tabs
+nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), -- single newline, preceding spaces are ignores	
 
 digit = R"09",
 hex = R("af", "AF", "09"),
