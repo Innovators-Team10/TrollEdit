@@ -257,12 +257,12 @@ void Analyzer::processWhites(TreeElement* element)
             TreeElement *nl = 0;
             if (index < 0) { // add an empty (possibly multi-text) line-breaking element at index = 0;
                 index = 0;
-                nl = new TreeElement("", true, false, true);
+                nl = new TreeElement("", false, false, true);
             } else {
                 if (!parent->getChildren().at(index)->setLineBreaking(true)) { // set newline flag
                     // flag was already set -> add an empty line-breaking element at index+1
                     index++;
-                    nl = new TreeElement("", true, false, true);
+                    nl = new TreeElement("", false, false, true);
                 }
             }
             if (nl != 0) {

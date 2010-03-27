@@ -89,6 +89,7 @@ protected:
 
 private:
     static int OFFS;
+    static QHash<int, Block*> lineStarts;
     static int lastLine;
 
     bool folded;    // true when block is folded

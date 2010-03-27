@@ -128,15 +128,14 @@ void DocumentScene::lostFocus(Block *block)
 }
 
 void DocumentScene::reanalyze() {
-    QGraphicsItem *item = focusItem();
-    QGraphicsTextItem *textItem;
-    if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
-        item = textItem->parentItem();
+//    QGraphicsItem *item = focusItem();
+//    QGraphicsTextItem *textItem;
+//    if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
+//        item = textItem->parentItem();
 //    Block *block = qgraphicsitem_cast<Block*>(item);
 
 //    if (block == 0) {
         QString text = root->getText();
-//        mainBlock->deleteLater();
         delete(mainBlock);
         delete(root);
         root = analyzer->analyzeFull(text);
