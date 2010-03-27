@@ -30,7 +30,7 @@ private:
     static const char *SUB_GRAMMARS_FIELD;
     static const char *PAIRED_TOKENS_FIELD;
     static const char *MULTI_LINE_TOKENS_FIELD;
-    static const char *MULTI_BLOCK_TOKENS_FIELD;
+    static const char *MULTI_TEXT_TOKENS_FIELD;
     static const QString TAB;
 
     lua_State *L;           // the Lua interpreter
@@ -39,15 +39,15 @@ private:
     QString mainGrammar;    // name of complete gramar
     QMap<QString, QString> subGrammars; // names of partial grammars
     QStringList pairedTokens;   // list, example: "{", "}", "begin", "end"...
-    QStringList multiLineTokens;   // list,
-    QStringList multiBlockTokens;   // list,
+    QStringList multiLineTokens;   // list of tokens which can contain line-breaking children
+    QStringList multiTextTokens;   // list of tokens which can contain more lines of text
 
     void setupConstants();
     TreeElement* analyzeString(QString grammar, QString input);
     TreeElement* createTreeFromLuaStack();
     void checkPairing(TreeElement *element);
 
-    void shiftWhites(TreeElement *element); // move all whites as high as possible without changing tree text
+    void processWhites(TreeElement *element); // move all whites as high as possible without changing tree text
     void splitNewlines(TreeElement *element); // find all newlines in whites and split to independent elements
 
     QMessageBox *msgBox; // for (error) mesasage

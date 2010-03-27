@@ -7,7 +7,7 @@ const char *Analyzer::MAIN_GRAMMAR_FIELD = "full_grammar";
 const char *Analyzer::SUB_GRAMMARS_FIELD = "other_grammars";
 const char *Analyzer::PAIRED_TOKENS_FIELD = "paired";
 const char *Analyzer::MULTI_LINE_TOKENS_FIELD = "multi_line";
-const char *Analyzer::MULTI_BLOCK_TOKENS_FIELD = "multi_block";
+const char *Analyzer::MULTI_TEXT_TOKENS_FIELD = "multi_text";
 const QString Analyzer::TAB = "    ";
 
 QString exception;
@@ -59,19 +59,21 @@ void Analyzer::setupConstants()
         lua_pop(L, 1);
     }
 
-    // get multi-line tokens
+    // get multi-line tokens (can contain more lines of tokens)
     lua_getfield(L, LUA_GLOBALSINDEX, MULTI_LINE_TOKENS_FIELD);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
         multiLineTokens.append(QString(lua_tostring(L, -1)));
         lua_pop(L, 1);
     }
-    lua_getfield(L, LUA_GLOBALSINDEX, MULTI_BLOCK_TOKENS_FIELD);
+    // get multi-text tokens (can contain more lines of text)
+    lua_getfield(L, LUA_GLOBALSINDEX, MULTI_TEXT_TOKENS_FIELD);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
-        multiBlockTokens.append(QString(lua_tostring(L, -1)));
+        multiTextTokens.append(QString(lua_tostring(L, -1)));
         lua_pop(L, 1);
     }
+
 
     /* // get tokens representing whitespace characters
     lua_getfield(L, LUA_GLOBALSINDEX, "white_chars");
@@ -115,8 +117,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
     if(lua_istable(L, -1)) {
         root = createTreeFromLuaStack();                    // print result
     }
-
-    shiftWhites(root);
+    processWhites(root);
 
     return root;
 }
@@ -186,7 +187,9 @@ TreeElement *Analyzer::createTreeFromLuaStack()
             if (pairIndex >= 0) {               // pairing needed
                 root = new PairedTreeElement(nodeName);
             } else {
-                root = new TreeElement(nodeName, multiBlockTokens.contains(nodeName));
+                root = new TreeElement(nodeName,
+                                       multiLineTokens.contains(nodeName),
+                                       multiTextTokens.contains(nodeName));
             }
         }
         lua_pop(L, 1); // removes 'value'; keeps 'key' for next iteration
@@ -224,7 +227,7 @@ void Analyzer::checkPairing(TreeElement *element)
     }
 }
 
-void Analyzer::shiftWhites(TreeElement* element)
+void Analyzer::processWhites(TreeElement* element)
 {
     QList<TreeElement*> whites;
     QList<TreeElement*> newlines;
@@ -243,7 +246,7 @@ void Analyzer::shiftWhites(TreeElement* element)
         int index;
         if (parent != 0) {
             index = parent->indexOfChild(el) - 1;   // -1 because el will be removed before checking
-            parent->removeChild(el);   // destroy newline element
+            parent->removeChild(el);   // remove & destroy newline element
             delete(el);
             while(index == parent->childCount()-1) {// el was the last child
                 if (parent->getParent() == 0)
@@ -252,18 +255,17 @@ void Analyzer::shiftWhites(TreeElement* element)
                 parent = parent->getParent();
             }
             TreeElement *nl = 0;
-            if (index < 0) { // add an empty line-breaking element at index = 0;
+            if (index < 0) { // add an empty (possibly multi-text) line-breaking element at index = 0;
                 index = 0;
-                nl = new TreeElement();
+                nl = new TreeElement("", true, false, true);
             } else {
                 if (!parent->getChildren().at(index)->setLineBreaking(true)) { // set newline flag
                     // flag was already set -> add an empty line-breaking element at index+1
                     index++;
-                    nl = new TreeElement();
+                    nl = new TreeElement("", true, false, true);
                 }
             }
             if (nl != 0) {
-                nl->setLineBreaking(true);
                 parent->insertChild(index, nl);
             }
         }
@@ -275,7 +277,7 @@ void Analyzer::shiftWhites(TreeElement* element)
         if (parent != 0) {
             index = parent->indexOfChild(el);
             parent->removeChild(el);        // remove
-            while(index == 0) {// el was the first child
+            while(index == 0) {       // el was the first child
                 if (parent->getParent() == 0 || parent->isLineBreaking())
                     break;
                 index = parent->index();
@@ -283,5 +285,8 @@ void Analyzer::shiftWhites(TreeElement* element)
             }
             parent->insertChild(index, el); // insert
         }
+        // substitute tabs
+        (*el)[0]->setType((*el)[0]->getType().replace("\t", TAB));
+        el->getText();
     }
 }

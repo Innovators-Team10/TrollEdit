@@ -28,11 +28,11 @@ public:
     void setFolded(bool folded);
     bool isFolded() const;
     bool isTextBlock() const;
-    Block *getNextSibling() const;
-    Block *getPrevSibling() const;
-    Block *getNextBlock(bool textOnly = false) const;
-    Block *getPrevBlock(bool textOnly = false) const;
-//    int numberOfLines() const;
+    int length() const;
+    Block *getFirstLeaf() const;
+    Block *getNext(bool textOnly = false) const;
+    Block *getPrev(bool textOnly = false) const;
+    int numberOfLines() const;
     void setLine(int newLine);
 
     QList<Block*> childBlocks() const;
@@ -46,10 +46,7 @@ public:
 
     void setChanged();
 
-    Block* findNextChildAt(QPointF pos) const;
-    void updateLayout(int lineNo);
-    void updatePos();
-    void updateXPosInLine();
+    static int getLastLine(){return lastLine;}
 
 signals:
     void lostFocus(Block *block);
@@ -57,12 +54,19 @@ signals:
 public slots:
     void textFocusChanged(QFocusEvent* event);
     void textChanged();
+    void keyPressed(QKeyEvent* event);
     void splitLine(int cursorPos = -1);
     void moveCursorLR(int key);
-    void moveCursorUD(int key);
+    void moveCursorUD(int key, int from);
 
 protected:
+    void updateLayout();
+    void updatePos();
+    void updateXPosInLine();
+
     QPointF computeNextSiblingPos() const;
+    int computeNextSiblingLine() const;
+    Block* findNextChildAt(QPointF pos) const;
     QLineF getInsertLineAt(const Block* nextBlock) const;
 
     void focusInEvent(QFocusEvent *event);
@@ -84,25 +88,28 @@ protected:
 
 
 private:
-    static const int OFFS = 10;
+    static int OFFS;
+    static int lastLine;
 
     bool folded;    // true when block is folded
     bool pressed;   // true while mouse is pressed
     bool edited;    // edited after last AST analysis
     bool changed;   // changed after last updateLayout() call
 
-    DocumentScene *docScene;
-    Block *parent;
-    TreeElement *element;
-    TextItem *myTextItem;
-    int line;       // global index of line
+    DocumentScene *docScene;    // my scene
+    Block *parent;              // my parent
+    TreeElement *element;       // my AST element
+    TextItem *myTextItem;       // my text area (AST leafs only)
+    int line;                   // my line (global index)
+
+    Block *nextSib, *prevSib, *firstChild;    // used to create links
 
     // graphic elements
     HideBlockButton *hideButton;
 
     void createControls();//todo
-    void childAdded(Block *newChild);
-    void childRemoved(Block *oldChild);
+    void removeLinks();
+
 
     Block *futureParent;
     Block *futureSibling;   // used for block insertion

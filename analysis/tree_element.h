@@ -7,7 +7,8 @@
 class TreeElement
 {
 public:
-     TreeElement(QString type = "", bool multilineAllowed = false, bool lineBreaking = false);
+     TreeElement(QString type = "", bool multiLine = false,
+                 bool multiText = false, bool lineBreaking = false);
      ~TreeElement();
 
      void setType(QString type);
@@ -17,29 +18,32 @@ public:
      void insertChildren(int index, QList<TreeElement *> children);
      bool removeChild(TreeElement *child);
      bool removeDescendant(TreeElement *child);
-     bool deleteBranchTo(TreeElement *desc);
      bool removeAllChildren();
      int childCount() const;
      int index() const;
      int indexOfChild(const TreeElement* child) const;
-     int indexOfDescendant(const TreeElement *desc) const;
+     int indexOfBranch(const TreeElement *desc) const;
+     bool hasSiblings() const;
+
      bool isLeaf() const;
      bool isNewline() const;
-     bool setLineBreaking(bool flag);
-     bool isLineBreaking() const;
-     bool allowsMultiline() const;
      bool isWhite() const;
      bool isUnknown() const;
-     bool hasSiblings() const;
+
+     bool setLineBreaking(bool flag);
+     bool isLineBreaking() const;
+     bool allowsParagraphs() const;
+     bool allowsLineBreaks() const;
 
      TreeElement *operator<<(TreeElement *child);
      TreeElement *operator<<(QList<TreeElement *> children);
      TreeElement *operator[](int index);
      int operator[](TreeElement* child);
 
-     QList<TreeElement *> getChildren() const;
-     QList<TreeElement *> getAncestors() const;
-     QList<TreeElement *> getDescendants() const;
+     QList<TreeElement*> getChildren() const;
+     QList<TreeElement*> getAncestors() const;
+     QList<TreeElement*> getDescendants() const;
+     QList<TreeElement*> getAllLeafs() const;
      TreeElement *getRoot();
      TreeElement *getParent() const;
      QString getType() const;
@@ -56,11 +60,13 @@ public:
  private:
      static const char *WHITE_EL;
      static const char *UNKNOWN_EL;
+     static const char *NEWLINE_EL;
 
-     QList<TreeElement *> children;
+     QList<TreeElement*> children;
      QString type;
      bool lineBreaking;
-     bool multiLineAllowed;
+     bool lineBreaksAllowed;
+     bool paragraphsAllowed;
      bool hasNext(int index);
      TreeElement *next(int index);
 };

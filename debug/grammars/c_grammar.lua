@@ -1,12 +1,13 @@
 -- C grammar
---
+
 -- TODO:
 -- enumeration constant?
 
 -- BUGS:
 -- (j)++ crashes
 
--- important constants for Analyzer class
+-- important fields for Analyzer class
+-- for clarifications see 'default_grammar.lua'
 extension = "c"
 full_grammar = "program"
 other_grammars = {
@@ -14,11 +15,11 @@ other_grammars = {
 	translation_unit="top_element"
 }
 paired = {"{", "}", "(", ")", "[", "]", }
-multi_line = {"multi_comment", "doc_comment", "unknown",}		-- terminals
-multi_block = {"program", "block", "translation_unit", "statement",		-- nonterminals
+multi_line = {"program", "block", "translation_unit", "statement",		-- nonterminals
 	"funct_definition", 
 	"struct_or_union_specifier", "enum_specifier", "initializer",
-	}		
+	}	
+multi_text = {"multi_comment", "doc_comment", "unknown",}		-- terminals	
 
 require 'lpeg'
 
@@ -247,11 +248,10 @@ doc_comment = TP(P"/**" * (1 - P"*/")^0 * P"*/"),
 multi_comment = TP(P"/*" * (1 - P"*/")^0 * P"*/"),
 line_comment = TP(P"//" * (1 - S"\r\n")^0),
 
-unknown = TP(P(1)^1), -- anything
-
 -- LITERALS
 whites = TP(S(" \t")^1),	-- spaces and tabs
 nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), -- single newline, preceding spaces are ignores	
+unknown = TP(P(1)^1), 	-- anything
 
 digit = R"09",
 hex = R("af", "AF", "09"),

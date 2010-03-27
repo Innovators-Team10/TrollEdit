@@ -2,13 +2,16 @@
 
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
+const char *TreeElement::NEWLINE_EL = "nl";
 
-TreeElement::TreeElement(QString type, bool multiLineAllowed, bool lineBreaking)
+TreeElement::TreeElement(QString type, bool multiLine,
+                         bool multiText, bool lineBreaking)
 {
     parent = 0;
     this->type = type;
+    this->lineBreaksAllowed = multiLine;
+    this->paragraphsAllowed = multiText;
     this->lineBreaking = lineBreaking;
-    this->multiLineAllowed = multiLineAllowed;
 }
 
 TreeElement::~TreeElement()
@@ -28,6 +31,7 @@ void TreeElement::appendChild(TreeElement *child)
 {
     children.append(child);
     child->parent = this;
+    child->paragraphsAllowed = paragraphsAllowed;
 }
 
 void TreeElement::appendChildren(QList<TreeElement*> children)
@@ -56,23 +60,6 @@ bool TreeElement::removeChild(TreeElement *child)
     return children.removeOne(child);
 }
 
-bool TreeElement::deleteBranchTo(TreeElement *desc)
-{
-    if (!desc->getAncestors().contains(this))
-        return false;
-
-    TreeElement *temp = 0;
-    TreeElement *el = desc->parent;
-    el->removeChild(desc);
-
-    while(el != this) {
-        temp = el->parent;
-        delete(el);
-        el = temp;
-    }
-    return true;
-}
-
 bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
     if (removeChild(desc)) {
         return true;
@@ -98,31 +85,13 @@ bool TreeElement::isLeaf() const
 {
     return !(children.count());
 }
-
 bool TreeElement::isImportant() const
 {
     return childCount() != 1;
 }
-
 bool TreeElement::isNewline() const
 {
-    return (parent != 0 && parent->getType() == "nl"); // todo temp
-}
-bool TreeElement::setLineBreaking(bool flag)
-{
-    if (!isImportant())
-        return children[0]->setLineBreaking(flag);
-    if (lineBreaking == flag) return false;
-    lineBreaking = flag;
-    return true;
-}
-bool TreeElement::isLineBreaking() const
-{
-    return lineBreaking;
-}
-bool TreeElement::allowsMultiline() const
-{
-    return multiLineAllowed;
+    return (parent != 0 && parent->getType() == NEWLINE_EL);
 }
 bool TreeElement::isWhite() const
 {
@@ -138,6 +107,27 @@ bool TreeElement::hasSiblings() const
         return parent->childCount() != 1;
     else
         return false;
+}
+
+
+bool TreeElement::setLineBreaking(bool flag)
+{
+    if (!isImportant())
+        return children[0]->setLineBreaking(flag);
+    if (lineBreaking == flag) return false;
+    lineBreaking = flag;
+    return true;
+}
+bool TreeElement::isLineBreaking() const
+{
+    return lineBreaking;
+}
+bool TreeElement::allowsLineBreaks() const
+{
+    return lineBreaksAllowed;
+}
+bool TreeElement::allowsParagraphs() const {
+    return paragraphsAllowed;
 }
 
 int TreeElement::childCount() const
@@ -159,21 +149,21 @@ int TreeElement::indexOfChild(const TreeElement *child) const
     return p;
 }
 
-int TreeElement::indexOfDescendant(const TreeElement *desc) const
+int TreeElement::indexOfBranch(const TreeElement *desc) const
 {
     int i = indexOfChild(desc);
     if (i > -1) {
         return i;
     } else {
         for (i = 0; i < children.size(); i++) {
-            if (children[i]->indexOfDescendant(desc) > -1)
+            if (children[i]->indexOfBranch(desc) > -1)
                 return i;
         }
     }
     return -1;
 }
 
-QList<TreeElement *> TreeElement::getChildren() const
+QList<TreeElement*> TreeElement::getChildren() const
 {
     return children;
 }
@@ -198,6 +188,19 @@ QList<TreeElement*> TreeElement::getDescendants() const
     }
     return list;
 }
+
+QList<TreeElement*> TreeElement::getAllLeafs() const
+{
+    QList<TreeElement*> list;
+    foreach (TreeElement *child, children) {
+        if (child->isLeaf())
+            list << child;
+        else
+            list << child->getDescendants();
+    }
+    return list;
+}
+
 
 TreeElement *TreeElement::getRoot()
 {

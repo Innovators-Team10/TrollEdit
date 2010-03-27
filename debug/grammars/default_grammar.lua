@@ -2,13 +2,13 @@
 -- parses given text into lines
 -- DON'T REMOVE from /grammars directory !!!
 
--- important constants for Analyzer class
-extension = ""
-full_grammar = "grammar"
-other_grammars = {}
-paired = {}
-multi_line = {"unknown"}
-multi_block = {"text"}
+-- important fields for Analyzer class
+extension = ""			-- language file extension, e.g. "lua"
+full_grammar = "grammar"	-- name of complete grammars
+other_grammars = {}		-- names of available partial grammars
+paired = {}				-- list of paired elements (terminal or nonterminal) e.g. {"begin", "end", "(", ")" } 
+multi_line = {"text"}		-- list of nonterminal elements able/allowed to contain line-breaking subelements
+multi_text = {"unknown"}	-- list of nonterminal elements able/allowed to contain more lines of text (in their child terminals)
 
 require 'lpeg'
 
@@ -40,13 +40,14 @@ text = Ct(Cc("text") *
 	N'unknown'^-1),
 line = N'word'^1 * N'nl'^1,
 word = T(V'char'^1),
+char = P(1) - S(" \t\r\n"),
 
-unknown = Ct(C(P(1)^1)), -- anything
-
-whites = Ct(C(S(" \t")^1)),	-- spaces and tabs
+unknown = Ct(C(P(1)^1)), 			-- anything
+whites = Ct(C(S(" \t")^1)),			-- spaces and tabs
 nl = S(" \t")^0 * Ct(C(P"\r"^-1*P"\n")),	-- single newline, preceding spaces are ignored
-char = P(1) - S(" \t\r\n")
 
+-- NOTE: "unknown", "whites", and "nl" are reserved names recognised by Analyzer class
+-- do not use for other than descibed purposes
 }
 -- ***  END OF GRAMMAR  ****
 

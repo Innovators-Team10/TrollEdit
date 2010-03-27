@@ -1,24 +1,32 @@
 #include "text_item.h"
 #include "block.h"
 
-TextItem::TextItem(const QString &text, Block *parent)
+TextItem::TextItem(const QString &text, Block *parent, bool multiText)
     : QGraphicsTextItem(text, parent)
 {
     setTextInteractionFlags(Qt::TextEditorInteraction);
-//    myTextItem->setFont(QFont("Courier"));
+    setFont(QFont("Courier"));
     connect(this, SIGNAL(focusChanged(QFocusEvent*)), parent, SLOT(textFocusChanged(QFocusEvent*)));
     connect(document(), SIGNAL(contentsChanged()), parent, SLOT(textChanged()));
+    connect(this, SIGNAL(keyPressed(QKeyEvent*)), parent, SLOT(keyPressed(QKeyEvent*)));
     connect(this, SIGNAL(enterPressed(int)), parent, SLOT(splitLine(int)));
     connect(this, SIGNAL(moveCursorLR(int)), parent, SLOT(moveCursorLR(int)));
-    connect(this, SIGNAL(moveCursorUD(int)), parent, SLOT(moveCursorUD(int)));
+    connect(this, SIGNAL(moveCursorUD(int, int)), parent, SLOT(moveCursorUD(int, int)));
+
+    this->multiText = multiText;
 }
 
 void TextItem::setTextCursorPosition(int i) 
 {
-    if (i < 0)
-        i = toPlainText().length();
-    textCursor().setPosition(i);
     setFocus();
+    int length = toPlainText().length();
+    if (length == 0)
+        i = 0;
+    else if (i < 0)
+        i = length + i + 1;
+    QTextCursor cursor = textCursor();
+    cursor.setPosition(i);
+    setTextCursor(cursor);  // important - textCursor() returns only copy!
 }
 
 void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -32,30 +40,45 @@ void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 void TextItem::keyPressEvent(QKeyEvent *event) 
 {
+    emit keyPressed(event);
     int cursorPos = textCursor().position();
     QString oldText = toPlainText();
 
     if (event->key() == Qt::Key_Return) {
         emit enterPressed(cursorPos);
-        return;
+        if (!multiText)
+            return;
     }
     QGraphicsTextItem::keyPressEvent(event);
 
-    if (oldText != toPlainText()) {
-        emit textChanged(event);
-    }
+    int index;
     switch(event->key()) {
     case Qt::Key_Up :
+        index = oldText.indexOf("\n");
+        if (cursorPos <= index || index < 0) {
+            emit moveCursorUD(event->key(), cursorPos);
+//            return;
+        }
+        break;
     case Qt::Key_Down :
-        emit moveCursorUD(event->key());
+        index = oldText.lastIndexOf("\n");
+        if (cursorPos > index) {
+            if (index < 0) index = 0;
+            emit moveCursorUD(event->key(), cursorPos-index);
+//            return;
+        }
         break;
     case Qt::Key_Left :
-        if (cursorPos == 0)
+        if (cursorPos == 0) {
             emit moveCursorLR(Qt::Key_Left);
+//            return;
+        }
         break;
     case Qt::Key_Right :
-        if (cursorPos == oldText.length())
+        if (cursorPos == oldText.length()) {
             emit moveCursorLR(Qt::Key_Right);
+//            return;
+        }
         break;
     }
 }

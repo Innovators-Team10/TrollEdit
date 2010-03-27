@@ -10,7 +10,7 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
     this->analyzer = analyzer;
     mainBlock = 0;
     root = 0;
-//    setFocus(Qt::MouseFocusReason);
+    //    setFocus(Qt::MouseFocusReason);
 
     insertLine = new QGraphicsLineItem(0, this);
     insertLine->setVisible(false);
@@ -84,27 +84,29 @@ void DocumentScene::hideInsertLine() {
 void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::MidButton) { // create new block
+    }
+    if (event->button() == Qt::LeftButton) {
         Block *parent = blockAt(event->scenePos());
-        if (parent != 0 && parent->isTextBlock()) { // is leaf
-            parent = parent->getParentBlock();
-        }
-        Block *block = new Block(new TreeElement("TROLL!"), parent, this);
-        if (parent != 0) {
-            Block * next = parent->findNextChildAt(parent->mapFromScene(event->scenePos()));
-            block->stackBefore(next);
-            block->updatePos();
-            block->setFocus();
-        } else {
-            block->setPos(event->scenePos());
+        if (parent == 0) {
+//            Block *block = new Block(new TreeElement(" ", false, true), 0, this);
+//            block->setFocus();
+//            block->setPos(event->scenePos());
         }
         update();
     }
-    if (event->button() == Qt::LeftButton) {
-
-    }
     if (event->button() == Qt::RightButton) { // AST testing
-        QGraphicsItem *text = addText(root->getText());
+        QString str = "";
+        if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+            QList<TreeElement*> list = root->getDescendants();
+            foreach (TreeElement *el, list)
+                str.append(el->getType()).append("\n");
+            str.append(QString("%1").arg(Block::getLastLine()));
+        } else {
+            str = root->getText();
+        }
+        QGraphicsItem *text = addText(str);
         text->setPos(event->scenePos());
+        text->setZValue(-1);
     }
     QGraphicsScene::mousePressEvent(event);
 }
@@ -113,17 +115,14 @@ void DocumentScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsScene::mouseReleaseEvent(event);
 }
-
 void DocumentScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsScene::mouseMoveEvent(event);
 }
-
 void DocumentScene::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
 {
     //
 }
-
 void DocumentScene::lostFocus(Block *block)
 {
 }
@@ -133,18 +132,19 @@ void DocumentScene::reanalyze() {
     QGraphicsTextItem *textItem;
     if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
         item = textItem->parentItem();
-    Block *block = qgraphicsitem_cast<Block*>(item);
+//    Block *block = qgraphicsitem_cast<Block*>(item);
 
-    if (block == 0) {
+//    if (block == 0) {
         QString text = root->getText();
+//        mainBlock->deleteLater();
         delete(mainBlock);
         delete(root);
         root = analyzer->analyzeFull(text);
         mainBlock = new Block(root, 0, this);
         mainBlock->setPos(30,30);
-    } else {
-        return;
-    }
+//    } else {
+//        return;
+//    }
 
     mainBlock->setChanged();
     update();

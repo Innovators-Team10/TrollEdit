@@ -1,18 +1,19 @@
 -- Simple XML grammar
---
+
 -- TODO:
+--   simple attributes
 
 
 
--- important constants for Analyzer class
+-- important fields for Analyzer class
 extension = "xml"
 full_grammar = "document"
 other_grammars = {
 	element="in_element", 
 }
 paired = {"<", ">", "el_start", "el_end"}
-multi_line = {"unknown"}
-multi_block = {"document", "element"}
+multi_line = {"document", "element"}
+multi_text = {"unknown"}
 
 require 'lpeg'
 
@@ -81,10 +82,9 @@ el_empty = T"<" * NI'name' * T"/>",
 name = T((NI'letter' + S("_:")) * NI'name_char'^0),
 word = T(NI'char'^1),
 number = T(NI'digit'^1),
-
-unknown = TP(P(1)^1), -- anything
 	
 -- LITERALS
+unknown = TP(P(1)^1), -- anything
 whites = TP(S(" \t")^1),	-- spaces and tabs
 nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), -- single newline, preceding spaces are ignored
 
