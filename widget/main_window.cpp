@@ -44,7 +44,7 @@ void MainWindow::createActions()
 
     // save as
     saveAsAction = new QAction(tr("Save &As..."), this);
-    saveAsAction->setShortcut(tr("CTRL+A"));
+//    saveAsAction->setShortcut(tr("CTRL+A"));
     saveAsAction->setToolTip(tr("Save the file as..."));
     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
 

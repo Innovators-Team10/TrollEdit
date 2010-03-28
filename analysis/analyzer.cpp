@@ -133,37 +133,45 @@ TreeElement* Analyzer::analyzeFull(QString input)
     }
 }
 
-// reanalyze text from element and it's descendants, modifies AST and returns root
-TreeElement *Analyzer::analyzeElement(TreeElement* source)
+// reanalyze text from element and it's descendants, updates AST and returns first modified node
+TreeElement *Analyzer::analyzeElement(TreeElement* element)
 {
-    TreeElement *element = source;
-    QString grammar;
-    while (element->getParent() != 0) {
-        if (subGrammars.contains(element->getType())) {
-            grammar = subGrammars[element->getType()];
-            break;
-        }
-        element = element->getParent();
-    }
+    QString grammar = 0;
+    if (element != 0)
+        grammar = subGrammars[element->getType()];
     if (element->getParent() != 0 && !grammar.isNull()) {
         TreeElement *parent = element->getParent();
         int index = (*parent)[element];
-        parent->removeChild(element);
+        TreeElement *subRoot;
         try{
-            TreeElement *subRoot = analyzeString(grammar, element->getText());
+            subRoot = analyzeString(grammar, element->getText());
+            parent->removeChild(element);
+            delete element;
             parent->insertChild(index, subRoot);
         } catch(QString exMsg) {
             msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
-            return source;
+            subRoot = element->getRoot();
         }
-        delete element;
-        return parent->getRoot();
+        return subRoot;
     } else {
         TreeElement *root = analyzeFull(element->getRoot()->getText());
         delete element->getRoot();
         return root;
     }
+}
 
+TreeElement *Analyzer::getAnalysableAncestor(TreeElement *element)
+{
+    while (element->getParent() != 0) {
+        if (subGrammars.contains(element->getType())) {
+            break;
+        }
+        element = element->getParent();
+    }
+    if (element->getParent() == 0)
+        return 0;
+    else
+        return element;
 }
 
 // creates AST from recursive lua tables (from stack), returns root(s)
@@ -246,8 +254,11 @@ void Analyzer::processWhites(TreeElement* element)
         int index;
         if (parent != 0) {
             index = parent->indexOfChild(el) - 1;   // -1 because el will be removed before checking
+            bool isLast = !(*el)[0]->hasNext();
             parent->removeChild(el);   // remove & destroy newline element
             delete(el);
+            if (isLast) continue;     // ignore newlines at the end of file
+
             while(index == parent->childCount()-1) {// el was the last child
                 if (parent->getParent() == 0)
                     break;
@@ -255,7 +266,7 @@ void Analyzer::processWhites(TreeElement* element)
                 parent = parent->getParent();
             }
             TreeElement *nl = 0;
-            if (index < 0) { // add an empty (possibly multi-text) line-breaking element at index = 0;
+            if (index < 0) { // add an empty line-breaking element at index = 0;
                 index = 0;
                 nl = new TreeElement("", false, false, true);
             } else {

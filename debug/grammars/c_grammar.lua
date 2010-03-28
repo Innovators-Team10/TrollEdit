@@ -18,8 +18,8 @@ paired = {"{", "}", "(", ")", "[", "]", }
 multi_line = {"program", "block", "translation_unit", "statement",		-- nonterminals
 	"funct_definition", 
 	"struct_or_union_specifier", "enum_specifier", "initializer",
-	}	
-multi_text = {"multi_comment", "doc_comment", "unknown",}		-- terminals	
+	"unknown",}	
+multi_text = {"multi_comment", "doc_comment",}		-- terminals	
 
 require 'lpeg'
 
@@ -72,17 +72,17 @@ program =
 	Ct(Cc("program") *
 	(N'nl'^1 + N'comment')^0 *
 	N'translation_unit'^0 *
-	N'unknown'^-1 *-1),
+	N'unknown'^0 *-1),
 top_element =  
 	Ct(
 	(N'nl'^1 + N'comment')^0 *
 	N'translation_unit'^0 *
-	N'unknown'^-1 *-1),
+	N'unknown'^0 *-1),
 in_block = 
 	Ct (
 	(N'nl'^1 + N'comment')^0 *
 	N'block'^-1 *
-	N'unknown'^-1),
+	N'unknown'^0),
 
 -- NONTERMINALS
 translation_unit = N'preprocessor' + N'funct_definition' + N'declaration',
@@ -249,9 +249,9 @@ multi_comment = TP(P"/*" * (1 - P"*/")^0 * P"*/"),
 line_comment = TP(P"//" * (1 - S"\r\n")^0),
 
 -- LITERALS
-whites = TP(S(" \t")^1),	-- spaces and tabs
-nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), -- single newline, preceding spaces are ignores	
-unknown = TP(P(1)^1), 	-- anything
+whites = TP(S(" \t")^1),			-- spaces and tabs
+nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), 	-- single newline, preceding spaces are ignored	
+unknown = TP((1 - S"\r\n")^1) * N'nl'^0, -- anything divided to lines
 
 digit = R"09",
 hex = R("af", "AF", "09"),

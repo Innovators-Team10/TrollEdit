@@ -4,6 +4,8 @@
 #include <QList>
 #include <QString>
 
+class Block;
+
 class TreeElement
 {
 public:
@@ -50,6 +52,8 @@ public:
      QString getText() const;
 
      bool isImportant() const;
+     void setBlock(Block *block);
+     Block *getBlock() const;
 
      bool hasNext();
      TreeElement *next();
@@ -64,6 +68,7 @@ public:
 
      QList<TreeElement*> children;
      QString type;
+     Block *myBlock;
      bool lineBreaking;
      bool lineBreaksAllowed;
      bool paragraphsAllowed;

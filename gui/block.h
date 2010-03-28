@@ -18,18 +18,19 @@ public:
     ~Block();
 
     enum { Type = UserType + 1 };
-    int id;
 
     // overriden methods to provide AST consistency
     void setParentItem (QGraphicsItem *parent);
     void stackBefore (const QGraphicsItem *sibling);
-    Block *getParentBlock() const;
+    Block *parentBlock() const;
+    TreeElement *getElement() const;
 
     void setFolded(bool folded);
     bool isFolded() const;
     bool isTextBlock() const;
     int length() const;
     Block *getFirstLeaf() const;
+    Block *getNextSibling() const;
     Block *getNext(bool textOnly = false) const;
     Block *getPrev(bool textOnly = false) const;
     int numberOfLines() const;
@@ -47,6 +48,9 @@ public:
     void setChanged();
 
     static int getLastLine(){return lastLine;}
+    void updateLayout();
+    void updatePos();
+    void updateXPosInLine();
 
 signals:
     void lostFocus(Block *block);
@@ -60,10 +64,6 @@ public slots:
     void moveCursorUD(int key, int from);
 
 protected:
-    void updateLayout();
-    void updatePos();
-    void updateXPosInLine();
-
     QPointF computeNextSiblingPos() const;
     int computeNextSiblingLine() const;
     Block* findNextChildAt(QPointF pos) const;

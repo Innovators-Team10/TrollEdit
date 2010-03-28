@@ -23,6 +23,7 @@ public:
     Analyzer *analyzer;
     bool modified;
     void reanalyze();
+    void analyzeAll(QString text);
 
 public slots:
 

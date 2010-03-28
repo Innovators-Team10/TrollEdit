@@ -4,16 +4,15 @@
 #include "../analysis/tree_element.h"
 #include "../widget/document_scene.h"
 
-static int counter = 0;// testing only
-int Block::lastLine = 0;
 int Block::OFFS = 10;
 QHash<int, Block*> Block::lineStarts;
+int Block::lastLine = 0;
 static int lastX = 0;
 
 Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentScene)
     : QGraphicsRectItem(parentBlock)
 {
-    if (parentBlock == 0) { // adding directly to scene, no parent blocks
+    if (parentBlock == 0) { // adding directly to scene, no parent block
         parentScene->addItem(this);
         docScene = (DocumentScene*)parentScene;
         parent = 0;
@@ -42,10 +41,13 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
         element = (*element)[0];
 
     this->element = element;
+    element->setBlock(this);
 
     if (element->isLeaf()) {
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs());
         myTextItem->setPos(OFFS, 0);
+        if (element->getParent() != 0)
+            setToolTip(element->getParent()->getType());
     } else {
         myTextItem = 0;
         setToolTip(element->getType());
@@ -62,7 +64,6 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     pressed = false;
     edited = true;
 
-    id = counter++;
     if (parent == 0)
         setChanged();  // this block (root) will update layout when first painted
 }
@@ -70,6 +71,7 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
 Block::~Block()
 {
     removeLinks();
+    element->setBlock(0);
 }
 void Block::removeLinks()
 {
@@ -168,9 +170,21 @@ void Block::stackBefore(const QGraphicsItem *sibling)
     QGraphicsRectItem::stackBefore(sibling);
 }
 
-Block *Block::getParentBlock() const
+Block *Block::parentBlock() const
 {
     return parent;
+}
+TreeElement *Block::getElement() const
+{
+    return element;
+}
+QList<Block*> Block::childBlocks() const
+{
+    return blocklist_cast(childItems());
+}
+TextItem *Block::textItem() const
+{
+    return myTextItem;
 }
 
 Block *Block::getFirstLeaf() const
@@ -181,7 +195,10 @@ Block *Block::getFirstLeaf() const
         block = block->firstChild;
     return block;
 }
-
+Block *Block::getNextSibling() const
+{
+    return nextSib;
+}
 Block *Block::getNext(bool textOnly) const
 {
     Block *next = const_cast<Block*>(this);
@@ -243,15 +260,6 @@ QPointF Block::computeNextSiblingPos() const
         position.ry() += OFFS/2 + maxHeight;//boundingRect().height();
     }
     return position;
-}
-
-QList<Block*> Block::childBlocks() const
-{
-    return blocklist_cast(childItems());
-}
-TextItem *Block::textItem() const
-{
-    return myTextItem;
 }
 
 QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -429,12 +437,12 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (!QRectF(0,0,OFFS,boundingRect().height()).contains(event->pos())) {
         // create new block
-        Block *block = new Block(new TreeElement(" ",false, true), this);
-        Block *next = findNextChildAt(event->pos());
-        block->stackBefore(next);
-        block->updatePos();
-        block->setFocus();
-        QGraphicsRectItem::mousePressEvent(event);
+//        Block *block = new Block(new TreeElement(" ",false, true), this);
+//        Block *next = findNextChildAt(event->pos());
+//        block->stackBefore(next);
+//        block->updatePos();
+//        block->setFocus();
+//        QGraphicsRectItem::mousePressEvent(event);
         return;
     }
 
@@ -474,7 +482,7 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         }
     }
     if (futureParent != 0 && futureParent->element->isLeaf()) {// leaf test - cannot add child to leaf
-        futureParent = futureParent->getParentBlock();
+        futureParent = futureParent->parentBlock();
         if (futureParent == this) {
             futureParent = 0;//debug - toto nemoze nastavat
         }
@@ -717,7 +725,6 @@ void Block::paint(QPainter *painter,
     
     QColor color = Qt::lightGray;
     if (edited) color = Qt::yellow;
-    if (element->isUnknown()) color = Qt::red;
     painter->fillRect(QRectF(0,0,OFFS,rect.height()), color);
 
     //*****
@@ -731,6 +738,8 @@ void Block::paint(QPainter *painter,
         painter->drawText(3, OFFS, QString("%1").arg(line));
     if (element->isWhite())
         painter->setPen(Qt::gray);
+    if (element->isUnknown())
+        painter->setPen(Qt::red);
     //*****
 
     painter->drawRect(rect);

@@ -34,19 +34,7 @@ void DocumentScene::loadFile(const QString &fileName)
     QApplication::setOverrideCursor(Qt::WaitCursor);
     QString content = in.readAll();
 
-    // we have things from constructor we need to ged rid of
-    if (mainBlock != 0)
-        delete(mainBlock);
-    if (root != 0)
-        delete(root);
-
-    // these three lines almost same in constructor
-    root = analyzer->analyzeFull(content);
-    mainBlock = new Block(root, 0, this);
-    mainBlock->setPos(30,30);
-
-    // not needed later, but now we are painting all blocks
-    update();
+    analyzeAll(content);
 
     QApplication::restoreOverrideCursor();
 }
@@ -88,9 +76,9 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton) {
         Block *parent = blockAt(event->scenePos());
         if (parent == 0) {
-//            Block *block = new Block(new TreeElement(" ", false, true), 0, this);
-//            block->setFocus();
-//            block->setPos(event->scenePos());
+            //            Block *block = new Block(new TreeElement(" ", false, true), 0, this);
+            //            block->setFocus();
+            //            block->setPos(event->scenePos());
         }
         update();
     }
@@ -128,24 +116,47 @@ void DocumentScene::lostFocus(Block *block)
 }
 
 void DocumentScene::reanalyze() {
-//    QGraphicsItem *item = focusItem();
-//    QGraphicsTextItem *textItem;
-//    if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
-//        item = textItem->parentItem();
-//    Block *block = qgraphicsitem_cast<Block*>(item);
+    QGraphicsItem *item = focusItem();
+    QGraphicsTextItem *textItem;
+    if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
+        item = textItem->parentItem();
+    Block *block = qgraphicsitem_cast<Block*>(item);
 
-//    if (block == 0) {
-        QString text = root->getText();
+    if (block == 0) {
+        analyzeAll(root->getText());
+        return;
+    }
+    TreeElement *analyzedEl = analyzer->getAnalysableAncestor(block->getElement());
+    block = 0;
+    if (analyzedEl == 0) {
+        analyzeAll(root->getText());
+        return;
+    }
+    Block *analysedBl = analyzedEl->getBlock();
+    bool lineBreaking = analysedBl->getElement()->isLineBreaking();
+    Block *parentBl = analysedBl->parentBlock();
+    Block *nextSib = analysedBl->getNextSibling();
+    delete(analysedBl);
+    block = 0;
+    TreeElement *newEl = analyzer->analyzeElement(analyzedEl);
+    newEl->setLineBreaking(lineBreaking);
+    Block *newBlock = new Block(newEl, parentBl, this);
+    newBlock->stackBefore(nextSib);
+//    newBlock->updatePos();
+    mainBlock->updateLayout();
+    update();
+}
+
+void DocumentScene::analyzeAll(QString text)
+{
+    if (mainBlock != 0)
         delete(mainBlock);
+    if (root != 0)
         delete(root);
-        root = analyzer->analyzeFull(text);
-        mainBlock = new Block(root, 0, this);
-        mainBlock->setPos(30,30);
-//    } else {
-//        return;
-//    }
-
-    mainBlock->setChanged();
+    root = analyzer->analyzeFull(text);
+    mainBlock = new Block(root, 0, this);
+    mainBlock->setPos(10,0);
+    mainBlock->updateLayout();
     update();
 }
 

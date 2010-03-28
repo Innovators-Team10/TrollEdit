@@ -20,9 +20,9 @@ class Analyzer
 public:
     Analyzer(QString script_name);
     ~Analyzer();
-    TreeElement* analyzeFull(QString input);
-    TreeElement* analyzeElement(TreeElement *source);
-//    QString formatTree(TreeElement *source);
+    TreeElement *analyzeFull(QString input);
+    TreeElement *analyzeElement(TreeElement *element);
+    TreeElement *getAnalysableAncestor(TreeElement *element);
     QString getExtension() const;
 private:
     static const char *EXTENSION_FIELD;

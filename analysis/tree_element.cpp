@@ -1,4 +1,5 @@
 #include "tree_element.h"
+#include "../gui/block.h"
 
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
@@ -26,6 +27,18 @@ void TreeElement::setType(QString type)
 {
     this->type = type;
 }
+void TreeElement::setBlock(Block *block)
+{
+    myBlock = block;
+}
+
+Block *TreeElement::getBlock() const
+{
+    if (isImportant())
+        return myBlock;
+    else
+        return children[0]->getBlock();
+}
 
 void TreeElement::appendChild(TreeElement *child)
 {
@@ -33,33 +46,28 @@ void TreeElement::appendChild(TreeElement *child)
     child->parent = this;
     child->paragraphsAllowed = paragraphsAllowed;
 }
-
 void TreeElement::appendChildren(QList<TreeElement*> children)
 {
     foreach (TreeElement *child, children) {
         appendChild(child);
     }
 }
-
 void TreeElement::insertChild(int index, TreeElement *child)
 {
     children.insert(index,child);
     child->parent = this;
 }
-
 void TreeElement::insertChildren(int index, QList<TreeElement*> children)
 {
     for (int i = 0; i < children.size(); i++) {
         insertChild(index+i, children.at(i));
     }
 }
-
 bool TreeElement::removeChild(TreeElement *child)
 {
     child->parent = 0;
     return children.removeOne(child);
 }
-
 bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
     if (removeChild(desc)) {
         return true;
@@ -71,7 +79,6 @@ bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
     }
     return false;
 }
-
 bool TreeElement::removeAllChildren()
 {
     if (children.isEmpty())
