@@ -13,6 +13,7 @@ TreeElement::TreeElement(QString type, bool multiLine,
     this->lineBreaksAllowed = multiLine;
     this->paragraphsAllowed = multiText;
     this->lineBreaking = lineBreaking;
+    spaces = 0;
 }
 
 TreeElement::~TreeElement()
@@ -116,7 +117,35 @@ bool TreeElement::hasSiblings() const
         return false;
 }
 
+void TreeElement::addSpaces(int number)
+{
+    if (!isImportant()) {
+        children[0]->addSpaces(number);
+    } else {
+        spaces += number;
+        if (spaces < 0) spaces = 0;
+    }
+}
+int TreeElement::getSpaces() const
+{
+    return spaces;
+}
+void TreeElement::adjustSpaces()
+{
+    bool wasLineBreak = false;
+    foreach (TreeElement *el, children) {
+        while (!el->isImportant()) {
+            el =  (*el)[0];
+        }
+        el->adjustSpaces();
+        if (wasLineBreak) {
+            el->addSpaces(-spaces);
+            wasLineBreak = false;
+        }
+        if (el->isLineBreaking()) wasLineBreak = true;
 
+    }
+}
 bool TreeElement::setLineBreaking(bool flag)
 {
     if (!isImportant())
@@ -238,7 +267,12 @@ QString TreeElement::getText() const
             text.append(e->getText());
         }
     }
-    if (lineBreaking) text.append("\n");
+    if (lineBreaking) {
+        text.append("\n");
+        if (parent != 0)
+            text.append(QString().fill(' ', parent->spaces));
+    }
+    text.prepend(QString().fill(' ', spaces));
     return text;
 }
 

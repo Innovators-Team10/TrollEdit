@@ -8,6 +8,7 @@ const char *Analyzer::SUB_GRAMMARS_FIELD = "other_grammars";
 const char *Analyzer::PAIRED_TOKENS_FIELD = "paired";
 const char *Analyzer::MULTI_LINE_TOKENS_FIELD = "multi_line";
 const char *Analyzer::MULTI_TEXT_TOKENS_FIELD = "multi_text";
+const char *Analyzer::CONFIG_KEYS_FIELD = "cfg_keys";
 const QString Analyzer::TAB = "    ";
 
 QString exception;
@@ -15,36 +16,36 @@ QString exception;
 Analyzer::Analyzer(QString script_name)
 {
     msgBox = new QMessageBox();
-    file_name = script_name;
+    this->script_name = script_name;
     L = lua_open();             // initialize Lua
     luaL_openlibs(L);           // load Lua base libraries
     try {
         setupConstants();
     } catch (QString exMsg) {
-        msgBox->critical(0, "Compilation error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
+        msgBox->critical(0, "Script error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
     }
 }
 
 void Analyzer::setupConstants()
 {
-    if (luaL_loadfile(L, qPrintable(file_name))
+    if (luaL_loadfile(L, qPrintable(script_name))
         || lua_pcall(L, 0, 0, 0)) {
-        throw "Error loading script \"" + file_name + "\"";
+        throw "Error loading script \"" + script_name + "\"";
     }
 
     // get extension
-    lua_getfield(L, LUA_GLOBALSINDEX, EXTENSION_FIELD);
+    lua_getglobal (L, EXTENSION_FIELD);
     extension = QString(lua_tostring(L, -1));
     lua_pop(L, 1);
 
     // get grammars
-    lua_getfield(L, LUA_GLOBALSINDEX, MAIN_GRAMMAR_FIELD);
+    lua_getglobal (L, MAIN_GRAMMAR_FIELD);
     mainGrammar = QString(lua_tostring(L, -1));
     lua_pop(L, 1);
     if (mainGrammar.isEmpty())
-        throw "No main grammar specified in script \"" + file_name + "\"";
+        throw "No main grammar specified in script \"" + script_name + "\"";
 
-    lua_getfield(L, LUA_GLOBALSINDEX, SUB_GRAMMARS_FIELD);
+    lua_getglobal (L, SUB_GRAMMARS_FIELD);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
         subGrammars[QString(lua_tostring(L, -2))] = QString(lua_tostring(L, -1));
@@ -52,7 +53,7 @@ void Analyzer::setupConstants()
     }
 
     // get paired tokens (e.g BEGIN/END, {/}, </>)
-    lua_getfield(L, LUA_GLOBALSINDEX, PAIRED_TOKENS_FIELD);
+    lua_getglobal (L, PAIRED_TOKENS_FIELD);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
         pairedTokens.append(QString(lua_tostring(L, -1)));
@@ -60,33 +61,19 @@ void Analyzer::setupConstants()
     }
 
     // get multi-line tokens (can contain more lines of tokens)
-    lua_getfield(L, LUA_GLOBALSINDEX, MULTI_LINE_TOKENS_FIELD);
+    lua_getglobal (L, MULTI_LINE_TOKENS_FIELD);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
         multiLineTokens.append(QString(lua_tostring(L, -1)));
         lua_pop(L, 1);
     }
     // get multi-text tokens (can contain more lines of text)
-    lua_getfield(L, LUA_GLOBALSINDEX, MULTI_TEXT_TOKENS_FIELD);
+    lua_getglobal (L, MULTI_TEXT_TOKENS_FIELD);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
         multiTextTokens.append(QString(lua_tostring(L, -1)));
         lua_pop(L, 1);
     }
-
-
-    /* // get tokens representing whitespace characters
-    lua_getfield(L, LUA_GLOBALSINDEX, "white_chars");
-    lua_pushnil(L);
-    while (lua_next(L, -2) != 0) {
-        whiteSpaces.append(QString(lua_tostring(L, -1)));
-        lua_pop(L, 1);
-    }
-
-    // get token representing new line
-    lua_getfield(L, LUA_GLOBALSINDEX, "new_line");
-    endLineToken = QString(lua_tostring(L, -1));
-    lua_pop(L, 1);*/
 }
 
 Analyzer::~Analyzer()
@@ -98,19 +85,53 @@ QString Analyzer::getExtension() const
 {
     return extension;
 }
+QMap<QString, QStringList> Analyzer::readFile(QString fileName)
+{
+    try {
+        if (luaL_loadfile(L, qPrintable(fileName))
+            || lua_pcall(L, 0, 0, 0)) {
+            throw "Error loading script \"" + fileName + "\"";
+        }
+
+        QMap<QString, QStringList> tables;
+        QStringList keys;
+        // get keys
+
+        lua_getglobal (L, CONFIG_KEYS_FIELD);
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            keys.append(QString(lua_tostring(L, -1)));
+            lua_pop(L, 1);
+        }
+
+        // get values
+        foreach (QString key, keys) {
+            lua_getglobal (L, qPrintable(key));
+            lua_pushnil(L);
+            QStringList values;
+            while (lua_next(L, -2) != 0) {
+                values.append(QString(lua_tostring(L, -1)));
+                lua_pop(L, 1);
+            }
+            tables[key] = values;
+        }
+    } catch (QString exMsg) {
+        msgBox->critical(0, "Config file error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
+    }
+}
 
 // analyze string by provided grammar
 TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 {
-    luaL_dofile(L, qPrintable(file_name));  // load the script
-    lua_getfield(L, LUA_GLOBALSINDEX, "lpeg");        // table to be indexed
+    luaL_dofile(L, qPrintable(script_name));  // load the script
+    lua_getglobal (L, "lpeg");        // table to be indexed
     lua_getfield(L, -1, "match");                     // function to be called: 'lpeg.match'
     lua_remove(L, -2);                                // remove 'lpeg' from the stack
-    lua_getfield(L, LUA_GLOBALSINDEX, qPrintable(grammar));     // 1st argument
-    lua_pushstring(L, qPrintable(input));   // 2nd argument
+    lua_getglobal (L, qPrintable(grammar));      // 1st argument
+    lua_pushstring(L, qPrintable(input));       // 2nd argument
     int err = lua_pcall(L, 2, 1, 0);                  // call with 2 arguments and 1 result, no error function
     if (err != 0) {
-        throw "Error in grammar \"" + grammar + "\" in script \"" + file_name + "\"";
+        throw "Error in grammar \"" + grammar + "\" in script \"" + script_name + "\"";
     }
 
     TreeElement *root = 0;
@@ -235,17 +256,17 @@ void Analyzer::checkPairing(TreeElement *element)
     }
 }
 
-void Analyzer::processWhites(TreeElement* element)
+void Analyzer::processWhites(TreeElement* root)
 {
     QList<TreeElement*> whites;
     QList<TreeElement*> newlines;
-    TreeElement *el = element;
-    while (el->hasNext()) {
-        el = el->next();
-        if (el->isWhite())
-            whites << el->getParent();
-        if (el->isNewline())
-            newlines << el->getParent();
+    TreeElement *element = root;
+    while (element->hasNext()) {
+        element = element->next();
+        if (element->isWhite())
+            whites << element->getParent();
+        if (element->isNewline())
+            newlines << element->getParent();
     }
     // process newlines: shift right as far as possible, remove and set lineBreaking flag
     while (!newlines.isEmpty()) {
@@ -270,7 +291,7 @@ void Analyzer::processWhites(TreeElement* element)
                 index = 0;
                 nl = new TreeElement("", false, false, true);
             } else {
-                if (!parent->getChildren().at(index)->setLineBreaking(true)) { // set newline flag
+                if (!(*parent)[index]->setLineBreaking(true)) { // set newline flag
                     // flag was already set -> add an empty line-breaking element at index+1
                     index++;
                     nl = new TreeElement("", false, false, true);
@@ -284,20 +305,27 @@ void Analyzer::processWhites(TreeElement* element)
     // process other whites: shift left as far as possible, don't shift when in line-breaking element
     foreach (TreeElement *el, whites) {
         TreeElement *parent = el->getParent();
+        // substitute tabs
+        (*el)[0]->setType((*el)[0]->getType().replace("\t", TAB));
         int index;
         if (parent != 0) {
             index = parent->indexOfChild(el);
-            parent->removeChild(el);        // remove
+            int spaces = (*el)[0]->getType().length();
+            parent->removeChild(el);        // remove & destroy
+            delete(el);
+
             while(index == 0) {       // el was the first child
-                if (parent->getParent() == 0 || parent->isLineBreaking())
-                    break;
                 index = parent->index();
+                if (parent->getParent() == 0)
+                    break;
                 parent = parent->getParent();
             }
-            parent->insertChild(index, el); // insert
+            if (index >= 0)
+                el = (*parent)[index];
+            else
+                el = parent;
+            //el->addSpaces(spaces);
         }
-        // substitute tabs
-        (*el)[0]->setType((*el)[0]->getType().replace("\t", TAB));
-        el->getText();
     }
+    //root->adjustSpaces();
 }

@@ -15,7 +15,7 @@ other_grammars = {
 	translation_unit="top_element"
 }
 paired = {"{", "}", "(", ")", "[", "]", }
-multi_line = {"program", "block", "translation_unit", "statement",		-- nonterminals
+multi_line = {"program", "block", "translation_unit", "simple_statement",		-- nonterminals
 	"funct_definition", 
 	"struct_or_union_specifier", "enum_specifier", "initializer",
 	"unknown",}	
@@ -165,25 +165,25 @@ abstract_declarator =
 	T"(" * N'parameter_type_list'^-1 * T")"
 	)^1,
 	
-statement =
+statement = N"simple_statement" + T"{" * N'block' * T"}",
+simple_statement =
 	(N'expression'^-1 * T";" +
-	T"{" * N'block' * T"}" +
-	TK"if" * T"(" * N'expression' * T")" * N'statement' * TK"else" * N'statement' +
-	TK"if" * T"(" * N'expression' * T")" * N'statement' +
+	TK"if" * T"(" * N'expression' * T")" * NI'statement' * TK"else" * NI'statement' +
+	TK"if" * T"(" * N'expression' * T")" * NI'statement' +
 	TK"switch" * T"(" * N'expression' * T")" * T"{" * N'case_statement'^0 * T"}" +
-	TK"while" * T"(" * N'expression' * T")" * N'statement' +
-	TK"do" * N'statement' * T"while" * T"(" * N'expression' * T")" * T";" +
-	TK"for" * T"(" * N'expression'^-1 * T";" * N'expression'^-1 * T";" * N'expression'^-1 * T")" * N'statement' +
+	TK"while" * T"(" * N'expression' * T")" * NI'statement' +
+	TK"do" * NI'statement' * T"while" * T"(" * N'expression' * T")" * T";" +
+	TK"for" * T"(" * N'expression'^-1 * T";" * N'expression'^-1 * T";" * N'expression'^-1 * T")" * NI'statement' +
 	TK"goto" * N'identifier' * T";" +
 	TK"continue" * T";" +
 	TK"break" * T";" +
 	TK"return" * N'expression'^-1 * T";"
 	),
 
-block =  (N'declaration' + N'statement' + N'preprocessor')^0,
+block =  (N'declaration' + NI'statement' + N'preprocessor')^0,
 
 case_statement = 
-	(N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":" * N'statement'^0,
+	(N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":" * NI'statement'^0,
 
 expression =
 	NI'assignment_expression' * (T"," * NI'assignment_expression')^0,

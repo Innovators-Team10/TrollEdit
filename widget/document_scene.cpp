@@ -85,10 +85,16 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::RightButton) { // AST testing
         QString str = "";
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+            QHash<int, Block*>::iterator i;
+            for (i = Block::lineStarts.begin(); i != Block::lineStarts.end(); ++i)
+                str.append(QString("%1").arg(i.key())).append(" - "+i.value()->getElement()->getType()+"\n");
+            str.append(QString("Last line: %1").arg(Block::getLastLine()));
+        } else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) {
             QList<TreeElement*> list = root->getDescendants();
-            foreach (TreeElement *el, list)
-                str.append(el->getType()).append("\n");
-            str.append(QString("%1").arg(Block::getLastLine()));
+            foreach (TreeElement *el, list) {
+                str.append(QString("%1").arg(el->getSpaces()));
+                str.append("  "+el->getType()).append("\n");
+            }
         } else {
             str = root->getText();
         }
@@ -134,15 +140,17 @@ void DocumentScene::reanalyze() {
     }
     Block *analysedBl = analyzedEl->getBlock();
     bool lineBreaking = analysedBl->getElement()->isLineBreaking();
+    //    int spaces = analysedBl->getElement()->getSpaces();
     Block *parentBl = analysedBl->parentBlock();
     Block *nextSib = analysedBl->getNextSibling();
     delete(analysedBl);
     block = 0;
     TreeElement *newEl = analyzer->analyzeElement(analyzedEl);
     newEl->setLineBreaking(lineBreaking);
+    //    newEl->addSpaces(spaces);
     Block *newBlock = new Block(newEl, parentBl, this);
     newBlock->stackBefore(nextSib);
-//    newBlock->updatePos();
+    //    newBlock->updatePos();
     mainBlock->updateLayout();
     update();
 }
@@ -155,7 +163,7 @@ void DocumentScene::analyzeAll(QString text)
         delete(root);
     root = analyzer->analyzeFull(text);
     mainBlock = new Block(root, 0, this);
-    mainBlock->setPos(10,0);
+    mainBlock->setPos(30,20);
     mainBlock->updateLayout();
     update();
 }

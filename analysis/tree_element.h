@@ -9,6 +9,8 @@ class Block;
 class TreeElement
 {
 public:
+     int spaces;
+
      TreeElement(QString type = "", bool multiLine = false,
                  bool multiText = false, bool lineBreaking = false);
      ~TreeElement();
@@ -32,6 +34,9 @@ public:
      bool isWhite() const;
      bool isUnknown() const;
 
+     void addSpaces(int sp);
+     int getSpaces() const;
+     void adjustSpaces();
      bool setLineBreaking(bool flag);
      bool isLineBreaking() const;
      bool allowsParagraphs() const;
@@ -72,6 +77,7 @@ public:
      bool lineBreaking;
      bool lineBreaksAllowed;
      bool paragraphsAllowed;
+
      bool hasNext(int index);
      TreeElement *next(int index);
 };

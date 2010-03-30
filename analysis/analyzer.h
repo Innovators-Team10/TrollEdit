@@ -24,6 +24,7 @@ public:
     TreeElement *analyzeElement(TreeElement *element);
     TreeElement *getAnalysableAncestor(TreeElement *element);
     QString getExtension() const;
+    QMap<QString, QStringList> readFile(QString fileName);
 private:
     static const char *EXTENSION_FIELD;
     static const char *MAIN_GRAMMAR_FIELD;
@@ -31,11 +32,12 @@ private:
     static const char *PAIRED_TOKENS_FIELD;
     static const char *MULTI_LINE_TOKENS_FIELD;
     static const char *MULTI_TEXT_TOKENS_FIELD;
+    static const char *CONFIG_KEYS_FIELD;
     static const QString TAB;
 
     lua_State *L;           // the Lua interpreter
     QString extension;      // type of files to be analyzed
-    QString file_name;      // script name
+    QString script_name;      // script name
     QString mainGrammar;    // name of complete gramar
     QMap<QString, QString> subGrammars; // names of partial grammars
     QStringList pairedTokens;   // list, example: "{", "}", "begin", "end"...
@@ -47,8 +49,7 @@ private:
     TreeElement* createTreeFromLuaStack();
     void checkPairing(TreeElement *element);
 
-    void processWhites(TreeElement *element); // move all whites as high as possible without changing tree text
-    void splitNewlines(TreeElement *element); // find all newlines in whites and split to independent elements
+    void processWhites(TreeElement *root); // move all whites as high as possible without changing tree text
 
     QMessageBox *msgBox; // for (error) mesasage
 };

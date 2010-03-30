@@ -30,9 +30,11 @@ public:
     bool isTextBlock() const;
     int length() const;
     Block *getFirstLeaf() const;
+    Block *getAncestorWhereFirst() const;
     Block *getNextSibling() const;
     Block *getNext(bool textOnly = false) const;
     Block *getPrev(bool textOnly = false) const;
+    bool hasMoreLines() const;
     int numberOfLines() const;
     void setLine(int newLine);
 
@@ -45,12 +47,13 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QList<Block*> blocklist_cast(QList<QGraphicsItem*> list) const;
 
-    void setChanged();
-
     static int getLastLine(){return lastLine;}
     void updateLayout();
-    void updatePos();
+    void updateAfter(bool updateThis = false);
+    void updateLineStarts();
     void updateXPosInLine();
+
+    static QHash<int, Block*> lineStarts;// move to private..
 
 signals:
     void lostFocus(Block *block);
@@ -89,13 +92,12 @@ protected:
 
 private:
     static int OFFS;
-    static QHash<int, Block*> lineStarts;
+
     static int lastLine;
 
     bool folded;    // true when block is folded
     bool pressed;   // true while mouse is pressed
     bool edited;    // edited after last AST analysis
-    bool changed;   // changed after last updateLayout() call
 
     DocumentScene *docScene;    // my scene
     Block *parent;              // my parent
