@@ -87,16 +87,15 @@ QString Analyzer::getExtension() const
 }
 QMap<QString, QStringList> Analyzer::readFile(QString fileName)
 {
+    QMap<QString, QStringList> tables;
     try {
         if (luaL_loadfile(L, qPrintable(fileName))
             || lua_pcall(L, 0, 0, 0)) {
             throw "Error loading script \"" + fileName + "\"";
         }
-
-        QMap<QString, QStringList> tables;
         QStringList keys;
-        // get keys
 
+        // get keys
         lua_getglobal (L, CONFIG_KEYS_FIELD);
         lua_pushnil(L);
         while (lua_next(L, -2) != 0) {
@@ -115,8 +114,10 @@ QMap<QString, QStringList> Analyzer::readFile(QString fileName)
             }
             tables[key] = values;
         }
+        return tables;
     } catch (QString exMsg) {
         msgBox->critical(0, "Config file error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
+        return tables;
     }
 }
 
