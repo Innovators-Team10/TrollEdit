@@ -1,4 +1,7 @@
-cfg_keys = {"keyword", "string_literal"}
+cfg_keys = {"keyword", "line_comment", "multi_comment", "string_constant", "character_constant"}
 
-keyword = {"parlo", "italiano", "?"}
-string_literal = {"bold", "brave"}
+keyword = {"blue", "false", "false", "false"}
+line_comment = {"gray", "false", "false", "false"}
+multi_comment = {"gray", "false", "false", "false"}
+string_constant = {"darkmagenta", "false", "false", "false"}
+character_constant = {"darkmagenta", "false", "false", "false"}

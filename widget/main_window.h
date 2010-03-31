@@ -81,6 +81,7 @@ private:
     DocumentScene *currentScene;
     QStringList recentFiles;
     QString currentFile;
+    QMap<QString, QPair<QFont, QColor> > *highlightFormats;
     //SettingsDialog *settingsDialog;
 
     void createActions();
@@ -89,6 +90,8 @@ private:
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
     void load(QString fileName);
+    void initializeHighlightning();
+    bool toBool(QString textBool);
     //void writeSettings();
     //void readSettings();
 };

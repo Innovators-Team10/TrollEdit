@@ -48,6 +48,13 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
         myTextItem->setPos(OFFS, 0);
         if (element->getParent() != 0)
             setToolTip(element->getParent()->getType());
+
+        // highlight text
+        if (docScene->getHighlightning().find(element->getParent()->getType()) != docScene->getHighlightning().end()) {
+                    QPair<QFont, QColor> pair = docScene->getHighlightning().value(element->getParent()->getType());
+                    myTextItem->setFont(pair.first);
+                    myTextItem->setDefaultTextColor(pair.second);
+                }
     } else {
         myTextItem = 0;
         setToolTip(element->getType());

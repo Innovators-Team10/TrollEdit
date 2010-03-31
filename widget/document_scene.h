@@ -2,6 +2,7 @@
 #define DOCUMENTSCENE_H
 
 #include <QGraphicsScene>
+#include <QMap>
 
 class TreeElement;
 class Analyzer;
@@ -24,6 +25,8 @@ public:
     bool modified;
     void reanalyze();
     void analyzeAll(QString text);
+    void setHighlightning(const QMap<QString, QPair<QFont, QColor> > &highlightning);
+    QMap<QString, QPair<QFont, QColor> > getHighlightning() const;
 
 public slots:
 
@@ -39,7 +42,7 @@ private slots:
 private:
     TreeElement *root;
     Block *mainBlock;
-
+    QMap<QString, QPair<QFont, QColor> > highlightning;
     QGraphicsLineItem *insertLine;
 
     Block* blockAt(QPointF pos) const;

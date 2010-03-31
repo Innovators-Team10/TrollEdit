@@ -179,3 +179,13 @@ Block* DocumentScene::blockAt(QPointF pos) const
     return qgraphicsitem_cast<Block*>(item);
 }
 
+void DocumentScene::setHighlightning(const QMap<QString, QPair<QFont, QColor> > &highlightning)
+{
+    this->highlightning = highlightning;
+}
+
+QMap<QString, QPair<QFont, QColor> > DocumentScene::getHighlightning() const
+{
+    return highlightning;
+}
+

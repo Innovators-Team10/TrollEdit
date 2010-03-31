@@ -8,7 +8,6 @@ const QString LanguageManager::GRAMMAR_DIR = "\\grammars";
 const QString LanguageManager::DEFAULT_GRAMMAR = "\\grammars\\default_grammar.lua";
 const QString LanguageManager::CONFIG_FILE = "\\grammars\\config.lua";
 
-// NOTE: ak mas prestudovane QFileInfo mozes to tu spravit elegantnejsie..
 LanguageManager::LanguageManager(QString programPath)
 {
     QFileInfoList grammars;
@@ -28,8 +27,12 @@ LanguageManager::LanguageManager(QString programPath)
         }
     }
     defaultAnalyzer = new Analyzer(defaultGrammar.absoluteFilePath());
-    // NOTE: here is it!!!
-    QMap<QString, QStringList> data = defaultAnalyzer->readFile(configFile.absoluteFilePath());
+
+    // TODO: we assume grammars are there; but if there is none, what happens?
+    //       make some test for this case and throw an exception, catch it in main
+    //       window and terminate program; we have to have at least one grammar - ideally default
+
+    configData = defaultAnalyzer->readFile(configFile.absoluteFilePath());
 }
 
 LanguageManager::~LanguageManager()
@@ -38,9 +41,15 @@ LanguageManager::~LanguageManager()
     delete defaultAnalyzer;
 }
 
-Analyzer *LanguageManager::getAnalyzerFor(QString suffix) const {
+Analyzer *LanguageManager::getAnalyzerFor(QString suffix) const
+{
     if (analyzers.contains(suffix))
         return analyzers.value(suffix);
     else
         return defaultAnalyzer;
+}
+
+QMap<QString, QStringList> LanguageManager::getConfigData()
+{
+    return configData;
 }
