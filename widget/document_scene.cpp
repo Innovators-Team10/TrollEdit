@@ -85,9 +85,11 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::RightButton) { // AST testing
         QString str = "";
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
-            QHash<int, Block*>::iterator i;
-            for (i = Block::lineStarts.begin(); i != Block::lineStarts.end(); ++i)
+            QMapIterator<int, Block*> i(Block::lineStarts);
+            while (i.hasNext()) {
+                i.next();
                 str.append(QString("%1").arg(i.key())).append(" - "+i.value()->getElement()->getType()+"\n");
+            }
             str.append(QString("Last line: %1").arg(Block::getLastLine()));
         } else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) {
             QList<TreeElement*> list = root->getDescendants();
@@ -129,7 +131,7 @@ void DocumentScene::toggleOffset()
         Block::OFFSH = 10;
         Block::OFFSV = 3;
     }
-    reanalyze();
+    update();
 }
 
 void DocumentScene::reanalyze()

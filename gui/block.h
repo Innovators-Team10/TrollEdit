@@ -60,9 +60,9 @@ public:
     void updateLayout();
     void updateAfter(bool updateThis = false);
     void updateLineStarts();
-    void updateXPosInLine();
+    void updateXPosInLine(int lineNo);
 
-    static QHash<int, Block*> lineStarts;// move to private..
+    static QMap<int, Block*> lineStarts;// move to private..
     static int OFFSH, OFFSV;// temp
 
 signals:
