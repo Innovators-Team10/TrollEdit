@@ -120,8 +120,20 @@ void DocumentScene::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
 void DocumentScene::lostFocus(Block *block)
 {
 }
+void DocumentScene::toggleOffset()
+{
+    if (Block::OFFSH != 0) {
+        Block::OFFSH = 0;
+        Block::OFFSV = 0;
+    } else {
+        Block::OFFSH = 10;
+        Block::OFFSV = 3;
+    }
+    reanalyze();
+}
 
-void DocumentScene::reanalyze() {
+void DocumentScene::reanalyze()
+{
     QGraphicsItem *item = focusItem();
     QGraphicsTextItem *textItem;
     if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
@@ -132,25 +144,31 @@ void DocumentScene::reanalyze() {
         analyzeAll(root->getText());
         return;
     }
-    TreeElement *analyzedEl = analyzer->getAnalysableAncestor(block->getElement());
+    TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
     block = 0;
-    if (analyzedEl == 0) {
+    if (analysedEl == 0) {
         analyzeAll(root->getText());
         return;
     }
-    Block *analysedBl = analyzedEl->getBlock();
+    block = 0;
+    TreeElement *newEl = analyzer->analyzeElement(analysedEl);
+
+    Block *analysedBl;
+    do {
+        analysedBl = analysedEl->getBlock();
+        analysedEl = (*analysedEl)[0];
+    } while (analysedBl == 0);
+
     bool lineBreaking = analysedBl->getElement()->isLineBreaking();
-    //    int spaces = analysedBl->getElement()->getSpaces();
     Block *parentBl = analysedBl->parentBlock();
     Block *nextSib = analysedBl->getNextSibling();
+
     delete(analysedBl);
-    block = 0;
-    TreeElement *newEl = analyzer->analyzeElement(analyzedEl);
     newEl->setLineBreaking(lineBreaking);
     //    newEl->addSpaces(spaces);
     Block *newBlock = new Block(newEl, parentBl, this);
-    newBlock->stackBefore(nextSib);
-    //    newBlock->updatePos();
+    if (nextSib != 0)
+        newBlock->stackBefore(nextSib);
     mainBlock->updateLayout();
     update();
 }
@@ -159,8 +177,7 @@ void DocumentScene::analyzeAll(QString text)
 {
     if (mainBlock != 0)
         delete(mainBlock);
-    if (root != 0)
-        delete(root);
+
     root = analyzer->analyzeFull(text);
     mainBlock = new Block(root, 0, this);
     mainBlock->setPos(30,20);

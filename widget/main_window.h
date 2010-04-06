@@ -38,7 +38,9 @@ private slots:
     void settings();
     bool closeTab();
     void handleFontChange();
-    void analyzeTab();
+
+    void reanalyze();
+    void toggleOffset();
 
 private:
     enum { MaxRecentFiles = 4 };
@@ -59,6 +61,7 @@ private:
     QAction *deleteAction;
 
     QAction *stylesAction;
+    QAction *offsetAction;
 
     QAction *helpAction;
     QAction *aboutAction;

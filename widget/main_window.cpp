@@ -89,7 +89,7 @@ void MainWindow::createActions()
 
     // delete
     deleteAction = new QAction(tr("&Delete"), this);
-    deleteAction->setShortcut(tr("Del"));
+//    deleteAction->setShortcut(tr("Del"));             // this caused my few headaches, del key was blocked from the rest of the program...
     deleteAction->setToolTip(tr("Erase the next character or the selection"));
     // connect(deleteAction, SIGNAL(triggered()), xxx, SLOT(yyy)); ???
 
@@ -142,9 +142,10 @@ void MainWindow::createActions()
 
     // analyze text
     analyzeAction = new QAction(tr("Analyze"), this);
-//    analyzeAction->setShortcut(tr("CTRL+Q"));
-//    analyzeAction->setToolTip(tr("Quit the application. Prompts to save files"));
-    connect(analyzeAction, SIGNAL(triggered()), this, SLOT(analyzeTab()));
+    connect(analyzeAction, SIGNAL(triggered()), this, SLOT(reanalyze()));
+    // toggle offset
+    offsetAction = new QAction(tr("Toggle OFFS"), this);
+    connect(offsetAction, SIGNAL(triggered()), this, SLOT(toggleOffset()));
 }
 
 void MainWindow::createMenus()
@@ -173,6 +174,7 @@ void MainWindow::createMenus()
     // options menu
     optionsMenu = menuBar()->addMenu(tr("&Options"));
     optionsMenu->addAction(stylesAction);
+    optionsMenu->addAction(offsetAction);
 
     // help menu
     helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -288,11 +290,6 @@ void MainWindow::about()
         "which is being developed for Team project course."));*/
 }
 
-void MainWindow::analyzeTab()
-{
-    currentScene->reanalyze();
-}
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (documentTabs->currentIndex() == -1)
@@ -313,6 +310,16 @@ void MainWindow::closeEvent(QCloseEvent *event)
     } else {
         event->ignore();
     }
+}
+
+void MainWindow::reanalyze()
+{
+    currentScene->reanalyze();
+}
+
+void MainWindow::toggleOffset()
+{
+    currentScene->toggleOffset();
 }
 
 void MainWindow::handleFontChange()

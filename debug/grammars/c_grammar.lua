@@ -15,7 +15,7 @@ other_grammars = {
 	translation_unit="top_element"
 }
 paired = {"{", "}", "(", ")", "[", "]", }
-multi_line = {"program", "block", "translation_unit", "simple_statement",		-- nonterminals
+multi_line = {"program", "block", "simple_statement",		-- nonterminals
 	"funct_definition", 
 	"struct_or_union_specifier", "enum_specifier", "initializer",
 	"unknown",}	
@@ -94,7 +94,7 @@ preprocessor = (NI'include' + ((TK"#define" + TK"#elif" + TK"#else" + TK"#endif"
 include = TK"#include" * T"<" * T((1 - P">")^1) * T">",
 
 funct_definition =
-	NI'declaration_specifiers'^-1 * N'declarator' *N'declaration'^0 * T"{" * N'block' * T"}",
+	NI'declaration_specifiers'^-1 * N'declarator' *N'declaration'^0 * T"{" * N'block'^-1 * T"}",
 
 declaration =  NI'declaration_specifiers' * N'init_declarator' * (T"," * N'init_declarator')^0 * T";",
 
@@ -165,7 +165,7 @@ abstract_declarator =
 	T"(" * N'parameter_type_list'^-1 * T")"
 	)^1,
 	
-statement = N"simple_statement" + T"{" * N'block' * T"}",
+statement = N"simple_statement" + T"{" * N'block'^-1* T"}",
 simple_statement =
 	(N'expression'^-1 * T";" +
 	TK"if" * T"(" * N'expression' * T")" * NI'statement' * TK"else" * NI'statement' +
@@ -180,7 +180,7 @@ simple_statement =
 	TK"return" * N'expression'^-1 * T";"
 	),
 
-block =  (N'declaration' + NI'statement' + N'preprocessor')^0,
+block =  (N'declaration' + NI'statement' + N'preprocessor')^1,
 
 case_statement = 
 	(N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":" * NI'statement'^0,

@@ -158,28 +158,19 @@ TreeElement* Analyzer::analyzeFull(QString input)
 // reanalyze text from element and it's descendants, updates AST and returns first modified node
 TreeElement *Analyzer::analyzeElement(TreeElement* element)
 {
-    QString grammar = 0;
+    QString grammar = "";
+    TreeElement *subRoot = 0;
     if (element != 0)
         grammar = subGrammars[element->getType()];
-    if (element->getParent() != 0 && !grammar.isNull()) {
-        TreeElement *parent = element->getParent();
-        int index = (*parent)[element];
-        TreeElement *subRoot;
+    if (!grammar.isEmpty()) {
         try{
             subRoot = analyzeString(grammar, element->getText());
-            parent->removeChild(element);
-            delete element;
-            parent->insertChild(index, subRoot);
         } catch(QString exMsg) {
             msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
-            subRoot = element->getRoot();
+            subRoot = 0;
         }
-        return subRoot;
-    } else {
-        TreeElement *root = analyzeFull(element->getRoot()->getText());
-        delete element->getRoot();
-        return root;
     }
+    return subRoot;
 }
 
 TreeElement *Analyzer::getAnalysableAncestor(TreeElement *element)
@@ -292,7 +283,10 @@ void Analyzer::processWhites(TreeElement* root)
                 index = 0;
                 nl = new TreeElement("", false, false, true);
             } else {
-                if (!(*parent)[index]->setLineBreaking(true)) { // set newline flag
+                TreeElement *el = (*parent)[index];
+                while (!el->isImportant())
+                    el = (*el)[0];
+                if (!el->setLineBreaking(true)) { // set newline flag
                     // flag was already set -> add an empty line-breaking element at index+1
                     index++;
                     nl = new TreeElement("", false, false, true);
@@ -315,7 +309,7 @@ void Analyzer::processWhites(TreeElement* root)
             parent->removeChild(el);        // remove & destroy
             delete(el);
 
-            while(index == 0) {       // el was the first child
+            while (index == 0) {       // el was the first child
                 index = parent->index();
                 if (parent->getParent() == 0)
                     break;
@@ -325,8 +319,10 @@ void Analyzer::processWhites(TreeElement* root)
                 el = (*parent)[index];
             else
                 el = parent;
-            //el->addSpaces(spaces);
+            while (!el->isImportant())
+                el = (*el)[0];
+            el->setSpaces(spaces);
         }
     }
-    //root->adjustSpaces();
+    root->adjustSpaces(0);
 }

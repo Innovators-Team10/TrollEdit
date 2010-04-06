@@ -12,6 +12,7 @@ class TextItem : public QGraphicsTextItem
 public:
     TextItem(const QString &text, Block *parent = 0, bool multiText = false);
     void setTextCursorPosition(int i);
+    bool removeCharAt(int i);   // returns false if text is empty after removal
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 protected:
@@ -25,6 +26,7 @@ signals:
     void moveCursorLR(int key);
     void moveCursorUD(int key, int from);
     void enterPressed(int cursorPos);
+    void erasePressed(int key);
 private:
     bool multiText;
 };

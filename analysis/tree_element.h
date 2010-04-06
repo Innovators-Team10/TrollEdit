@@ -34,9 +34,11 @@ public:
      bool isWhite() const;
      bool isUnknown() const;
 
-     void addSpaces(int sp);
+     void setSpaces(int number);
+     void addSpaces(int number);
      int getSpaces() const;
-     void adjustSpaces();
+     void adjustSpaces(int offset);
+
      bool setLineBreaking(bool flag);
      bool isLineBreaking() const;
      bool allowsParagraphs() const;

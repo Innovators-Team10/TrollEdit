@@ -23,8 +23,10 @@ public:
 
     Analyzer *analyzer;
     bool modified;
-    void reanalyze();
+
     void analyzeAll(QString text);
+    void reanalyze();
+    void toggleOffset();
     void setHighlightning(const QMap<QString, QPair<QFont, QColor> > &highlightning);
     QMap<QString, QPair<QFont, QColor> > getHighlightning() const;
 

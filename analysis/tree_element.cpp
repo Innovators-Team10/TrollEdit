@@ -18,9 +18,13 @@ TreeElement::TreeElement(QString type, bool multiLine,
 
 TreeElement::~TreeElement()
 {
-    qDeleteAll(children);
+    if (!isLeaf())
+        removeAllChildren();
     if (parent != 0) {
-        parent->removeChild(this);
+        if (!parent->isImportant())
+            delete(parent);
+        else
+            parent->removeChild(this);
     }
 }
 
@@ -35,10 +39,7 @@ void TreeElement::setBlock(Block *block)
 
 Block *TreeElement::getBlock() const
 {
-    if (isImportant())
-        return myBlock;
-    else
-        return children[0]->getBlock();
+    return myBlock;
 }
 
 void TreeElement::appendChild(TreeElement *child)
@@ -95,7 +96,7 @@ bool TreeElement::isLeaf() const
 }
 bool TreeElement::isImportant() const
 {
-    return childCount() != 1;
+    return childCount() != 1 || lineBreaksAllowed;
 }
 bool TreeElement::isNewline() const
 {
@@ -117,39 +118,39 @@ bool TreeElement::hasSiblings() const
         return false;
 }
 
+void TreeElement::setSpaces(int number)
+{
+    spaces = qMax(0, number);
+}
 void TreeElement::addSpaces(int number)
 {
-    if (!isImportant()) {
-        children[0]->addSpaces(number);
-    } else {
-        spaces += number;
-        if (spaces < 0) spaces = 0;
-    }
+    setSpaces(spaces + number);
 }
 int TreeElement::getSpaces() const
 {
     return spaces;
 }
-void TreeElement::adjustSpaces()
+void TreeElement::adjustSpaces(int offset)
 {
-    bool wasLineBreak = false;
-    foreach (TreeElement *el, children) {
-        while (!el->isImportant()) {
-            el =  (*el)[0];
+    bool newLineComming = true;
+    offset += spaces;
+    foreach (TreeElement *child, children) {
+        while (!child->isImportant())
+            child = (*child)[0];
+        if (newLineComming) {
+            child->addSpaces(-offset);
+            newLineComming = false;
         }
-        el->adjustSpaces();
-        if (wasLineBreak) {
-            el->addSpaces(-spaces);
-            wasLineBreak = false;
-        }
-        if (el->isLineBreaking()) wasLineBreak = true;
-
+        child->adjustSpaces(offset);
+        if (child->isLineBreaking())
+            newLineComming = true;
     }
 }
+
 bool TreeElement::setLineBreaking(bool flag)
 {
-    if (!isImportant())
-        return children[0]->setLineBreaking(flag);
+//    if (!isImportant())
+//        return children[0]->setLineBreaking(flag);
     if (lineBreaking == flag) return false;
     lineBreaking = flag;
     return true;
@@ -160,7 +161,7 @@ bool TreeElement::isLineBreaking() const
 }
 bool TreeElement::allowsLineBreaks() const
 {
-    return lineBreaksAllowed;
+    return lineBreaksAllowed || true;
 }
 bool TreeElement::allowsParagraphs() const {
     return paragraphsAllowed;
@@ -260,19 +261,19 @@ QString TreeElement::getType() const
 QString TreeElement::getText() const
 {
     QString text;
+    QString spacesStr = QString().fill(' ', spaces);
     if (isLeaf())
-        text = type;
+        text = type;                            // get my text
     else {
         foreach (TreeElement *e, children) {
-            text.append(e->getText());
+            text.append(e->getText());          // get child texts
         }
+        text.replace("\n", "\n"+spacesStr);     // indent after each line break
     }
+    text.prepend(spacesStr);                    // indent my text
     if (lineBreaking) {
-        text.append("\n");
-        if (parent != 0)
-            text.append(QString().fill(' ', parent->spaces));
+        text.append("\n");                      // add line break if needed
     }
-    text.prepend(QString().fill(' ', spaces));
     return text;
 }
 
