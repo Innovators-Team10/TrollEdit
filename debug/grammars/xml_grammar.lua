@@ -12,7 +12,7 @@ other_grammars = {
 	element="in_element", 
 }
 paired = {"<", ">", "el_start", "el_end"}
-multi_line = {"document", "element"}
+selectable = {"element", "header", "text", "unknown"}
 multi_text = {"unknown"}
 
 require 'lpeg'
@@ -59,24 +59,25 @@ document =
 	Cc("document") *
 	N'nl'^0 *
 	N'header'^-1 * N'element' *
-	N'unknown'^-1 *-1),
+	N'unknown'^0 *-1),
 	
 in_element =  
 	Ct(
 	N'whites'^-1 *
 	N'nl'^0 *
 	(N'element')^0 *
-	N'unknown'^-1 *-1),
+	N'unknown'^0 *-1),
 	
 -- NONTERMINALS
 header = T"<?xml" * T"version=" * N'version_number' * T"?>",
 version_number = NI'number' * T'.' * NI'number',
 element = 
 	N'el_empty' +
-	N'el_start' * (N'word'^1 + N'element'^0) * N'el_end',
+	N'el_start' * (N'text' + N'element'^0) * N'el_end',
 el_start = T"<" * NI'name' * T">",
 el_end = T"</" * NI'name' * T">",
 el_empty = T"<" * NI'name' * T"/>",
+text = N'word'^1,
 	
 -- TERMINALS
 name = T((NI'letter' + S("_:")) * NI'name_char'^0),
@@ -84,9 +85,9 @@ word = T(NI'char'^1),
 number = T(NI'digit'^1),
 	
 -- LITERALS
-unknown = TP(P(1)^1), -- anything
-whites = TP(S(" \t")^1),	-- spaces and tabs
-nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), -- single newline, preceding spaces are ignored
+unknown = TP((1 - S"\r\n")^1) * N'nl'^0, -- anything divided to lines
+whites = TP(S(" \t")^1),			-- spaces and tabs
+nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"),	-- single newline, preceding spaces are ignored
 
 letter = R("az", "AZ"),
 digit = R("09"),

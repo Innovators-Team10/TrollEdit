@@ -15,11 +15,12 @@ other_grammars = {
 	translation_unit="top_element"
 }
 paired = {"{", "}", "(", ")", "[", "]", }
-multi_line = {"program", "block", "simple_statement",		-- nonterminals
-	"funct_definition", 
-	"struct_or_union_specifier", "enum_specifier", "initializer",
-	"unknown",}	
-multi_text = {"multi_comment", "doc_comment",}		-- terminals	
+selectable = {
+	"preprocessor", "funct_definition", "declaration", 
+	"block", "simple_statement", "expression", "initializer", 
+	"unknown",
+	}	
+multi_text = {"multi_comment", "doc_comment",}
 
 require 'lpeg'
 
@@ -249,9 +250,9 @@ multi_comment = TP(P"/*" * (1 - P"*/")^0 * P"*/"),
 line_comment = TP(P"//" * (1 - S"\r\n")^0),
 
 -- LITERALS
+unknown = TP((1 - S"\r\n")^1) * N'nl'^0, -- anything divided to lines
 whites = TP(S(" \t")^1),			-- spaces and tabs
 nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), 	-- single newline, preceding spaces are ignored	
-unknown = TP((1 - S"\r\n")^1) * N'nl'^0, -- anything divided to lines
 
 digit = R"09",
 hex = R("af", "AF", "09"),

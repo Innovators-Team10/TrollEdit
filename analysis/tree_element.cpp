@@ -5,15 +5,16 @@ const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
 const char *TreeElement::NEWLINE_EL = "nl";
 
-TreeElement::TreeElement(QString type, bool multiLine,
+TreeElement::TreeElement(QString type, bool selectable,
                          bool multiText, bool lineBreaking)
 {
     parent = 0;
     this->type = type;
-    this->lineBreaksAllowed = multiLine;
+    this->selectable = selectable;
     this->paragraphsAllowed = multiText;
     this->lineBreaking = lineBreaking;
     spaces = 0;
+    myBlock = 0;
 }
 
 TreeElement::~TreeElement()
@@ -96,7 +97,7 @@ bool TreeElement::isLeaf() const
 }
 bool TreeElement::isImportant() const
 {
-    return childCount() != 1 || lineBreaksAllowed;
+    return childCount() != 1 || selectable;
 }
 bool TreeElement::isNewline() const
 {
@@ -133,10 +134,16 @@ int TreeElement::getSpaces() const
 void TreeElement::adjustSpaces(int offset)
 {
     bool newLineComming = true;
+    bool lb = false;
     offset += spaces;
     foreach (TreeElement *child, children) {
-        while (!child->isImportant())
+        lb = child->isLineBreaking();
+        while (!child->isImportant()) {
+            child->setLineBreaking(false);
             child = (*child)[0];
+            lb = lb || child->isLineBreaking();
+        }
+        child->setLineBreaking(lb);
         if (newLineComming) {
             child->addSpaces(-offset);
             newLineComming = false;
@@ -149,8 +156,6 @@ void TreeElement::adjustSpaces(int offset)
 
 bool TreeElement::setLineBreaking(bool flag)
 {
-//    if (!isImportant())
-//        return children[0]->setLineBreaking(flag);
     if (lineBreaking == flag) return false;
     lineBreaking = flag;
     return true;
@@ -159,9 +164,9 @@ bool TreeElement::isLineBreaking() const
 {
     return lineBreaking;
 }
-bool TreeElement::allowsLineBreaks() const
+bool TreeElement::isSelectable() const
 {
-    return lineBreaksAllowed || true;
+    return selectable;
 }
 bool TreeElement::allowsParagraphs() const {
     return paragraphsAllowed;

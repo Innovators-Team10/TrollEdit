@@ -9,7 +9,6 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
 {
     this->analyzer = analyzer;
     mainBlock = 0;
-    root = 0;
     //    setFocus(Qt::MouseFocusReason);
 
     insertLine = new QGraphicsLineItem(0, this);
@@ -52,8 +51,8 @@ void DocumentScene::saveFile(const QString &fileName)
     QApplication::setOverrideCursor(Qt::WaitCursor);
     QTextStream out(&file);
 
-    if (root)
-        out << root->getText();
+    if (mainBlock != 0)
+        out << mainBlock->getElement()->getRoot()->getText();
 
     QApplication::restoreOverrideCursor();
 
@@ -84,6 +83,7 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     if (event->button() == Qt::RightButton) { // AST testing
         QString str = "";
+        TreeElement *root = mainBlock->getElement()->getRoot();
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
             QMapIterator<int, Block*> i(Block::lineStarts);
             while (i.hasNext()) {
@@ -95,7 +95,9 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
             QList<TreeElement*> list = root->getDescendants();
             foreach (TreeElement *el, list) {
                 str.append(QString("%1").arg(el->getSpaces()));
-                str.append("  "+el->getType()).append("\n");
+                str.append("  "+el->getType());
+                if (el->isLineBreaking()) str.append("*");
+                str.append("\n");
             }
         } else {
             str = root->getText();
@@ -131,11 +133,15 @@ void DocumentScene::toggleOffset()
         Block::OFFSH = 10;
         Block::OFFSV = 3;
     }
-    update();
+    reanalyze();
 }
 
 void DocumentScene::reanalyze()
 {
+    if (mainBlock == 0) {
+        update();
+        return;
+    }
     QGraphicsItem *item = focusItem();
     QGraphicsTextItem *textItem;
     if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
@@ -143,13 +149,13 @@ void DocumentScene::reanalyze()
     Block *block = qgraphicsitem_cast<Block*>(item);
 
     if (block == 0) {
-        analyzeAll(root->getText());
+        analyzeAll(mainBlock->getElement()->getRoot()->getText());
         return;
     }
     TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
     block = 0;
     if (analysedEl == 0) {
-        analyzeAll(root->getText());
+        analyzeAll(mainBlock->getElement()->getRoot()->getText());
         return;
     }
     block = 0;
@@ -166,9 +172,9 @@ void DocumentScene::reanalyze()
     Block *nextSib = analysedBl->getNextSibling();
 
     delete(analysedBl);
-    newEl->setLineBreaking(lineBreaking);
-    //    newEl->addSpaces(spaces);
+
     Block *newBlock = new Block(newEl, parentBl, this);
+    newBlock->getElement()->setLineBreaking(lineBreaking);
     if (nextSib != 0)
         newBlock->stackBefore(nextSib);
     mainBlock->updateLayout();
@@ -180,8 +186,7 @@ void DocumentScene::analyzeAll(QString text)
     if (mainBlock != 0)
         delete(mainBlock);
 
-    root = analyzer->analyzeFull(text);
-    mainBlock = new Block(root, 0, this);
+    mainBlock = new Block(analyzer->analyzeFull(text), 0, this);
     mainBlock->setPos(30,20);
     mainBlock->updateLayout();
     update();
@@ -198,12 +203,12 @@ Block* DocumentScene::blockAt(QPointF pos) const
     return qgraphicsitem_cast<Block*>(item);
 }
 
-void DocumentScene::setHighlightning(const QMap<QString, QPair<QFont, QColor> > &highlightning)
+void DocumentScene::setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning)
 {
     this->highlightning = highlightning;
 }
 
-QMap<QString, QPair<QFont, QColor> > DocumentScene::getHighlightning() const
+QHash<QString, QPair<QFont, QColor> > DocumentScene::getHighlightning() const
 {
     return highlightning;
 }

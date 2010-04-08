@@ -6,7 +6,7 @@ const char *Analyzer::EXTENSION_FIELD = "extension";
 const char *Analyzer::MAIN_GRAMMAR_FIELD = "full_grammar";
 const char *Analyzer::SUB_GRAMMARS_FIELD = "other_grammars";
 const char *Analyzer::PAIRED_TOKENS_FIELD = "paired";
-const char *Analyzer::MULTI_LINE_TOKENS_FIELD = "multi_line";
+const char *Analyzer::SELECTABLE_TOKENS_FIELD = "selectable";
 const char *Analyzer::MULTI_TEXT_TOKENS_FIELD = "multi_text";
 const char *Analyzer::CONFIG_KEYS_FIELD = "cfg_keys";
 const QString Analyzer::TAB = "    ";
@@ -60,11 +60,11 @@ void Analyzer::setupConstants()
         lua_pop(L, 1);
     }
 
-    // get multi-line tokens (can contain more lines of tokens)
-    lua_getglobal (L, MULTI_LINE_TOKENS_FIELD);
+    // get selectable tokens (can be selected and moved)
+    lua_getglobal (L, SELECTABLE_TOKENS_FIELD);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
-        multiLineTokens.append(QString(lua_tostring(L, -1)));
+        selectableTokens.append(QString(lua_tostring(L, -1)));
         lua_pop(L, 1);
     }
     // get multi-text tokens (can contain more lines of text)
@@ -85,9 +85,9 @@ QString Analyzer::getExtension() const
 {
     return extension;
 }
-QMap<QString, QStringList> Analyzer::readFile(QString fileName)
+QHash<QString, QList<QPair<QString, QString> > > Analyzer::readConfig(QString fileName)
 {
-    QMap<QString, QStringList> tables;
+    QHash<QString, QList<QPair<QString, QString> > > tables;
     try {
         if (luaL_loadfile(L, qPrintable(fileName))
             || lua_pcall(L, 0, 0, 0)) {
@@ -107,12 +107,15 @@ QMap<QString, QStringList> Analyzer::readFile(QString fileName)
         foreach (QString key, keys) {
             lua_getglobal (L, qPrintable(key));
             lua_pushnil(L);
-            QStringList values;
+            QList<QPair<QString, QString> > pairs;
             while (lua_next(L, -2) != 0) {
-                values.append(QString(lua_tostring(L, -1)));
+                QPair<QString, QString> pair;
+                pair.first = QString(lua_tostring(L, -2));
+                pair.second = QString(lua_tostring(L, -1));
                 lua_pop(L, 1);
+                pairs << pair;
             }
-            tables[key] = values;
+            tables[key] = pairs;
         }
         return tables;
     } catch (QString exMsg) {
@@ -209,7 +212,7 @@ TreeElement *Analyzer::createTreeFromLuaStack()
                 root = new PairedTreeElement(nodeName);
             } else {
                 root = new TreeElement(nodeName,
-                                       multiLineTokens.contains(nodeName),
+                                       selectableTokens.contains(nodeName),
                                        multiTextTokens.contains(nodeName));
             }
         }

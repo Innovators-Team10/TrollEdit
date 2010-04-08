@@ -22,6 +22,7 @@ public:
     // overriden methods to provide AST consistency
     void setParentItem (QGraphicsItem *parent);
     void stackBefore (const QGraphicsItem *sibling);
+    QList<Block*> removeBlock();
 
     // block management methods
     Block *getFirstLeaf() const;

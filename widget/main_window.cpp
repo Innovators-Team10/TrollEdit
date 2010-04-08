@@ -418,8 +418,9 @@ void MainWindow::setCurrentScene(int tabNumber) {
 
 void MainWindow::initializeHighlightning()
 {
-    highlightFormats = new QMap<QString, QPair<QFont, QColor> >();
-    QMap<QString, QStringList> configData = langManager->getConfigData();
+    highlightFormats = new QHash<QString, QPair<QFont, QColor> >();
+    /*QHash<QString, QList<QPair<QString, QString> > > configData = langManager->getConfigData();
+
     QStringList keys = configData.keys();
 
     foreach (QString key, keys) {
@@ -440,7 +441,7 @@ void MainWindow::initializeHighlightning()
         // only thing that can be wrong - we have invalid color
         if (color.isValid())
             highlightFormats->insert(key, QPair<QFont, QColor>(font, color));
-    }
+    }*/
 }
 
 bool MainWindow::toBool(QString textBool)

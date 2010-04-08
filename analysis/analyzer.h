@@ -1,10 +1,8 @@
 #ifndef ANALYZER_H
 #define ANALYZER_H
 
-#include <QList>
-#include <QString>
 #include <QMessageBox>
-#include <QMap>
+#include <QHash>
 
 class TreeElement;
 class PairedTreeElement;
@@ -24,13 +22,13 @@ public:
     TreeElement *analyzeElement(TreeElement *element);
     TreeElement *getAnalysableAncestor(TreeElement *element);
     QString getExtension() const;
-    QMap<QString, QStringList> readFile(QString fileName);
+    QHash<QString, QList<QPair<QString, QString> > > readConfig(QString fileName);
 private:
     static const char *EXTENSION_FIELD;
     static const char *MAIN_GRAMMAR_FIELD;
     static const char *SUB_GRAMMARS_FIELD;
     static const char *PAIRED_TOKENS_FIELD;
-    static const char *MULTI_LINE_TOKENS_FIELD;
+    static const char *SELECTABLE_TOKENS_FIELD;
     static const char *MULTI_TEXT_TOKENS_FIELD;
     static const char *CONFIG_KEYS_FIELD;
     static const QString TAB;
@@ -39,9 +37,9 @@ private:
     QString extension;      // type of files to be analyzed
     QString script_name;      // script name
     QString mainGrammar;    // name of complete gramar
-    QMap<QString, QString> subGrammars; // names of partial grammars
+    QHash<QString, QString> subGrammars; // names of partial grammars
     QStringList pairedTokens;   // list, example: "{", "}", "begin", "end"...
-    QStringList multiLineTokens;   // list of tokens which can contain line-breaking children
+    QStringList selectableTokens;   // list of tokens which can contain line-breaking children
     QStringList multiTextTokens;   // list of tokens which can contain more lines of text
 
     void setupConstants();

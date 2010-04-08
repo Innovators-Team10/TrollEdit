@@ -2,9 +2,9 @@
 #define DOCUMENTSCENE_H
 
 #include <QGraphicsScene>
-#include <QMap>
+#include <QHash>
+#include <QString>
 
-class TreeElement;
 class Analyzer;
 class Block;
 class DocumentTabs;
@@ -27,8 +27,8 @@ public:
     void analyzeAll(QString text);
     void reanalyze();
     void toggleOffset();
-    void setHighlightning(const QMap<QString, QPair<QFont, QColor> > &highlightning);
-    QMap<QString, QPair<QFont, QColor> > getHighlightning() const;
+    void setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning);
+    QHash<QString, QPair<QFont, QColor> > getHighlightning() const;
 
 public slots:
 
@@ -42,9 +42,8 @@ private slots:
     void lostFocus(Block *block);
 
 private:
-    TreeElement *root;
     Block *mainBlock;
-    QMap<QString, QPair<QFont, QColor> > highlightning;
+    QHash<QString, QPair<QFont, QColor> > highlightning;
     QGraphicsLineItem *insertLine;
 
     Block* blockAt(QPointF pos) const;

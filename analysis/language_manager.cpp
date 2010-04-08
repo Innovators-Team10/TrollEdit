@@ -32,7 +32,7 @@ LanguageManager::LanguageManager(QString programPath)
     //       make some test for this case and throw an exception, catch it in main
     //       window and terminate program; we have to have at least one grammar - ideally default
 
-    configData = defaultAnalyzer->readFile(configFile.absoluteFilePath());
+    configData = defaultAnalyzer->readConfig(configFile.absoluteFilePath());
 }
 
 LanguageManager::~LanguageManager()
@@ -49,7 +49,7 @@ Analyzer *LanguageManager::getAnalyzerFor(QString suffix) const
         return defaultAnalyzer;
 }
 
-QMap<QString, QStringList> LanguageManager::getConfigData()
+QHash<QString, QList<QPair<QString, QString> > > LanguageManager::getConfigData()
 {
     return configData;
 }

@@ -51,13 +51,13 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
             setToolTip(element->getParent()->getType());
 
         // highlight text
-        if (docScene->getHighlightning().find(element->getParent()->getType()) != docScene->getHighlightning().end()) {
-            QPair<QFont, QColor> pair = docScene->getHighlightning().value(element->getParent()->getType());
-            myTextItem->font().setBold(pair.first.bold());
-            myTextItem->font().setItalic(pair.first.italic());
-            myTextItem->font().setUnderline(pair.first.underline());
-            myTextItem->setDefaultTextColor(pair.second);
-        }
+//        if (docScene->getHighlightning().find(element->getParent()->getType()) != docScene->getHighlightning().end()) {
+//            QPair<QFont, QColor> pair = docScene->getHighlightning().value(element->getParent()->getType());
+//            myTextItem->font().setBold(pair.first.bold());
+//            myTextItem->font().setItalic(pair.first.italic());
+//            myTextItem->font().setUnderline(pair.first.underline());
+//            myTextItem->setDefaultTextColor(pair.second);
+//        }
     } else {
         myTextItem = 0;
         setToolTip(element->getType());
@@ -111,6 +111,7 @@ void Block::createControls()
 void Block::setParentItem(QGraphicsItem *parentItem)
         // moves this element and all unimportant elements on way to parentBlock's element ("branch")
         // to new parent
+        // NOTE: to remove block from its parent use removeBlock()
 {
     if (parentItem == this) {
         parentItem = 0;//debug - toto nemoze nastavat
@@ -184,6 +185,23 @@ void Block::stackBefore(const QGraphicsItem *sibling)
         }
     }
     QGraphicsRectItem::stackBefore(sibling);
+}
+
+QList<Block*> Block::removeBlock()
+{
+    int remSpaces = 0;
+    QList<Block*> toDelete;
+    Block *block = this;
+    do {    // remove this block and all ancestors (that would became leafs) from hierarchy
+        remSpaces += block->getSpaces();    // collect spaces from deleted blocks
+        Block *oldParent = block->parent;
+        block->setParentItem(0);
+        toDelete << block;
+        block = oldParent;
+    } while (block != 0 && block->element->isLeaf());
+    toDelete.removeOne(this);
+    element->setSpaces(remSpaces);
+    return toDelete;
 }
 
 Block *Block::parentBlock() const
@@ -328,42 +346,32 @@ void Block::textChanged()
     if (text.isEmpty()) {   // delete block
         if (!element->isLineBreaking() || getPrev()->line == line) {
             // don't delete if block is single newline in this line
-            if (element->isLineBreaking())
-                getPrev()->element->setLineBreaking(true);
 
-            int remSpaces = 0;
             Block *next = getNext();
-
-            QList<Block*> toDelete;
-            Block *block = this;
-            do {    // remove this block and all ancestors that would became leafs from hierarchy
-                remSpaces += block->getSpaces();    // collect spaces from deleted blocks
-                Block *oldParent = block->parent;
-                block->setParentItem(0);
-                toDelete << block;
-                block = oldParent;
-            } while (block != 0 && block->element->isLeaf());
+            QList<Block*> toDelete = removeBlock();
 
             if (!toDelete.contains(next)) {
-                if (next->line > line) {        // jumped to next line
+                if (next->line > line) { // jumped to next line
                     Block *prev = next->getPrev(true);
-                    if (prev->line > line)  // jumped to the end of file
+                    if (prev->line > line) {  // jumped to the end of file
                         next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
-                    else                    // same line
+                    } else {                  // same line
                         prev->textItem()->setTextCursorPosition(-1);
+//                        prev->element->setLineBreaking(true);
+                    }
                     next->updateAfter(true);
                 } else if (next->line < line) { // jumped to the beginning of file
                     next->getPrev(true)->textItem()->setTextCursorPosition(-1);
-                } else {                        // on same line
-                    next->element->addSpaces(remSpaces);
+                } else {                         // on same line
+                    next->element->addSpaces(element->getSpaces());
                     next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
                     next->updateAfter(true);
                 }
             }
             docScene->update();
 
-            foreach (Block* block, toDelete)
-                block->deleteLater();
+            deleteLater();
+            foreach (Block* block, toDelete) block->deleteLater();
             // it is very important to call deleteLater() only AFTER update() !!
             return;
         }
@@ -388,8 +396,8 @@ void Block::textChanged()
 
     docScene->update();
     myTextItem->document()->blockSignals(false);
-
 }
+
 void Block::keyPressed(QKeyEvent* event)
 {
     if (event->key() != Qt::Key_Up && event->key() != Qt::Key_Down)
@@ -403,22 +411,19 @@ void Block::splitLine(int cursorPos)
         updateAfter();
         return;
     }
-    // check if another block shouldn't be splitted instead of this one
+    // check if what block should be splitted
     if (cursorPos == 0) {
         Block *block = getPrev();           // split previous block
-        if (block->parent == 0) return;
-        if (block->parent->element->allowsLineBreaks()) {
+        if (block->parent != 0)
             block->splitLine();
-            return;
-        }
+        return;
     } else if ((cursorPos == length() || cursorPos == -1) && nextSib == 0) {
         Block *block = getNext();           // split next block
-        if (block->parent != 0 && block->parent->element->allowsLineBreaks()) {
+        if (block->parent != 0) {
             block->getPrev()->splitLine();
-            return;
         }
-    }
-    if (parent->element->allowsLineBreaks()) {  // split this block
+        return;
+    } else { // split this block
         // update this block
         QString text = "";
         if (cursorPos >= 0) {
@@ -582,10 +587,11 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
         // remove from parent and add directly to scene
         // item is now on top of everything (that have z-value==0)
         // new parent will be resolved after mouse is released
+        QList<Block*> toDelete;
         if (oldParent != 0) {
             Block *next = getNext();
             setPos(scenePos());
-            setParentItem(0);
+            toDelete = removeBlock();
             if (next!= 0)
                 next->updateAfter(true);  // update blocks after removal
             oldParent->edited = true;
@@ -597,6 +603,7 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
         mouseMoveEvent(event);  // updates futureParent/Sibling and draw separator line immediatelly
         setPos(curPos);
         docScene->update();
+        foreach(Block* block, toDelete) block->deleteLater();
     }
     QGraphicsRectItem::mousePressEvent(event);
 }
@@ -748,7 +755,7 @@ void Block::updateLayout() // parent to child updater
 
         lineNo = child->computeNextSiblingLine();
         nextPos = child->computeNextSiblingPos();
-        if (child->line != lineNo)
+        if (child->element->isLineBreaking())
             newLineComming = true;
     }
 }
@@ -777,13 +784,12 @@ void Block::updateAfter(bool updateThis) // child to parent updater
     if (sibling != 0) {
         lineNo = sibling->computeNextSiblingLine();
         nextPos = sibling->computeNextSiblingPos();
-        if (sibling->line != lineNo)
+        if (sibling->element->isLineBreaking())
             newLineComming = true;
         sibling = sibling->nextSib;
     } else {
         lineNo = parent->line;
         nextPos = QPointF(OFFSH, OFFSV);
-        newLineComming = true;
         sibling = this;
     }
     // update siblings
@@ -802,25 +808,28 @@ void Block::updateAfter(bool updateThis) // child to parent updater
 
         lineNo = sibling->computeNextSiblingLine();
         nextPos = sibling->computeNextSiblingPos();
-        if (sibling->line != lineNo)
+        if (sibling->element->isLineBreaking())
             newLineComming = true;
         sibling = sibling->nextSib;
     }
     // this block and its siblings are updated, repeat with parent
-    parent->updateAfter();
+    updateThis = parent->firstChild == this && updateThis;
+    parent->updateAfter(updateThis);
 }
 void Block::updateLineStarts()
 {
     Block *child = firstChild;
-    int lineNo = line;
+    bool newLineComming  = false;
     while (child != 0) {
-        if (child->line != lineNo) {
-            lineNo = child->line;
-            lineStarts[lineNo] = child;
+        if (newLineComming) {
+            lineStarts[child->line] = child;
+            lastLine = child->line;
+            newLineComming = false;
         }
-        lastLine = lineNo;
         if (child->hasMoreLines())
             child->updateLineStarts();
+        if (child->element->isLineBreaking())
+            newLineComming = true;
         child = child->nextSib;
     }
 }
@@ -833,7 +842,7 @@ void Block::updateXPosInLine(int lineNo) // child to parent updater
     if (parent == 0) return;
     qreal nextX = computeNextSiblingPos().x();
     Block *sibling = nextSib;
-    while (sibling != 0 && sibling->line == lineNo) { // start with next block
+    while (sibling != 0) { // start with next block
         nextX +=  sibling->getSpaces() * SPACE_WIDTH;
         //        nextX = parent->mapFromScene(nextX, 0).x();
 
@@ -883,16 +892,14 @@ void Block::paint(QPainter *painter,
     //*****
     if (element->isLineBreaking())
         painter->fillRect(QRectF(0,0,OFFSH,OFFSH), Qt::blue);
-    if (element->allowsLineBreaks())
-        painter->fillRect(QRectF(0,OFFSH,OFFSH,OFFSH), Qt::green);
     if (element->allowsParagraphs())
-        painter->fillRect(QRectF(0,OFFSH,OFFSH,OFFSH), Qt::red);
+        painter->fillRect(QRectF(0,OFFSH,OFFSH,OFFSH), Qt::green);
     if (OFFSH>0) {
         painter->drawText(3, OFFSH+10, QString("%1").arg(line));
         painter->drawText(3, OFFSH, QString("%1").arg(getSpaces()));
     }
-    //    if (element->!isSelectable())
-    //        painter->setPen(Qt::gray);
+    if (!element->isSelectable())
+        painter->setPen(Qt::gray);
     if (element->isUnknown())
         painter->setPen(Qt::red);
     //*****

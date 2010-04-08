@@ -11,7 +11,7 @@ class TreeElement
 public:
      int spaces;
 
-     TreeElement(QString type = "", bool multiLine = false,
+     TreeElement(QString type = "", bool selectable = false,
                  bool multiText = false, bool lineBreaking = false);
      ~TreeElement();
 
@@ -42,7 +42,7 @@ public:
      bool setLineBreaking(bool flag);
      bool isLineBreaking() const;
      bool allowsParagraphs() const;
-     bool allowsLineBreaks() const;
+     bool isSelectable() const;
 
      TreeElement *operator<<(TreeElement *child);
      TreeElement *operator<<(QList<TreeElement *> children);
@@ -77,7 +77,7 @@ public:
      QString type;
      Block *myBlock;
      bool lineBreaking;
-     bool lineBreaksAllowed;
+     bool selectable;
      bool paragraphsAllowed;
 
      bool hasNext(int index);

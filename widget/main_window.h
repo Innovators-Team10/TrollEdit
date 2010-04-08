@@ -84,7 +84,7 @@ private:
     DocumentScene *currentScene;
     QStringList recentFiles;
     QString currentFile;
-    QMap<QString, QPair<QFont, QColor> > *highlightFormats;
+    QHash<QString, QPair<QFont, QColor> > *highlightFormats;
     //SettingsDialog *settingsDialog;
 
     void createActions();
