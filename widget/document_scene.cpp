@@ -19,6 +19,18 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
     modified = false;
 }
 
+void DocumentScene::adjustSceneRect(QRectF rect)
+{
+    if (mainBlock) {
+        QRectF blockRect = mainBlock->sceneBoundingRect();
+        if (blockRect.right() > rect.right())
+            rect.setRight(blockRect.right());
+        if (blockRect.bottom() > rect.bottom())
+            rect.setBottom(blockRect.bottom());
+    }
+    setSceneRect(rect);
+}
+
 void DocumentScene::loadFile(const QString &fileName)
 {
     QFile file(fileName);
@@ -34,7 +46,6 @@ void DocumentScene::loadFile(const QString &fileName)
     QString content = in.readAll();
 
     analyzeAll(content);
-
     QApplication::restoreOverrideCursor();
 }
 
@@ -203,6 +214,13 @@ Block* DocumentScene::blockAt(QPointF pos) const
     if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
         item = textItem->parentItem();
     return qgraphicsitem_cast<Block*>(item);
+}
+
+void DocumentScene::update(const QRectF &rect)
+{
+    emit requestSize();
+
+    QGraphicsScene::update(rect);
 }
 
 void DocumentScene::setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning)

@@ -9,8 +9,15 @@ class DocumentTabs : public QTabWidget
 
 public:
     DocumentTabs(QWidget *parent = 0);
+    void resizeEvent(QResizeEvent *event);
 
     static int documentNumber;
+
+signals:
+    void adjustScenes(QRectF rect);
+
+public slots:
+    void provideSize();
 
 protected:
     void mousePressEvent(QMouseEvent *event);

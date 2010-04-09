@@ -196,8 +196,9 @@ void MainWindow::createToolBars()
 void MainWindow::newFile()
 {
     DocumentScene *scene = new DocumentScene(langManager->getAnalyzerFor("*")); // default grammar
-    scene->setSceneRect(documentTabs->rect());
     scene->setHighlightning(*highlightFormats);
+    connect(documentTabs, SIGNAL(adjustScenes(QRectF)), scene, SLOT(adjustSceneRect(QRectF)));
+    connect(scene, SIGNAL(requestSize()), documentTabs, SLOT(provideSize()));
     QGraphicsView *view = new QGraphicsView(scene);
     documentTabs->addTab(view, tr("Untitled %1").arg(DocumentTabs::documentNumber)); // nejde nieco ako pri title bare, ze indikujeme hviezdickou neulozene zmeny?
     documentTabs->setCurrentIndex(documentTabs->count() - 1);
@@ -419,12 +420,12 @@ void MainWindow::setCurrentScene(int tabNumber) {
 void MainWindow::initializeHighlightning()
 {
     highlightFormats = new QHash<QString, QPair<QFont, QColor> >();
-    /*QHash<QString, QList<QPair<QString, QString> > > configData = langManager->getConfigData();
+    QHash<QString, QList<QPair<QString, QString> > > configData = langManager->getConfigData();
 
     QStringList keys = configData.keys();
 
     foreach (QString key, keys) {
-        QFont font;
+    /*    QFont font;
         QColor color;
         QStringList attributes = configData.value(key);
 
@@ -440,8 +441,8 @@ void MainWindow::initializeHighlightning()
 
         // only thing that can be wrong - we have invalid color
         if (color.isValid())
-            highlightFormats->insert(key, QPair<QFont, QColor>(font, color));
-    }*/
+            highlightFormats->insert(key, QPair<QFont, QColor>(font, color));*/
+    }
 }
 
 bool MainWindow::toBool(QString textBool)

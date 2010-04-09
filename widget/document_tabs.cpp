@@ -18,6 +18,17 @@ DocumentTabs::DocumentTabs(QWidget *parent)
     connect(tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 }
 
+void DocumentTabs::resizeEvent(QResizeEvent *event)
+{
+    QTabWidget::resizeEvent(event);
+    provideSize();
+}
+
+void DocumentTabs::provideSize()
+{
+    emit adjustScenes(rect());
+}
+
 void DocumentTabs::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::MidButton) {

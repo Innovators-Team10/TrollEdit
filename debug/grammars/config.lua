@@ -1,8 +1,9 @@
-cfg_keys = {"keyword", "string_constant"}
--- "line_comment", "multi_comment", "character_constant"}
+cfg_keys = {"keyword", "line_comment", "multi_comment", "string_constant", "character_constant", "number_constant", "identifier"}
 
-keyword = {color="blue", bold="true"}
--- line_comment = {color="gray", "false", "false", "false"}
--- multi_comment = {color="gray", "false", "false", "false"}
-string_constant = {color="darkmagenta", }
--- character_constant = {color="darkmagenta", "false", "false", "false"}
+keyword = {color="blue"}
+line_comment = {color="gray"}
+multi_comment = {color="gray"}
+string_constant = {color="darkmagenta"}
+character_constant = {color="darkmagenta"}
+number_constant = {color="orangered"}
+identifier = {bold="true"}

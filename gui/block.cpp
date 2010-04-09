@@ -520,6 +520,7 @@ void Block::moveCursorLR(int key)
     target->textItem()->setTextCursorPosition(position);
     lastX = -1;
 }
+
 void Block::moveCursorUD(int key, int from)
 {// nedokoncene
     Block *lineBl = lineStarts[line]->getFirstLeaf();
@@ -828,6 +829,7 @@ void Block::updateAfter(bool updateThis) // child to parent updater
     updateThis = parent->firstChild == this && updateThis;
     parent->updateAfter(updateThis);
 }
+
 void Block::updateLineStarts()
 {
     Block *child = firstChild;
@@ -875,6 +877,7 @@ int Block::type() const
 QRectF Block::boundingRect() const
 {
     QRectF rect;
+
     if (isTextBlock()) {
         rect = myTextItem->mapRectToParent(myTextItem->boundingRect());
         // NOTE: returned rect if 1 pixel wider than needed (to draw cursor at the end)

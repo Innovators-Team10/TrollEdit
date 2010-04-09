@@ -15,7 +15,8 @@ class DocumentScene : public QGraphicsScene
 
 public:
     DocumentScene(Analyzer *analyzer, QObject *parent = 0);
-
+    void update(const QRectF &rect = QRectF());
+    
     void loadFile(const QString &fileName);
     void saveFile(const QString &fileName);
     void showInsertLine(QLineF line);
@@ -27,10 +28,15 @@ public:
     void analyzeAll(QString text);
     void reanalyze();
     void toggleOffset();
+
     void setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning);
     QHash<QString, QPair<QFont, QColor> > getHighlightning() const;
 
+signals:
+    void requestSize();
+
 public slots:
+    void adjustSceneRect(QRectF rect);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
