@@ -85,9 +85,9 @@ word = T(NI'char'^1),
 number = T(NI'digit'^1),
 	
 -- LITERALS
-unknown = TP((1 - S"\r\n")^1) * N'nl'^0, -- anything divided to lines
-whites = TP(S(" \t")^1),			-- spaces and tabs
-nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"),	-- single newline, preceding spaces are ignored
+unknown = N'whites'^-1 * TP((1 - S"\r\n")^1) * N'nl'^0, 	-- anything divided to lines
+whites = TP(S(" \t")^1),						-- spaces and tabs
+nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"),				-- single newline, preceding spaces are ignored
 
 letter = R("az", "AZ"),
 digit = R("09"),

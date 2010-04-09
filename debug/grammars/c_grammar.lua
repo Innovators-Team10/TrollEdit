@@ -17,7 +17,8 @@ other_grammars = {
 paired = {"{", "}", "(", ")", "[", "]", }
 selectable = {
 	"preprocessor", "funct_definition", "declaration", 
-	"block", "simple_statement", "expression", "initializer", 
+	"initializer", "block", "simple_statement", 
+	"funct_call", "funct_param", "expression",  
 	"unknown",
 	}	
 multi_text = {"multi_comment", "doc_comment",}
@@ -250,9 +251,9 @@ multi_comment = TP(P"/*" * (1 - P"*/")^0 * P"*/"),
 line_comment = TP(P"//" * (1 - S"\r\n")^0),
 
 -- LITERALS
-unknown = TP((1 - S"\r\n")^1) * N'nl'^0, -- anything divided to lines
-whites = TP(S(" \t")^1),			-- spaces and tabs
-nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), 	-- single newline, preceding spaces are ignored	
+unknown = N'whites'^-1 * TP((1 - S"\r\n")^1) * N'nl'^0,	-- anything divided to lines
+whites = TP(S(" \t")^1),						-- spaces and tabs
+nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), 				-- single newline, preceding spaces are ignored	
 
 digit = R"09",
 hex = R("af", "AF", "09"),

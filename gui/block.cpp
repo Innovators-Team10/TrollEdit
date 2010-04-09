@@ -46,7 +46,7 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
 
     if (element->isLeaf()) {
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs());
-        myTextItem->setPos(OFFSH, 0);
+        myTextItem->setPos(OFFSH-4, 0);
         if (element->getParent() != 0)
             setToolTip(element->getParent()->getType());
 
@@ -73,6 +73,8 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     folded = false;
     pressed = false;
     edited = false;
+    selected = false;
+//    setAcceptHoverEvents(true);
 }
 
 Block::~Block()
@@ -111,7 +113,7 @@ void Block::createControls()
 void Block::setParentItem(QGraphicsItem *parentItem)
         // moves this element and all unimportant elements on way to parentBlock's element ("branch")
         // to new parent
-        // NOTE: to remove block from its parent use removeBlock()
+        // NOTE: to remove block from its parent use removeBlock() which removes all empty ancestors too
 {
     if (parentItem == this) {
         parentItem = 0;//debug - toto nemoze nastavat
@@ -411,7 +413,7 @@ void Block::splitLine(int cursorPos)
         updateAfter();
         return;
     }
-    // check if what block should be splitted
+    // check what block should be splitted
     if (cursorPos == 0) {
         Block *block = getPrev();           // split previous block
         if (block->parent != 0)
@@ -433,15 +435,16 @@ void Block::splitLine(int cursorPos)
         }
         bool alreadyBreaking = !this->element->setLineBreaking(true);
 
+        Block *next = getNext();
         // create new block (either with text or with newline)
         if (!text.isEmpty() || alreadyBreaking) {
-            Block *next = getNext();
             Block *newBlock = new Block(new TreeElement(text), parent);
             newBlock->element->setLineBreaking(alreadyBreaking);
             newBlock->stackBefore(next);
             newBlock->textItem()->setTextCursorPosition(0);
         } else {
-            getNext(true)->textItem()->setTextCursorPosition(0);
+            next->element->setSpaces(0);
+            next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
         }
         updateAfter(true);
         docScene->update();
@@ -609,7 +612,7 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
 }
 void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (!pressed) return;
+//    if (!pressed) return;
 
     futureParent = 0;
     // target is under left top corner of moved block OR target is under cursor
@@ -637,7 +640,7 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 }
 void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (!pressed) return;
+//    if (!pressed) return;
 
     if (event->button() == Qt::LeftButton) {
         setZValue(0);               // restore z-value
@@ -692,26 +695,35 @@ QLineF Block::getInsertLineAt(const Block* nextBlock) const
     QLineF iLine;
     if (nextBlock != 0) {   // before child if provided
         QRectF rect = nextBlock->mapRectToScene(nextBlock->boundingRect());
-        iLine = QLineF(rect.topLeft(), rect.bottomLeft());
-        iLine.translate(-OFFSH/2, 0);
+        if (element->isLineBreaking() &&            // horizontal line
+                (nextBlock->prevSib == 0 || nextBlock->prevSib->element->isLineBreaking()))
+            iLine = QLineF(rect.topLeft(), rect.topRight());
+        else                                        // vertical line
+            iLine = QLineF(rect.topLeft(), rect.bottomLeft());
+//        iLine.translate(-OFFSH/2, 0);
     } else {                // after child if not provided
         Block *lastChild = childBlocks().last();// must have at least 1 child
         QRectF rect = lastChild->mapRectToScene(lastChild->boundingRect());
-        iLine = QLineF(rect.topRight(), rect.bottomRight());
-        iLine.translate(OFFSH/2, 0);
+        if (lastChild->element->isLineBreaking())   // horizontal line
+            iLine = QLineF(rect.bottomLeft(), rect.bottomRight());
+        else                                        // vertical line
+            iLine = QLineF(rect.topRight(), rect.bottomRight());
+//        iLine.translate(OFFSH/2, 0);
     }
     return iLine;
 }
 
 void Block::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    hideButton->setVisible(true);
-    //QGraphicsRectItem::hoverEnterEvent(event);
+    if (element->isSelectable())
+        QGraphicsRectItem::hoverEnterEvent(event);
+    selected = true;
 }
 void Block::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    hideButton->setVisible(false);
-    //QGraphicsRectItem::hoverLeaveEvent(event);
+    if (element->isSelectable())
+        QGraphicsRectItem::hoverEnterEvent(event);
+    selected = false;
 }
 void Block::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
@@ -862,12 +874,18 @@ int Block::type() const
 
 QRectF Block::boundingRect() const
 {
-    QRectF rect = childrenBoundingRect();
-    //    if (rect.left() < OFFS) rect.setLeft(OFFS);
+    QRectF rect;
     if (isTextBlock()) {
-        return rect.adjusted(-OFFSH,0,0,0);
+        rect = myTextItem->mapRectToParent(myTextItem->boundingRect());
+        // NOTE: returned rect if 1 pixel wider than needed (to draw cursor at the end)
+        rect.adjust(-OFFSH, 0, -1, 0);
+    } else {
+        rect = childrenBoundingRect();
+        rect.adjust(0, 0, OFFSH/3, OFFSV);
+        rect.setTopLeft(QPointF());
     }
-    return rect.adjusted(-OFFSH, -OFFSV, OFFSH/3, OFFSV);
+
+    return rect;
 }
 
 QPainterPath Block::shape() const   // default implementation
@@ -902,6 +920,8 @@ void Block::paint(QPainter *painter,
         painter->setPen(Qt::gray);
     if (element->isUnknown())
         painter->setPen(Qt::red);
+    if (selected)
+        painter->setPen(Qt::green);
     //*****
 
     painter->drawRect(rect);

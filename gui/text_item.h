@@ -13,7 +13,9 @@ public:
     TextItem(const QString &text, Block *parent = 0, bool multiText = false);
     void setTextCursorPosition(int i);
     bool removeCharAt(int i);   // returns false if text is empty after removal
+    void setFont(const QFont &font);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    QRectF boundingRect() const;
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -29,6 +31,7 @@ signals:
     void erasePressed(int key);
 private:
     bool multiText;
+    qreal margin;
 };
 
 #endif // TEXT_ITEM_H

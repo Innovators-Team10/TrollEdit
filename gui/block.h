@@ -109,6 +109,7 @@ private:
     bool folded;    // true when block is folded
     bool pressed;   // true while mouse is pressed
     bool edited;    // edited after last AST analysis
+    bool selected;
 
     DocumentScene *docScene;    // my scene
     Block *parent;              // my parent

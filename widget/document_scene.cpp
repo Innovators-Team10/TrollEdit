@@ -183,11 +183,13 @@ void DocumentScene::reanalyze()
 
 void DocumentScene::analyzeAll(QString text)
 {
+    if (text.isEmpty())
+        return;
     if (mainBlock != 0)
         delete(mainBlock);
 
     mainBlock = new Block(analyzer->analyzeFull(text), 0, this);
-    mainBlock->setPos(30,20);
+    mainBlock->setPos(30,20); //temp
     mainBlock->updateLayout();
     update();
 }

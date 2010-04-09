@@ -17,6 +17,13 @@ TextItem::TextItem(const QString &text, Block *parent, bool multiText)
     this->multiText = multiText;
 }
 
+void TextItem::setFont(const QFont &font)
+{
+    QGraphicsTextItem::setFont(font);
+    QFontMetricsF *fm = new QFontMetricsF(font);
+    margin = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
+}
+
 void TextItem::setTextCursorPosition(int i) 
 {
     setFocus();
@@ -43,6 +50,14 @@ bool TextItem::removeCharAt(int i)
         return false;
     }
     return true;
+}
+
+QRectF TextItem::boundingRect() const
+{
+    QRectF rect = QGraphicsTextItem::boundingRect();
+    rect.adjust(margin, 0, -margin+1, 0);
+    // NOTE: +1 pixel is needed to draw cursor at the end of item
+    return rect;
 }
 
 void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
