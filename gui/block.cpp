@@ -44,25 +44,37 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     this->element = element;
     element->setBlock(this);
 
-    if (element->isLeaf()) {
+    if (element->isLeaf()){
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs());
         myTextItem->setPos(OFFSH-4, 0);
         if (element->getParent() != 0)
             setToolTip(element->getParent()->getType());
 
-        // highlight text
-//        if (docScene->getHighlightning().find(element->getParent()->getType()) != docScene->getHighlightning().end()) {
-//            QPair<QFont, QColor> pair = docScene->getHighlightning().value(element->getParent()->getType());
-//            myTextItem->font().setBold(pair.first.bold());
-//            myTextItem->font().setItalic(pair.first.italic());
-//            myTextItem->font().setUnderline(pair.first.underline());
-//            myTextItem->setDefaultTextColor(pair.second);
-//        }
+        QString parentType = element->getParent()->getType();
+        if (docScene->getHighlightning().contains(parentType) && !element->getParent()->getType().startsWith("funct_")) {
+            QPair<QFont, QColor> highlightFormat = docScene->getHighlightning().value(parentType);
+            highlight(highlightFormat);
+        }
     } else {
         myTextItem = 0;
         setToolTip(element->getType());
         foreach (TreeElement *childEl, element->getChildren()) {
             new Block(childEl, this);
+        }
+
+        if (docScene->getHighlightning().contains(element->getType())) {
+            QPair<QFont, QColor> highlightFormat = docScene->getHighlightning().value(element->getType());
+            if (!element->getType().compare("funct_call")) {
+                firstChild->highlight(highlightFormat);
+            } else if (!element->getType().compare("funct_definition")) {
+                QList<Block*> blocks = childBlocks();
+                foreach(Block* block, blocks) {
+                    if (!block->element->getType().compare("declarator")) {
+                        block->firstChild->highlight(highlightFormat);
+                        break;
+                    }
+                }
+            }
         }
     }
     createControls();
@@ -450,6 +462,7 @@ void Block::splitLine(int cursorPos)
         docScene->update();
     }
 }
+
 void Block::eraseChar(int key) {
     Block *target = 0;
     if (key == Qt::Key_Backspace) {          // move to previous block
@@ -498,6 +511,7 @@ void Block::eraseChar(int key) {
     }
 
 }
+
 void Block::moveCursorLR(int key)
 {
     Block *target = 0;
@@ -611,6 +625,7 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     QGraphicsRectItem::mousePressEvent(event);
 }
+
 void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
 //    if (!pressed) return;
@@ -639,6 +654,7 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
     QGraphicsRectItem::mouseMoveEvent(event);
 }
+
 void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
 //    if (!pressed) return;
@@ -720,12 +736,14 @@ void Block::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
         QGraphicsRectItem::hoverEnterEvent(event);
     selected = true;
 }
+
 void Block::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     if (element->isSelectable())
         QGraphicsRectItem::hoverEnterEvent(event);
     selected = false;
 }
+
 void Block::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     //QGraphicsRectItem::hoverMoveEvent(event);
@@ -734,12 +752,15 @@ void Block::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 void Block::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
 }
+
 void Block::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
 }
+
 void Block::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
 }
+
 void Block::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
 }
@@ -867,6 +888,18 @@ void Block::updateXPosInLine(int lineNo) // child to parent updater
     // this block and its siblings are updated, repeat with parent
     //    if (parent->line == line)
     parent->updateXPosInLine(lineNo);
+}
+
+void Block::highlight(QPair<QFont, QColor> format)
+{
+    QFont font = myTextItem->font();
+
+    font.setBold(format.first.bold());
+    font.setItalic(format.first.italic());
+    font.setUnderline(format.first.underline());
+
+    myTextItem->setFont(font);
+    myTextItem->setDefaultTextColor(format.second);
 }
 
 int Block::type() const

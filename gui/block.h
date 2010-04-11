@@ -56,7 +56,7 @@ public:
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QList<Block*> blocklist_cast(QList<QGraphicsItem*> list) const;
-
+    void highlight(QPair<QFont, QColor> format);
 
     void updateLayout();
     void updateAfter(bool updateThis = false);

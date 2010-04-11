@@ -420,28 +420,31 @@ void MainWindow::setCurrentScene(int tabNumber) {
 void MainWindow::initializeHighlightning()
 {
     highlightFormats = new QHash<QString, QPair<QFont, QColor> >();
-    QHash<QString, QList<QPair<QString, QString> > > configData = langManager->getConfigData();
+    QHash<QString, QHash<QString, QString> > configData = langManager->getConfigData();
 
     QStringList keys = configData.keys();
 
     foreach (QString key, keys) {
-    /*    QFont font;
+        QFont font;
         QColor color;
-        QStringList attributes = configData.value(key);
+        QHash<QString, QString> attributes = configData.value(key);
 
-        // we need all 4 values
-        if (attributes.count() < 4)
+        // highlight format has to have at least "color" attribute specified
+        if (!attributes.contains("color"))
             continue;
 
         // set attributes
-        color.setNamedColor(attributes.value(0));
-        font.setBold(toBool(attributes.value(1)));
-        font.setItalic(toBool(attributes.value(2)));
-        font.setUnderline(toBool(attributes.value(3)));
+        color.setNamedColor(attributes.value("color"));
+        if (attributes.contains("bold"))
+            font.setBold(toBool(attributes.value("bold")));
+        if (attributes.contains("italic"))
+            font.setBold(toBool(attributes.value("italic")));
+        if (attributes.contains("underline"))
+            font.setBold(toBool(attributes.value("underline")));
 
         // only thing that can be wrong - we have invalid color
         if (color.isValid())
-            highlightFormats->insert(key, QPair<QFont, QColor>(font, color));*/
+            highlightFormats->insert(key, QPair<QFont, QColor>(font, color));
     }
 }
 

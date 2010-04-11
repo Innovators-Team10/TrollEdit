@@ -49,7 +49,7 @@ Analyzer *LanguageManager::getAnalyzerFor(QString suffix) const
         return defaultAnalyzer;
 }
 
-QHash<QString, QList<QPair<QString, QString> > > LanguageManager::getConfigData()
+QHash<QString, QHash<QString, QString> > LanguageManager::getConfigData()
 {
     return configData;
 }

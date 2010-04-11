@@ -22,7 +22,7 @@ public:
     TreeElement *analyzeElement(TreeElement *element);
     TreeElement *getAnalysableAncestor(TreeElement *element);
     QString getExtension() const;
-    QHash<QString, QList<QPair<QString, QString> > > readConfig(QString fileName);
+    QHash<QString, QHash<QString, QString> > readConfig(QString fileName);
 private:
     static const char *EXTENSION_FIELD;
     static const char *MAIN_GRAMMAR_FIELD;
