@@ -60,11 +60,11 @@ public:
 
     void updateLayout();
     void updateAfter(bool updateThis = false);
+    void updatePosAfter();
     void updateLineStarts();
     void updateXPosInLine(int lineNo);
 
     static QMap<int, Block*> lineStarts;// move to private..
-    static int OFFSH, OFFSV;// temp
 
 signals:
     void lostFocus(Block *block);
@@ -81,8 +81,9 @@ public slots:
 protected:
     QPointF computeNextSiblingPos() const;
     int computeNextSiblingLine() const;
+    Block* findFutureParentAt(QPointF pos) const;
     Block* findNextChildAt(QPointF pos) const;
-    QLineF getInsertLineAt(const Block* nextBlock) const;
+    QLineF getInsertLineAt(const Block* nextBlock, bool insertedIsLineBreaking) const;
 
     // event processing
     void focusInEvent(QFocusEvent *event);
@@ -103,13 +104,18 @@ protected:
 
 
 private:
-
+    static QPointF OFFSET;
     static int lastLine;
 
-    bool folded;    // true when block is folded
-    bool pressed;   // true while mouse is pressed
-    bool edited;    // edited after last AST analysis
-    bool selected;
+    bool folded;     // true when block is folded
+    bool moveStarted;// true while block is moving
+    bool edited;     // edited after last AST analysis
+    bool showing;    // true when block border is painted
+    static Block *selectedBlock;
+
+    bool setShowing(bool newState);
+    bool setSelected();
+    QPointF getOffset() const;
 
     DocumentScene *docScene;    // my scene
     Block *parent;              // my parent
@@ -129,6 +135,8 @@ private:
 
     Block *futureParent;
     Block *futureSibling;   // used for block insertion
+
+    QPointF backup;
 };
 
 #endif // BLOCK_H

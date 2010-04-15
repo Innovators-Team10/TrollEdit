@@ -16,6 +16,7 @@ public:
     void setFont(const QFont &font);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
+    qreal margin;
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -31,7 +32,6 @@ signals:
     void erasePressed(int key);
 private:
     bool multiText;
-    qreal margin;
 };
 
 #endif // TEXT_ITEM_H

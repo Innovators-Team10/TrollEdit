@@ -1,7 +1,7 @@
 // euclidean algorithm
-#include <stdio.h>  /* printf */
-#include <stdlib.h> /* atoi */
-int euclidean_alg(int a, int b) {
+#include <stdio.h>
+#include <stdlib.h>
+int gcd(int a, int b) {
 	if (b > a) {
 		int t = a;
 		a = b;
@@ -15,7 +15,7 @@ int euclidean_alg(int a, int b) {
 	return a;
 }
 int main(int argc, char* argv[]) {
-    printf("%d\n", euclidean_alg(1001, 121));
+    printf("%d\n", gcd(1001, 121));
     return 0;
 }
 

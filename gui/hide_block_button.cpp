@@ -7,6 +7,7 @@ HideBlockButton::HideBlockButton(QGraphicsItem *parent)
 //    setAcceptHoverEvents(true);
 }
 
+
 void HideBlockButton::paint(QPainter *painter,
                             const QStyleOptionGraphicsItem *option,
                             QWidget *widget)

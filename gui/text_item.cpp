@@ -4,7 +4,6 @@
 TextItem::TextItem(const QString &text, Block *parent, bool multiText)
     : QGraphicsTextItem(text, parent)
 {
-    setTextInteractionFlags(Qt::TextEditorInteraction);
     setFont(QFont("Courier"));
     connect(this, SIGNAL(focusChanged(QFocusEvent*)), parent, SLOT(textFocusChanged(QFocusEvent*)));
     connect(document(), SIGNAL(contentsChanged()), parent, SLOT(textChanged()));
@@ -15,6 +14,8 @@ TextItem::TextItem(const QString &text, Block *parent, bool multiText)
     connect(this, SIGNAL(moveCursorUD(int, int)), parent, SLOT(moveCursorUD(int, int)));
 
     this->multiText = multiText;
+    setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
+    setAcceptedMouseButtons(Qt::NoButton);
 }
 
 void TextItem::setFont(const QFont &font)
@@ -22,6 +23,7 @@ void TextItem::setFont(const QFont &font)
     QGraphicsTextItem::setFont(font);
     QFontMetricsF *fm = new QFontMetricsF(font);
     margin = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
+    // NOTE: margin == 4;
 }
 
 void TextItem::setTextCursorPosition(int i) 
@@ -131,4 +133,3 @@ void TextItem::focusOutEvent(QFocusEvent *event)
     QGraphicsTextItem::focusOutEvent(event);
     emit focusChanged(event);
 }
-

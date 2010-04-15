@@ -166,7 +166,18 @@ bool TreeElement::isLineBreaking() const
 }
 bool TreeElement::isSelectable() const
 {
-    return selectable;
+    if (selectable) {
+        if (childCount() == 1) {
+            TreeElement *child = children[0];
+            while (!child->isImportant()) {
+                child = (*child)[0];
+            }
+            if (child->isSelectable())
+                return false;
+        }
+        return true;
+    }
+    return false;
 }
 bool TreeElement::allowsParagraphs() const {
     return paragraphsAllowed;

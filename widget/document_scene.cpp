@@ -137,14 +137,7 @@ void DocumentScene::lostFocus(Block *block)
 }
 void DocumentScene::toggleOffset()
 {
-    if (Block::OFFSH != 0) {
-        Block::OFFSH = 0;
-        Block::OFFSV = 0;
-    } else {
-        Block::OFFSH = 10;
-        Block::OFFSV = 3;
-    }
-    reanalyze();
+    //
 }
 
 void DocumentScene::reanalyze()
@@ -201,6 +194,8 @@ void DocumentScene::analyzeAll(QString text)
 
     mainBlock = new Block(analyzer->analyzeFull(text), 0, this);
     mainBlock->setPos(30,20); //temp
+    mainBlock->setFlag(QGraphicsItem::ItemIsMovable, false);
+    mainBlock->setFlag(QGraphicsItem::ItemIsSelectable, false);
     mainBlock->updateLayout();
     update();
 }

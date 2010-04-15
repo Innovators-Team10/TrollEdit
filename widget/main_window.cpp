@@ -71,25 +71,25 @@ void MainWindow::createActions()
 
     // cut
     cutAction = new QAction(tr("Cu&t"), this);
-    cutAction->setShortcut(tr("CTRL+X"));
+//    cutAction->setShortcut(tr("CTRL+X"));
     cutAction->setToolTip(tr("Cut the selection to the clipboard"));
     // connect(cutAction, SIGNAL(triggered()), xxx, SLOT(yyy)); ???
 
     // copy
     copyAction = new QAction(tr("&Copy"), this);
-    copyAction->setShortcut(tr("CTRL+C"));
+//    copyAction->setShortcut(tr("CTRL+C"));
     copyAction->setToolTip(tr("Copy the selection to the clipboard"));
     // connect(copyAction, SIGNAL(triggered()), xxx, SLOT(yyy)); ???
 
     // paste
     pasteAction = new QAction(tr("&Paste"), this);
-    pasteAction->setShortcut(tr("CTRL+V"));
+//    pasteAction->setShortcut(tr("CTRL+V"));
     pasteAction->setToolTip(tr("Insert clipboard contents"));
     // connect(pasteAction, SIGNAL(triggered()), xxx, SLOT(yyy)); ???
 
     // delete
     deleteAction = new QAction(tr("&Delete"), this);
-//    deleteAction->setShortcut(tr("Del"));             // this caused my few headaches, del key was blocked from the rest of the program...
+//    deleteAction->setShortcut(tr("Del"));             // this caused my a few headaches, del key was blocked from the rest of the program...
     deleteAction->setToolTip(tr("Erase the next character or the selection"));
     // connect(deleteAction, SIGNAL(triggered()), xxx, SLOT(yyy)); ???
 

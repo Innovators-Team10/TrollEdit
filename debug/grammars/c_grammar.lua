@@ -169,18 +169,26 @@ abstract_declarator =
 	
 statement = N"simple_statement" + T"{" * N'block'^-1* T"}",
 simple_statement =
-	(N'expression'^-1 * T";" +
-	TK"if" * T"(" * N'expression' * T")" * NI'statement' * TK"else" * NI'statement' +
-	TK"if" * T"(" * N'expression' * T")" * NI'statement' +
-	TK"switch" * T"(" * N'expression' * T")" * T"{" * N'case_statement'^0 * T"}" +
-	TK"while" * T"(" * N'expression' * T")" * NI'statement' +
-	TK"do" * NI'statement' * T"while" * T"(" * N'expression' * T")" * T";" +
-	TK"for" * T"(" * N'expression'^-1 * T";" * N'expression'^-1 * T";" * N'expression'^-1 * T")" * NI'statement' +
+	N'expression'^-1 * T";" +
+	N'if_statement' +
+	N'switch_statement' +
+	N'while_statement' +
+	N'for_statement' +
 	TK"goto" * N'identifier' * T";" +
 	TK"continue" * T";" +
 	TK"break" * T";" +
-	TK"return" * N'expression'^-1 * T";"
-	),
+	TK"return" * N'expression'^-1 * T";",
+	
+if_statement = TK"if" * T"(" * N'expression' * T")" * NI'statement' * (TK"else" * NI'statement')^-1,
+
+switch_statement = TK"switch" * T"(" * N'expression' * T")" * T"{" * N'case_statement'^0 * T"}",
+
+while_statement = 
+	TK"while" * T"(" * N'expression' * T")" * NI'statement' +
+	TK"do" * NI'statement' * T"while" * T"(" * N'expression' * T")" * T";",
+	
+for_statement = 
+	TK"for" * T"(" * N'expression'^-1 * T";" * N'expression'^-1 * T";" * N'expression'^-1 * T")" * NI'statement',
 
 block =  (N'declaration' + NI'statement' + N'preprocessor' + N'label')^1,
 
@@ -301,5 +309,5 @@ in_block = P(grammar)
 --*******************************************************************
 -- TESTING - this script cannot be used by Analyzer.cpp when these lines are uncommented !!!
 
-dofile('default_grammar.lua')
-test("../../input/in.c", program)
+-- dofile('default_grammar.lua')
+-- test("../../input/in.c", program)
