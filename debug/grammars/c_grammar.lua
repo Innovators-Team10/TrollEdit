@@ -90,10 +90,10 @@ in_block =
 translation_unit = N'preprocessor' + N'funct_definition' + N'declaration',
 
 preprocessor = (NI'include' + ((TK"#define" + TK"#elif" + TK"#else" + TK"#endif" +
-	TK"#error" + TK"#ifdef" + TK"#ifndef" + TK"#if" + TK"#import" + TK"#include" + TK"#line" +
+	TK"#error" + TK"#ifdef" + TK"#ifndef" + TK"#if" + TK"#import" + TK"#line" +
 	TK"#pragma" + TK"#undef") * T((1 - S"\n\r")^0))),
 	
-include = TK"#include" * T"<" * T((1 - P">")^1) * T">",
+include = TK"#include" * (T"<" * T((1 - P">")^1) * T">" + N'string_constant'),
 
 funct_definition =
 	NI'declaration_specifiers'^-1 * N'declarator' *N'declaration'^0 * T"{" * N'block'^-1 * T"}",
@@ -182,7 +182,9 @@ simple_statement =
 	TK"return" * N'expression'^-1 * T";"
 	),
 
-block =  (N'declaration' + NI'statement' + N'preprocessor')^1,
+block =  (N'declaration' + NI'statement' + N'preprocessor' + N'label')^1,
+
+label = NI'identifier_name' * T":",
 
 case_statement = 
 	(N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":" * NI'statement'^0,
@@ -190,20 +192,22 @@ case_statement =
 expression =
 	NI'assignment_expression' * (T"," * NI'assignment_expression')^0,
 
-assignment_expression =  (
-	NI'unary_expression' * (
-	T"*=" + T"/=" + T"%=" + T"+=" + T"-=" + T"<<=" + T">>=" + T"&=" + (T"=" *-P"=") +
-	T"^=" + T"|="))^0 * NI'conditional_expression',
+assignment_expression =  
+	(NI'unary_expression' * N'assignment_operator')^0 * NI'conditional_expression',
 
+assignment_operator = T"*=" + T"/=" + T"%=" + T"+=" + T"-=" + T"<<=" + T">>=" + T"&=" +
+	(T"=" *-P"=") + T"^=" + T"|=",
+	
 conditional_expression =
 	NI'simple_expression' * (T"?" * NI'expression' * T":" * NI'conditional_expression')^-1,
 
 constant_expression =  NI'conditional_expression',
 
-simple_expression = NI'cast_expression' * ((
-	T"*" + T"/" + T"%" + T"+" + T"-" + T"<<" + T">>" + T"<=" + T">=" + T"<" + T">" + 
-	T"==" + T"!=" + T"&&"+ T"&" + T"||" + T"|" + T"^"
-	) * NI'cast_expression')^0,
+simple_expression = 
+	NI'cast_expression' * (N'binary_operator' * NI'cast_expression')^0,
+	
+binary_operator = T"*" + T"/" + T"%" + T"+" + T"-" + T"<<" + T">>" + T"<=" + T">=" +
+	T"<" + T">" + T"==" + T"!=" + T"&&"+ T"&" + T"||" + T"|" + T"^",
 
 cast_expression =
 	N'cast'^0 * NI'unary_expression',
@@ -211,19 +215,21 @@ cast_expression =
 cast = T"(" * NI'type_name' * T")",
 
 unary_expression =
-	(T"++" + T"--" + TK"sizeof")^0 * (
 	TK"sizeof" * T"(" * NI'type_name' * T")" +
-	(T"&" + T"*" + T"+" + T"-" + T"~" + T"!") * NI'cast_expression' +
-	NI'postfix_expression'
-	),
+	N'prefix_operator' * NI'cast_expression' +
+	NI'postfix_expression',
 
+prefix_operator = T"&" + T"*" + T"+" + T"-" + T"~" + T"!" + T"++" + T"--" + TK'sizeof',
+	
 postfix_expression =
-	(N'funct_call' + N'identifier' + NI'constant' +
+	(N'funct_call' + N'identifier' + N'constant' +
 	T"(" * NI'expression' * T")") * (
 	T"[" * NI'expression' * T"]" +
-	T"." * NI'identifier' +
-	T"->" * NI'identifier' +
-	T"++" + T"--")^0,
+	T"." * N'identifier' +
+	T"->" * N'identifier' + N'postfix_operator'
+	)^0,
+	
+postfix_operator = T"++" + T"--",
 
 funct_call = N'identifier' * T"(" * (N'funct_param' * (T"," * N'funct_param')^0)^-1 * T")",
 
@@ -295,5 +301,5 @@ in_block = P(grammar)
 --*******************************************************************
 -- TESTING - this script cannot be used by Analyzer.cpp when these lines are uncommented !!!
 
--- dofile('default_grammar.lua')
--- test("../../input/in.c", program)
+dofile('default_grammar.lua')
+test("../../input/in.c", program)
