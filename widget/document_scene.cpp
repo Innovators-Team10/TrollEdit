@@ -146,16 +146,18 @@ void DocumentScene::reanalyze()
         update();
         return;
     }
+    mainBlock->setSelected();
+
     QGraphicsItem *item = focusItem();
     QGraphicsTextItem *textItem;
     if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
         item = textItem->parentItem();
     Block *block = qgraphicsitem_cast<Block*>(item);
 
-    if (block == 0) {
+//    if (block == 0) {
         analyzeAll(mainBlock->getElement()->getRoot()->getText());
         return;
-    }
+//    }
     TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
     block = 0;
     if (analysedEl == 0) {

@@ -28,6 +28,7 @@ public:
     Block *getFirstLeaf() const;
     Block *getLastLeaf() const;
     Block *getAncestorWhereFirst() const;
+    Block *getAncestorWhereLast() const;
     Block *getNextSibling() const;
     Block *getNext(bool textOnly = false) const;
     Block *getPrev(bool textOnly = false) const;
@@ -65,6 +66,7 @@ public:
     void updateXPosInLine(int lineNo);
 
     static QMap<int, Block*> lineStarts;// move to private..
+    bool setSelected();
 
 signals:
     void lostFocus(Block *block);
@@ -98,10 +100,6 @@ protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
-    void dragEnterEvent(QGraphicsSceneDragDropEvent *event);
-    void dragLeaveEvent(QGraphicsSceneDragDropEvent *event);
-    void dragMoveEvent(QGraphicsSceneDragDropEvent *event);
-
 
 private:
     static QPointF OFFSET;
@@ -114,7 +112,7 @@ private:
     static Block *selectedBlock;
 
     bool setShowing(bool newState);
-    bool setSelected();
+
     QPointF getOffset() const;
 
     DocumentScene *docScene;    // my scene
