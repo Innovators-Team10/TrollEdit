@@ -48,12 +48,15 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs());
         myTextItem->setPos(-myTextItem->margin, 0);
 
-        if(element->getParent() != 0) {
+        if(element->getParent()) {
+            QPair<QFont, QColor> highlightFormat;
             QString parentType = element->getParent()->getType();
             if (docScene->getHighlightning().contains(parentType) && !element->getParent()->getType().startsWith("funct_")) {
-                QPair<QFont, QColor> highlightFormat = docScene->getHighlightning().value(parentType);
-                highlight(highlightFormat);
+                highlightFormat = docScene->getHighlightning().value(parentType);
+            } else {
+                highlightFormat = docScene->getHighlightning().value("text_style");
             }
+            highlight(highlightFormat);
         }
     } else {
         myTextItem = 0;

@@ -420,21 +420,27 @@ void MainWindow::setCurrentScene(int tabNumber) {
 void MainWindow::initializeHighlightning()
 {
     highlightFormats = new QHash<QString, QPair<QFont, QColor> >();
-    QHash<QString, QHash<QString, QString> > configData = langManager->getConfigData();
+    QList<QPair<QString, QHash<QString, QString> > > configData = langManager->getConfigData();
 
-    QStringList keys = configData.keys();
+    for (int i = 0; i < configData.length(); i++) {
+        QHash<QString, QString>  attributes = configData.value(i).second;
 
-    foreach (QString key, keys) {
         QFont font;
         QColor color;
-        QHash<QString, QString> attributes = configData.value(key);
 
-        // highlight format has to have at least "color" attribute specified
-        if (!attributes.contains("color"))
-            continue;
+        if (attributes.contains("base")) {
+            QPair<QFont, QColor> baseStyle = highlightFormats->value(attributes.value("base"));
+            font = QFont(baseStyle.first);
+            color = QColor(baseStyle.second);
+        }
 
         // set attributes
-        color.setNamedColor(attributes.value("color"));
+        if (attributes.contains("color"))
+            color.setNamedColor(attributes.value("color"));
+        if (attributes.contains("family"))
+            font.setFamily(attributes.value("family"));
+        if (attributes.contains("size"))
+            font.setPointSize(attributes.value("size").toInt());
         if (attributes.contains("bold"))
             font.setBold(toBool(attributes.value("bold")));
         if (attributes.contains("italic"))
@@ -442,9 +448,7 @@ void MainWindow::initializeHighlightning()
         if (attributes.contains("underline"))
             font.setBold(toBool(attributes.value("underline")));
 
-        // only thing that can be wrong - we have invalid color
-        if (color.isValid())
-            highlightFormats->insert(key, QPair<QFont, QColor>(font, color));
+        highlightFormats->insert(configData.value(i).first, QPair<QFont, QColor>(font, color));
     }
 }
 

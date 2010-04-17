@@ -3,6 +3,7 @@
 
 #include <QMessageBox>
 #include <QHash>
+#include <QList>
 
 class TreeElement;
 class PairedTreeElement;
@@ -22,7 +23,8 @@ public:
     TreeElement *analyzeElement(TreeElement *element);
     TreeElement *getAnalysableAncestor(TreeElement *element);
     QString getExtension() const;
-    QHash<QString, QHash<QString, QString> > readConfig(QString fileName);
+    QList<QPair<QString, QHash<QString, QString> > > readConfig(QString fileName);
+
 private:
     static const char *EXTENSION_FIELD;
     static const char *MAIN_GRAMMAR_FIELD;

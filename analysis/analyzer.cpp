@@ -85,9 +85,9 @@ QString Analyzer::getExtension() const
 {
     return extension;
 }
-QHash<QString, QHash<QString, QString> > Analyzer::readConfig(QString fileName)
+QList<QPair<QString, QHash<QString, QString> > > Analyzer::readConfig(QString fileName)
 {
-    QHash<QString, QHash<QString, QString> > tables;
+    QList<QPair<QString, QHash<QString, QString> > > tables;
     try {
         if (luaL_loadfile(L, qPrintable(fileName))
             || lua_pcall(L, 0, 0, 0)) {
@@ -114,7 +114,7 @@ QHash<QString, QHash<QString, QString> > Analyzer::readConfig(QString fileName)
                 lua_pop(L, 1);
                 pairs[key] = value;
             }
-            tables[key] = pairs;
+            tables << QPair<QString, QHash<QString, QString> >(key, pairs);
         }
         return tables;
     } catch (QString exMsg) {

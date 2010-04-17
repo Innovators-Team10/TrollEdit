@@ -1,8 +1,9 @@
 #ifndef LANGUAGE_MANAGER_H
 #define LANGUAGE_MANAGER_H
 
-#include<QString>
-#include<QHash>
+#include <QString>
+#include <QHash>
+#include <QMap>
 
 class Analyzer;
 
@@ -13,7 +14,7 @@ public:
     ~LanguageManager();
 
     Analyzer *getAnalyzerFor(QString suffix) const;
-    QHash<QString, QHash<QString, QString> > getConfigData();
+    QList<QPair<QString, QHash<QString, QString> > > getConfigData();
 
 private:
     static const QString GRAMMAR_DIR;
@@ -21,7 +22,7 @@ private:
     static const QString CONFIG_FILE;
     QHash<QString, Analyzer *> analyzers;
     Analyzer *defaultAnalyzer;
-    QHash<QString, QHash<QString, QString> > configData;
+    QList<QPair<QString, QHash<QString, QString> > > configData;
 };
 
 #endif // LANGUAGE_MANAGER_H
