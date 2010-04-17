@@ -66,7 +66,8 @@ public:
     void updateXPosInLine(int lineNo);
 
     static QMap<int, Block*> lineStarts;// move to private..
-    bool setSelected();
+    void setSelected(bool flag = true);
+    static Block* getSelectedBlock(){return selectedBlock;}
 
 signals:
     void lostFocus(Block *block);
@@ -111,7 +112,7 @@ private:
     bool showing;    // true when block border is painted
     static Block *selectedBlock;
 
-    bool setShowing(bool newState);
+    void setShowing(bool newState);
 
     QPointF getOffset() const;
 

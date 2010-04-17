@@ -9,7 +9,6 @@ DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
 {
     this->analyzer = analyzer;
     mainBlock = 0;
-    //    setFocus(Qt::MouseFocusReason);
 
     insertLine = new QGraphicsLineItem(0, this);
     insertLine->setVisible(false);
@@ -84,13 +83,14 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::MidButton) { // create new block
     }
     if (event->button() == Qt::LeftButton) {
-        Block *parent = blockAt(event->scenePos());
-        if (parent == 0) {
-            //            Block *block = new Block(new TreeElement(" ", false, true), 0, this);
-            //            block->setFocus();
-            //            block->setPos(event->scenePos());
+        if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+            mainBlock->updateLayout();
+        } else {
+            if (mainBlock != 0) {
+                if (blockAt(event->scenePos()) == 0)
+                    mainBlock->setSelected(false);
+            }
         }
-        update();
     }
     if (event->button() == Qt::RightButton) { // AST testing
         QString str = "";
@@ -146,25 +146,20 @@ void DocumentScene::reanalyze()
         update();
         return;
     }
-    mainBlock->setSelected();
-
-    QGraphicsItem *item = focusItem();
-    QGraphicsTextItem *textItem;
-    if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
-        item = textItem->parentItem();
-    Block *block = qgraphicsitem_cast<Block*>(item);
-
-//    if (block == 0) {
+    if (!reanalyze(Block::getSelectedBlock()))
         analyzeAll(mainBlock->getElement()->getRoot()->getText());
-        return;
-//    }
+}
+
+bool DocumentScene::reanalyze(Block *block)
+{
+    if (block == 0) return false;
+    block->setSelected(false);
+
     TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
-    block = 0;
+
     if (analysedEl == 0) {
-        analyzeAll(mainBlock->getElement()->getRoot()->getText());
-        return;
+        return false;
     }
-    block = 0;
     TreeElement *newEl = analyzer->analyzeElement(analysedEl);
 
     Block *analysedBl;
@@ -177,20 +172,24 @@ void DocumentScene::reanalyze()
     Block *parentBl = analysedBl->parentBlock();
     Block *nextSib = analysedBl->getNextSibling();
 
-    delete(analysedBl);
+    analysedBl->setParentItem(0);
 
     Block *newBlock = new Block(newEl, parentBl, this);
     newBlock->getElement()->setLineBreaking(lineBreaking);
-    if (nextSib != 0)
-        newBlock->stackBefore(nextSib);
+    newBlock->setSelected(false);
+    if (nextSib != 0) newBlock->stackBefore(nextSib);
+
     mainBlock->updateLayout();
     update();
+
+    analysedBl->deleteLater();
+    return true;
 }
 
-void DocumentScene::analyzeAll(QString text)
+bool DocumentScene::analyzeAll(QString text)
 {
     if (text.isEmpty())
-        return;
+        return false;
     if (mainBlock != 0)
         delete(mainBlock);
 
@@ -200,6 +199,7 @@ void DocumentScene::analyzeAll(QString text)
     mainBlock->setFlag(QGraphicsItem::ItemIsSelectable, false);
     mainBlock->updateLayout();
     update();
+    return true;
 }
 
 Block* DocumentScene::blockAt(QPointF pos) const

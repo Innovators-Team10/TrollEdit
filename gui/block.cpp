@@ -85,7 +85,7 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     showing = false;
     moveStarted = false;
 
-//    setAcceptHoverEvents(true);
+    //    setAcceptHoverEvents(true);
 }
 
 Block::~Block()
@@ -336,7 +336,7 @@ qreal SPACE_WIDTH = 10; // temp
 
 QPointF Block::computeNextSiblingPos() const
 {
-    QPointF position;
+    QPointF position(0,0);
     if (!element->isLineBreaking() || parent == 0) {
         QPointF offs;
         if (hasMoreLines()) {
@@ -399,7 +399,7 @@ void Block::textChanged()
                         next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
                     } else {                  // same line
                         prev->textItem()->setTextCursorPosition(-1);
-//                        prev->element->setLineBreaking(true);
+                        //                        prev->element->setLineBreaking(true);
                     }
                     next->updateAfter(true);
                 } else if (next->line < line) { // jumped to the beginning of file
@@ -567,7 +567,7 @@ void Block::moveCursorUD(int key, int from)
     Block *lineBl = lineStarts[line]->getFirstLeaf();
     int mySpaces = lineBl->getAbsoluteSpaces() - lineBl->getAncestorWhereFirst()->getSpaces();
     int x = from + mySpaces + getAncestorWhereFirst()->element->getSpaces();// todo prerobit
-//    if (getAncestorWhereFirst() != lineBl) x += getAncestorWhereFirst()->element->getSpaces()
+    //    if (getAncestorWhereFirst() != lineBl) x += getAncestorWhereFirst()->element->getSpaces()
     int y = line;
 
     // compute x
@@ -617,12 +617,16 @@ void Block::moveCursorUD(int key, int from)
 void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (isTextBlock()) {
-        int pos = myTextItem->document()->documentLayout()->hitTest(event->pos(), Qt::FuzzyHit);
+        QPointF clickPos = event->scenePos();
+        clickPos = myTextItem->mapFromScene(clickPos);
+        int pos = myTextItem->document()->documentLayout()->hitTest(clickPos, Qt::FuzzyHit);
         myTextItem->setTextCursorPosition(qMax(0, pos));
     }
     if (!element->isSelectable()){
         event->ignore();
         return;
+    } else {
+        ;
     }
     QGraphicsRectItem::mousePressEvent(event);
 }
@@ -646,6 +650,7 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         // item is now on top of everything (that have z-value==0)
         // new parent will be resolved after mouse is released
         if (oldParent != 0) {
+            oldParent->setShowing(false);
             Block *next = getNext();
             setPos(scenePos());
             toDelete = removeBlock();
@@ -680,7 +685,8 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     docScene->update();
     QGraphicsRectItem::mouseMoveEvent(event);
 
-    foreach(Block* block, toDelete) block->deleteLater();
+    if (!toDelete.isEmpty())
+        foreach(Block* block, toDelete) block->deleteLater();
 }
 
 void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -690,7 +696,7 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     if (moveStarted && event->button() == Qt::LeftButton) { //&&
-//        (event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+        //        (event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
         setZValue(0);               // restore z-value
 
         if (futureParent != 0) {
@@ -701,13 +707,15 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             futureParent->edited = true;
             updateAfter(true);
         } else {
+            setSelected(false);
             deleteLater();
         }
         futureParent = 0;
         futureSibling = 0;
         docScene->hideInsertLine();
+    } else {
+        setSelected();
     }
-    setSelected();
 
     moveStarted = false;
     QGraphicsRectItem::mouseReleaseEvent(event);
@@ -766,7 +774,7 @@ QLineF Block::getInsertLineAt(const Block* nextBlock, bool insertedIsLineBreakin
     if (nextBlock != 0) {   // before child if provided
         QRectF rect = nextBlock->mapRectToScene(nextBlock->boundingRect());
         if (insertedIsLineBreaking &&            // horizontal line
-                (nextBlock->prevSib == 0 || nextBlock->prevSib->element->isLineBreaking()))
+            (nextBlock->prevSib == 0 || nextBlock->prevSib->element->isLineBreaking()))
             iLine = QLineF(rect.topLeft(), rect.topRight());
         else                                        // vertical line
             iLine = QLineF(rect.topLeft(), rect.bottomLeft());
@@ -787,7 +795,7 @@ void Block::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
         event->ignore();
         return;
     } else {
-        if (setShowing(true)) update(boundingRect());
+        ;
     }
 }
 
@@ -797,7 +805,7 @@ void Block::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         event->ignore();
         return;
     } else {
-        if (setShowing(false)) update(boundingRect());
+        ;
     }
 }
 
@@ -921,7 +929,7 @@ void Block::updatePosAfter() // child to parent updater
     if (prevSib != 0) {
         nextPos = prevSib->computeNextSiblingPos();
     } else {
-        nextPos = QPointF();//parent->getOffset();
+        nextPos = QPointF();
     }
 
     // update siblings, start with this
@@ -1048,25 +1056,26 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     //*****
 
     painter->drawRect(rect);
-//    QGraphicsRectItem::paint(painter, option, widget);
+    //    QGraphicsRectItem::paint(painter, option, widget);
 }
 
-bool Block::setShowing(bool newState) {
+void Block::setShowing(bool newState) {
     if (element->isSelectable()) {
         if (newState == showing) {
-            return false; //temp
+            return;
         }
         prepareGeometryChange();
         showing = newState;
     }
     if (parent != 0)
         parent->setShowing(newState);
-
-    return false; //temp
+    return;
 }
 
-bool Block::setSelected() {
-    if (selectedBlock == this) return false;
+// calling with true deselects current selected block and selects this block
+// calling with false deselects current selected block (it need not to be this one)
+void Block::setSelected(bool flag) {
+    if (selectedBlock == this && flag) return;
 
     if (selectedBlock != 0) {
         Block *oldSelected = selectedBlock;
@@ -1074,23 +1083,26 @@ bool Block::setSelected() {
         oldSelected->setShowing(false);
         oldSelected->updatePosAfter();
     }
-
-    if (element->isSelectable()) {
-        selectedBlock = this;
-        setShowing(true);
-        updatePosAfter();
+    if (flag) {
+        if (element->isSelectable()) {
+            selectedBlock = this;
+            setShowing(true);
+            updatePosAfter();
+        } else {
+            if (parent != 0)
+                parent->setSelected();
+        }
     } else {
-        if (parent != 0)
-            return parent->setSelected();
+        selectedBlock = 0;
     }
     docScene->update();
-    return true;
+    return;
 }
 
 QPointF Block::getOffset() const
 {
     if (element->isSelectable() && (showing
-     /*|| (selectedBlock != 0 && line == selectedBlock->line)*/))
+                                    /*|| (selectedBlock != 0 && line == selectedBlock->line)*/))
         return OFFSET;
     else return QPointF(3,3);
 }

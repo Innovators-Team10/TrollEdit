@@ -25,8 +25,9 @@ public:
     Analyzer *analyzer;
     bool modified;
 
-    void analyzeAll(QString text);
+    bool analyzeAll(QString text);
     void reanalyze();
+    bool reanalyze(Block* block);
     void toggleOffset();
 
     void setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning);

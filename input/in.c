@@ -1,6 +1,13 @@
 int p;
 int main(int t) {
+	if (duck) {
 	quack();
-	q();
+	barkBarkBark();
+}
+	while(true) {
+		j++;
+	i++;
+	}
+	return 0+2;
 }
 

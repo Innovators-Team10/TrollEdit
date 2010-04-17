@@ -5,6 +5,9 @@ TextItem::TextItem(const QString &text, Block *parent, bool multiText)
     : QGraphicsTextItem(text, parent)
 {
     setFont(QFont("Courier"));
+    QFontMetricsF *fm = new QFontMetricsF(font());
+    margin = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
+
     connect(this, SIGNAL(focusChanged(QFocusEvent*)), parent, SLOT(textFocusChanged(QFocusEvent*)));
     connect(document(), SIGNAL(contentsChanged()), parent, SLOT(textChanged()));
     connect(this, SIGNAL(keyPressed(QKeyEvent*)), parent, SLOT(keyPressed(QKeyEvent*)));
