@@ -1,4 +1,4 @@
-cfg_keys = {"text_style", "comment_style", "keyword", "line_comment", "multi_comment", "string_constant", "character_constant", "number_constant", "label", "funct_definition", "funct_call", "assignment_operator", "binary_operator", "prefix_operator", "postfix_operator"}
+cfg_keys = {"text_style", "comment_style", "keyword", "line_comment", "multi_comment", "string_constant", "character_constant", "number_constant", "label", "funct_definition", "funct_call", "assignment_operator", "binary_operator", "prefix_operator", "postfix_operator", "markup_tag", "attribute_key", "attribute_value"}
 
 text_style = {family="courier", size="12", color="black", bold="false", italic="false", underline="false"}
 comment_style = {base="text_style", family="verdana", italic="true"}
@@ -16,3 +16,6 @@ assignment_operator = {base="text_style"}
 binary_operator = {base="text_style"}
 prefix_operator = {base="text_style"}
 postfix_operator = {base="text_style"}
+markup_tag = {base="text_style", color="brown"}
+attribute_key = {base="text_style", color="red"}
+attribute_value = {base="text_style", color="blue"}

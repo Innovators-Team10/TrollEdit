@@ -227,7 +227,7 @@ unary_expression =
 	N'prefix_operator' * NI'cast_expression' +
 	NI'postfix_expression',
 
-prefix_operator = T"&" + T"*" + T"+" + T"-" + T"~" + T"!" + T"++" + T"--" + TK'sizeof',
+prefix_operator = T"++" + T"--" + T"&" + T"*" + T"+" + T"-" + T"~" + T"!" + TK'sizeof',
 	
 postfix_expression =
 	(N'funct_call' + N'identifier' + N'constant' +

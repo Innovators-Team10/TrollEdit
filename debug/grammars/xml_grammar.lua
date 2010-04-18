@@ -1,18 +1,20 @@
 -- Simple XML grammar
 
 -- TODO:
---   simple attributes
-
+--   improve grammar for attributes
+--   possible attribute encoding in header
+--   opening and closing symbols of elements - for highlight
+--   start and end tags can be different at the moment...
 
 
 -- important fields for Analyzer class
 extension = "xml"
 full_grammar = "document"
 other_grammars = {
-	element="in_element", 
+	markup_element="in_markup_element", 
 }
 paired = {"<", ">", "el_start", "el_end"}
-selectable = {"element", "header", "text", "unknown"}
+selectable = {"markup_element", "unknown"}
 multi_text = {"unknown"}
 
 require 'lpeg'
@@ -58,49 +60,52 @@ document =
 	Ct(
 	Cc("document") *
 	N'nl'^0 *
-	N'header'^-1 * N'element' *
-	N'unknown'^0 *-1),
+	N'xml_header'^-1 * N'markup_element' *
+	N'unknown'^-1 *-1),
 	
-in_element =  
+in_markup_element =  
 	Ct(
 	N'whites'^-1 *
 	N'nl'^0 *
-	(N'element')^0 *
-	N'unknown'^0 *-1),
+	(N'markup_element')^0 *
+	N'unknown'^-1 *-1),
 	
 -- NONTERMINALS
-header = T"<?xml" * T"version=" * N'version_number' * T"?>",
-version_number = NI'number' * T'.' * NI'number',
-element = 
+xml_header = T"<?xml" * T"version=" * N'version_number' * T"?>",
+version_number = T"\"" * NI'number' * T'.' * NI'number' * T"\"",
+markup_element = 
 	N'el_empty' +
-	N'el_start' * (N'text' + N'element'^0) * N'el_end',
-el_start = T"<" * NI'name' * T">",
-el_end = T"</" * NI'name' * T">",
-el_empty = T"<" * NI'name' * T"/>",
-text = N'word'^1,
+	N'el_start' * (N'word'^1 + N'markup_element'^0) * N'el_end',
+el_start = T"<" * N'markup_tag' * N'attribute'^0 * T">",
+el_end = T"</" * N'markup_tag' * T">",
+el_empty = T"<" * N'markup_tag' * T"/>",
+attribute = N'attribute_key' * N'attribute_value',
 	
 -- TERMINALS
-name = T((NI'letter' + S("_:")) * NI'name_char'^0),
+markup_tag = T((NI'letter' + S("_:")) * NI'markup_tag_char'^0),
 word = T(NI'char'^1),
 number = T(NI'digit'^1),
+attribute_key = NI'attribute_word',
+attribute_value = T'="' * NI'attribute_word'^1 * T'"',
+attribute_word = T((P(1) - S("=\"<>/"))^1),
 	
 -- LITERALS
-unknown = N'whites'^-1 * TP((1 - S"\r\n")^1) * N'nl'^0, 	-- anything divided to lines
-whites = TP(S(" \t")^1),						-- spaces and tabs
-nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"),				-- single newline, preceding spaces are ignored
+unknown = TP(P(1)^1), -- anything
+whites = TP(S(" \t")^1),	-- spaces and tabs
+nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), -- single newline, preceding spaces are ignored
 
 letter = R("az", "AZ"),
 digit = R("09"),
 char = P(1) - S("<>/"),
-name_char = NI'letter' + NI'digit' + S(".-_:"),
+markup_tag_char = NI'letter' + NI'digit' + S(".-_:"),
 }
 -- ***  END OF GRAMMAR  ****
 
 -- *** POSSIBLE GRAMMARS (ENTRY POINTS) ****
 grammar[1] = "document"
 document = P(grammar)
-grammar[1] = "in_element"
-in_element = P(grammar)
+grammar[1] = "in_markup_element"
+in_markup_element = P(grammar)
 
 --*******************************************************************
 -- TESTING - this script cannot be used by Analyzer.cpp when these lines are uncommented !!!
