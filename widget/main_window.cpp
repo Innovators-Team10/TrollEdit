@@ -444,9 +444,9 @@ void MainWindow::initializeHighlightning()
         if (attributes.contains("bold"))
             font.setBold(toBool(attributes.value("bold")));
         if (attributes.contains("italic"))
-            font.setBold(toBool(attributes.value("italic")));
+            font.setItalic(toBool(attributes.value("italic")));
         if (attributes.contains("underline"))
-            font.setBold(toBool(attributes.value("underline")));
+            font.setUnderline(toBool(attributes.value("underline")));
 
         highlightFormats->insert(configData.value(i).first, QPair<QFont, QColor>(font, color));
     }

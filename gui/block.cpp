@@ -990,13 +990,7 @@ void Block::updateXPosInLine(int lineNo) // child to parent updater
 void Block::highlight(QPair<QFont, QColor> format)
 {
     if (!isTextBlock()) return;
-    QFont font = myTextItem->font();
-
-    font.setBold(format.first.bold());
-    font.setItalic(format.first.italic());
-    font.setUnderline(format.first.underline());
-
-    myTextItem->setFont(font);
+    myTextItem->setFont(format.first);
     myTextItem->setDefaultTextColor(format.second);
 }
 

@@ -1,7 +1,7 @@
 cfg_keys = {"text_style", "comment_style", "keyword", "line_comment", "multi_comment", "string_constant", "character_constant", "number_constant", "label", "funct_definition", "funct_call", "assignment_operator", "binary_operator", "prefix_operator", "postfix_operator"}
 
 text_style = {family="courier", size="12", color="black", bold="false", italic="false", underline="false"}
-comment_style = {base="text_style", family="verdana"}
+comment_style = {base="text_style", family="verdana", italic="true"}
 
 keyword = {base="text_style", color="blue"}
 line_comment = {base="comment_style", color="gray"}
