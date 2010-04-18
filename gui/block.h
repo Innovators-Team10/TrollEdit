@@ -3,6 +3,8 @@
 
 #include <QGraphicsRectItem>
 #include <QtGui>
+#include <QList>
+#include <QPropertyAnimation>
 
 class TreeElement;
 class DocumentScene;
@@ -12,6 +14,8 @@ class TextItem;
 class Block : public QObject, public QGraphicsRectItem
 {
     Q_OBJECT
+    Q_PROPERTY(QPointF pos READ pos WRITE setPos)
+    Q_PROPERTY(QRectF geometry READ geometry WRITE setGeometry)
 
 public:
     Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentScene = 0);
@@ -50,7 +54,10 @@ public:
 //    void addSpaces(int count);
     int getSpaces() const;
     int getAbsoluteSpaces() const;
-    void setLine(int newLine);
+//    void setLine(int newLine);
+    QRectF geometry() const;
+    void setGeometry(QRectF geometry);
+    void setScenePos(QPointF pos);
 
     // visualization
     QPainterPath shape() const;
@@ -59,11 +66,13 @@ public:
     QList<Block*> blocklist_cast(QList<QGraphicsItem*> list) const;
     void highlight(QPair<QFont, QColor> format);
 
-    void updateLayout();
-    void updateAfter(bool updateThis = false);
-    void updatePosAfter();
-    void updateLineStarts();
-    void updateXPosInLine(int lineNo);
+    void updateBlock();
+//    void updateAfter(bool updateThis = false);
+//    void updatePosAfter();
+//    void updateLineStarts();
+//    void updateXPosInLine(int lineNo);
+    void updateAll(bool animate = true);
+    void animate();
 
     static QMap<int, Block*> lineStarts;// move to private..
     void setSelected(bool flag = true);
@@ -82,16 +91,16 @@ public slots:
     void moveCursorUD(int key, int from);
 
 protected:
-    QPointF computeNextSiblingPos() const;
-    int computeNextSiblingLine() const;
+    QPointF computePos() const;
+    QRectF computeRect() const;
+    int computeLine() const;
+    QPointF getOffset() const;
+
     Block* findFutureParentAt(QPointF pos) const;
     Block* findNextChildAt(QPointF pos) const;
     QLineF getInsertLineAt(const Block* nextBlock, bool insertedIsLineBreaking) const;
 
     // event processing
-    void focusInEvent(QFocusEvent *event);
-    void focusOutEvent(QFocusEvent *event);
-
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -103,18 +112,15 @@ protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
 
 private:
-    static QPointF OFFSET;
+    static QPointF OFFSET, NO_OFFSET;
     static int lastLine;
 
     bool folded;     // true when block is folded
     bool moveStarted;// true while block is moving
     bool edited;     // edited after last AST analysis
     bool showing;    // true when block border is painted
+    bool toAnimate;
     static Block *selectedBlock;
-
-    void setShowing(bool newState);
-
-    QPointF getOffset() const;
 
     DocumentScene *docScene;    // my scene
     Block *parent;              // my parent
@@ -130,12 +136,13 @@ private:
 
     void createControls();//todo
     void removeLinks();
-
+    void setShowing(bool newState, Block* stopAt=0);
 
     Block *futureParent;
     Block *futureSibling;   // used for block insertion
 
-    QPointF backup;
+    QPropertyAnimation *animation;
+    QPointF lastPos;
 };
 
 #endif // BLOCK_H

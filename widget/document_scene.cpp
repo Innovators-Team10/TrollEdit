@@ -84,7 +84,8 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     if (event->button() == Qt::LeftButton) {
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
-            mainBlock->updateLayout();
+//            mainBlock->updateBlock();
+            QGraphicsScene::update(QRect());
         } else {
             if (mainBlock != 0) {
                 if (blockAt(event->scenePos()) == 0)
@@ -179,7 +180,7 @@ bool DocumentScene::reanalyze(Block *block)
     newBlock->setSelected(false);
     if (nextSib != 0) newBlock->stackBefore(nextSib);
 
-    mainBlock->updateLayout();
+    mainBlock->updateBlock();
     update();
 
     analysedBl->deleteLater();
@@ -197,7 +198,7 @@ bool DocumentScene::analyzeAll(QString text)
     mainBlock->setPos(30,20); //temp
     mainBlock->setFlag(QGraphicsItem::ItemIsMovable, false);
     mainBlock->setFlag(QGraphicsItem::ItemIsSelectable, false);
-    mainBlock->updateLayout();
+    mainBlock->updateBlock();
     update();
     return true;
 }

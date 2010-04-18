@@ -32,6 +32,7 @@ public:
 
     void setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning);
     QHash<QString, QPair<QFont, QColor> > getHighlightning() const;
+    Block *mainBlock;
 
 signals:
     void requestSize();
@@ -49,7 +50,7 @@ private slots:
     void lostFocus(Block *block);
 
 private:
-    Block *mainBlock;
+
     QHash<QString, QPair<QFont, QColor> > highlightning;
     QGraphicsLineItem *insertLine;
 

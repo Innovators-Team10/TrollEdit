@@ -5,6 +5,7 @@
 #include "../widget/document_scene.h"
 
 QPointF Block::OFFSET = QPointF(10, 10);
+QPointF Block::NO_OFFSET = QPointF(3, 3);
 QMap<int, Block*> Block::lineStarts;
 int Block::lastLine = 0;
 static int lastX = -1;
@@ -87,8 +88,12 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     edited = false;
     showing = false;
     moveStarted = false;
+    toAnimate = false;
 
     //    setAcceptHoverEvents(true);
+    setRect(computeRect());
+    animation = new QPropertyAnimation(this, "pos");
+    animation->setDuration(200);
 }
 
 Block::~Block()
@@ -328,16 +333,14 @@ bool Block::hasMoreLines() const
     }
 }
 
-int Block::computeNextSiblingLine() const
+/*int Block::computeNextSiblingLine() const
 {
     int lineNo = line + numberOfLines() - 1;
     if (element->isLineBreaking()) lineNo++;
     return lineNo;
-}
+}*/
 
-qreal SPACE_WIDTH = 10; // temp
-
-QPointF Block::computeNextSiblingPos() const
+/*QPointF Block::computeNextSiblingPos() const
 {
     QPointF position(0,0);
     if (!element->isLineBreaking() || parent == 0) {
@@ -368,14 +371,76 @@ QPointF Block::computeNextSiblingPos() const
         position.ry() = maxY + offsY;
     }
     return position;
+}*/
+
+qreal SPACE_WIDTH = 10; // temp
+QPointF Block::computePos() const
+{
+    QPointF position = QPointF();
+    if (prevSib != 0) {
+        if (!prevSib->element->isLineBreaking() || parent == 0) {
+            QPointF offs;
+            if (prevSib->hasMoreLines()) {
+                Block *block = prevSib->getLastLeaf();
+                position = prevSib->mapFromItem(block, block->boundingRect().topRight());
+                offs = block->getOffset();
+            } else {
+                position = prevSib->boundingRect().topRight();
+                offs = prevSib->getOffset();
+            }
+            position = prevSib->mapToParent(position);
+            position.rx() += offs.x();
+            position.ry() -= offs.y();
+        } else {
+            qreal maxY = 0;
+            qreal offsY = 0;
+            foreach (Block *child, parent->childBlocks()) {
+                int y = child->mapToParent(child->boundingRect().bottomRight()).y();
+                if (y > maxY) {
+                    maxY = y;
+                    offsY = child->getOffset().y();
+                }
+                if (child == prevSib) break;
+            }
+            position.ry() += maxY + offsY;
+        }
+    }
+    position += getOffset();
+    position.rx() += getSpaces() * SPACE_WIDTH;
+    return position;
 }
 
-void Block::focusInEvent(QFocusEvent *event)
+QRectF Block::computeRect() const
 {
+    QRectF rect;
+
+    if (isTextBlock()) {
+        rect = myTextItem->mapRectToParent(myTextItem->boundingRect());
+        // NOTE: returned rect if 1 pixel wider than needed (to draw cursor at the end)
+        rect.adjust(0, 0, -1, 0);
+    } else {
+        rect = QRectF(0,0,0,0);
+        // NOTE: childrenBoundingRect() isn't enough any more, because we need to add offsets
+        foreach (Block *child, childBlocks()) {
+            QPointF offs = child->getOffset();
+            QRectF childRect = child->mapRectToParent(child->boundingRect());
+            childRect.adjust(-offs.x(), -offs.y(), offs.x(), offs.y());
+            rect = rect.united(childRect);
+        }
+    }
+    return rect;
 }
 
-void Block::focusOutEvent(QFocusEvent *event)
+int Block::computeLine() const
 {
+    if (prevSib == 0) {
+        if (parent == 0) return 0;
+        else return parent->line;
+    } else {
+        int lineNo = prevSib->line + prevSib->numberOfLines() - 1;
+        if (prevSib->element->isLineBreaking()) lineNo++;
+        return lineNo;
+    }
 }
 
 void Block::textFocusChanged(QFocusEvent* event)
@@ -404,13 +469,13 @@ void Block::textChanged()
                         prev->textItem()->setTextCursorPosition(-1);
                         //                        prev->element->setLineBreaking(true);
                     }
-                    next->updateAfter(true);
+                    next->updateAll();//updateAfter(true);
                 } else if (next->line < line) { // jumped to the beginning of file
                     next->getPrev(true)->textItem()->setTextCursorPosition(-1);
                 } else {                         // on same line
                     next->element->addSpaces(element->getSpaces());
                     next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
-                    next->updateAfter(true);
+                    next->updateAll();//updateAfter(true);
                 }
             }
             docScene->update();
@@ -433,10 +498,10 @@ void Block::textChanged()
         } while(text.startsWith(" "));
         element->setType(text);
         myTextItem->setPlainText(text);
-        ancestor->updateAfter(true);
+        ancestor->updateAll();//updateAfter(true);
     } else {
         element->setType(text);
-        updateXPosInLine(line);
+        updateAll();//updateXPosInLine(line);
     }
 
     docScene->update();
@@ -453,7 +518,7 @@ void Block::splitLine(int cursorPos)
 {
     if (parent == 0) return;
     if (element->allowsParagraphs()) {      // no splitting is done
-        updateAfter();
+        updateAll();//updateAfter();
         return;
     }
     // check what block should be splitted
@@ -488,7 +553,7 @@ void Block::splitLine(int cursorPos)
             next->element->setSpaces(0);
             next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
         }
-        updateAfter(true);
+        updateAll();//updateAfter(true);
         docScene->update();
     }
 }
@@ -499,16 +564,16 @@ void Block::eraseChar(int key) {
         target = getAncestorWhereFirst();
         if (target->getSpaces() > 0) {
             target->element->addSpaces(-1);
-            target->updateAfter(true);
+//            target->updateAfter(true);
         } else {
             target = getPrev(true);
             if (target->line < line) {          // jumped to previous line
                 while (!target->element->isLineBreaking())
                     target = target->parent;
                 target->element->setLineBreaking(false);
-                target->updateAfter();
-                scene()->update();
-                if (target->isTextBlock()) target->textChanged();
+//                target->updateAfter();
+                if (target->isTextBlock())
+                    target->textChanged();
             } else if (target->line > line) {   // jumped to the end of file
                 return;
             } else {                            // on same line
@@ -520,7 +585,7 @@ void Block::eraseChar(int key) {
         target = getNext();
         if (target->getSpaces() > 0) {
             target->element->addSpaces(-1);
-            updateXPosInLine(line);
+//            updateXPosInLine(line);
         } else {
             target = getNext(true);
             if (target->line > line) {          // jumped to next line
@@ -528,8 +593,7 @@ void Block::eraseChar(int key) {
                 while (!target->element->isLineBreaking())
                     target = target->parent;
                 target->element->setLineBreaking(false);
-                target->updateAfter();
-                scene()->update();
+//                target->updateAfter();
                 if (target->isTextBlock()) target->textChanged();
             } else if (target->line < line) {   // jumped to the beginning of file
                 return;
@@ -539,6 +603,7 @@ void Block::eraseChar(int key) {
         }
         textItem()->setTextCursorPosition(-1);
     }
+    updateAll();
     docScene->update();
 }
 
@@ -629,7 +694,6 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
         event->ignore();
         return;
     } else {
-        ;
     }
     QGraphicsRectItem::mousePressEvent(event);
 }
@@ -658,7 +722,7 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             setPos(scenePos());
             toDelete = removeBlock();
             if (next!= 0)
-                next->updateAfter(true);  // update blocks after removal
+                next->updateAll();//updateAfter(true);  // update blocks after removal
             oldParent->edited = true;
         }
         moveStarted = true;
@@ -698,8 +762,7 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         event->ignore();
         return;
     }
-    if (moveStarted && event->button() == Qt::LeftButton) { //&&
-        //        (event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+    if (moveStarted && event->button() == Qt::LeftButton) {
         setZValue(0);               // restore z-value
 
         if (futureParent != 0) {
@@ -708,7 +771,8 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
             futureParent->prepareGeometryChange();    // used to update graphics
             futureParent->edited = true;
-            updateAfter(true);
+            futureParent->setShowing(true);
+            updateAll();//updateAfter(true);
         } else {
             setSelected(false);
             deleteLater();
@@ -826,49 +890,81 @@ void Block::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
 }
 
-void Block::updateLayout() // parent to child updater
+void Block::updateBlock() // parent to child updater
         // used to update everything from root up
         // updates line numbers
         // used when new root is created
 {
-    if (firstChild == 0) return;
+    if (!toAnimate) {
+        lastPos = pos();
+        toAnimate = true;
+    }
 
-    int lineNo = line;
-    QPointF nextPos = QPointF();
-    bool newLineComming = true;
-    
+    // update line
+    line = computeLine();
+    if (parent == 0) {
+        lineStarts[line] = this;
+    }
+    if (prevSib != 0 && prevSib->line < line)
+        lineStarts[line] = this;
+    lastLine = line;
+
+    // update pos
+    setPos(computePos());
+
+    // update children
     foreach (Block *child, childBlocks()) {
-        child->line = lineNo;
-        child->updateLayout();
+        child->updateBlock();
+    }
 
-        if (newLineComming) {
-            lineStarts[lineNo] = child;
-            newLineComming = false;
-        }
+    // update size
+    setRect(computeRect());
+}
 
-        nextPos.rx() += child->getSpaces() * SPACE_WIDTH;
-        nextPos += child->getOffset();
-        child->setPos(nextPos);
-        lastLine = qMax(lastLine, lineNo);
+// temporary method..
+void Block::updateAll(bool animate) {
+    Block *mainBlock;
+    TreeElement *root = element->getRoot();
+    do {
+        mainBlock = root->getBlock();
+        root = (*root)[0];
+    } while (mainBlock == 0);
 
-        lineNo = child->computeNextSiblingLine();
-        nextPos = child->computeNextSiblingPos();
-        if (child->element->isLineBreaking())
-            newLineComming = true;
+    mainBlock->updateBlock();
+
+    animate = false;
+    if (animate)
+        mainBlock->animate();
+}
+
+void Block::animate()
+{
+    if (toAnimate) {
+        toAnimate = false;
+        animation->setStartValue(lastPos);
+        animation->setEndValue(pos());
+        animation->start();
+    }
+    foreach (Block *child, childBlocks()) {
+        child->animate();
     }
 }
 
+/*
 void Block::updateAfter(bool updateThis) // child to parent updater
         // used to update everything after this block, after its parent etc.,
         // updates line numbers
         // used after blocks moving or typing newlines
 {
-    if (parent == 0) return;
+    if (parent == 0) {
+        setRect(computeRect());
+        return;
+    }
     int lineNo;
     QPointF nextPos;
     Block *sibling;
     bool newLineComming = false;
-    
+
     if (updateThis) {   // start with this block
         sibling = prevSib;
     } else {            // start with next block
@@ -911,10 +1007,13 @@ void Block::updateAfter(bool updateThis) // child to parent updater
         nextPos = sibling->computeNextSiblingPos();
         if (sibling->element->isLineBreaking())
             newLineComming = true;
+        sibling->setRect(sibling->computeRect());
         sibling = sibling->nextSib;
     }
     // this block and its siblings are updated, repeat with parent
     updateThis = parent->firstChild == this && updateThis;
+
+    setRect(computeRect());
     parent->updateAfter(updateThis);
 }
 
@@ -923,7 +1022,10 @@ void Block::updatePosAfter() // child to parent updater
         // updates positions only
         // used
 {
-    if (parent == 0) return;
+    if (parent == 0) {
+        setRect(computeRect());
+        return;
+    }
 
     QPointF nextPos;
     Block *sibling = this;
@@ -935,17 +1037,31 @@ void Block::updatePosAfter() // child to parent updater
         nextPos = QPointF();
     }
 
+    QParallelAnimationGroup *group = new QParallelAnimationGroup();
     // update siblings, start with this
     while (sibling != 0) {
+         QPropertyAnimation *animation = new QPropertyAnimation(sibling, "pos");
+
         nextPos.rx() +=  sibling->getSpaces() * SPACE_WIDTH;
         nextPos += sibling->getOffset();
 
+        QPointF abcd = sibling->pos();
+        animation->setStartValue(abcd);
+        animation->setEndValue(nextPos);
+
+
         sibling->setPos(nextPos);
         nextPos = sibling->computeNextSiblingPos();
+
+        sibling->setRect(sibling->computeRect());
+//        sibling->setPos(abcd);
+        group->addAnimation(animation);
+
         sibling = sibling->nextSib;
     }
     // this block and its siblings are updated, repeat with parent
     parent->updatePosAfter();
+    group->start();
 }
 
 void Block::updateLineStarts()
@@ -971,7 +1087,9 @@ void Block::updateXPosInLine(int lineNo) // child to parent updater
         // doesn't update this block's position!
         // used after user's typing (without newlines)
 {    
-    if (parent == 0) return;
+   if (parent == 0) return;
+    setRect(computeRect());
+
     qreal nextX = computeNextSiblingPos().x();
     Block *sibling = nextSib;
     while (sibling != 0) { // start with next block
@@ -980,18 +1098,34 @@ void Block::updateXPosInLine(int lineNo) // child to parent updater
 
         sibling->setX(nextX);
         nextX = sibling->computeNextSiblingPos().x();
+
+        sibling->setRect(sibling->computeRect());
         sibling = sibling->nextSib;
     }
     // this block and its siblings are updated, repeat with parent
     //    if (parent->line == line)
     parent->updateXPosInLine(lineNo);
-}
+}*/
 
 void Block::highlight(QPair<QFont, QColor> format)
 {
     if (!isTextBlock()) return;
     myTextItem->setFont(format.first);
     myTextItem->setDefaultTextColor(format.second);
+}
+
+QRectF Block::geometry() const
+{
+    QRectF geometry = rect();
+    geometry.translate(pos());
+    return geometry;
+}
+void Block::setGeometry(QRectF geometry)
+{
+    QPointF pos = geometry.topLeft();
+    geometry.translate(-pos);
+    setPos(pos);
+    setRect(geometry);
 }
 
 int Block::type() const
@@ -1001,24 +1135,7 @@ int Block::type() const
 
 QRectF Block::boundingRect() const
 {
-    QRectF rect;
-
-    if (isTextBlock()) {
-        rect = myTextItem->mapRectToParent(myTextItem->boundingRect());
-        // NOTE: returned rect if 1 pixel wider than needed (to draw cursor at the end)
-        rect.adjust(0, 0, -1, 0);
-    } else {
-        rect = QRectF(0,0,0,0);
-        // NOTE: childrenBoundingRect() isn't enough any more, because we need to add offsets
-        foreach (Block *child, childBlocks()) {
-            QPointF offs = child->getOffset();
-            QRectF childRect = child->mapRectToParent(child->boundingRect());
-            childRect.adjust(-offs.x(), -offs.y(), offs.x(), offs.y());
-            rect = rect.united(childRect);
-        }
-    }
-
-    return rect;
+    return rect();
 }
 
 QPainterPath Block::shape() const   // default implementation
@@ -1031,77 +1148,88 @@ QPainterPath Block::shape() const   // default implementation
 void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QRectF rect = boundingRect();
-    painter->setPen(pen());
-    if (moveStarted)
-        painter->fillRect(rect, Qt::white);
-    
-    if (edited) {
-        painter->fillRect(QRectF(0,0,3,3), Qt::yellow);
-    }
+    rect.adjust(-NO_OFFSET.x(), -NO_OFFSET.y(), NO_OFFSET.x(), NO_OFFSET.y());
 
+    painter->setPen(pen());
+    painter->fillRect(rect, Qt::white);
+    
     //*****
     if (element->isLineBreaking())
-        painter->fillRect(QRectF(rect.width()-3,0,3,3), Qt::blue);
-    if (!element->isSelectable())
+        painter->fillRect(QRectF(rect.width()-6,0,6,6), Qt::blue);
+
+    if (showing) {
+        if (selectedBlock == this)
+            painter->setPen(QPen(QBrush(Qt::green), 5, Qt::SolidLine));
+        else
+            painter->setPen(QPen(QBrush(Qt::darkGreen), 3, Qt::DotLine));
+    } else {if (!element->isSelectable())
         painter->setPen(Qt::lightGray);
-    if (element->isUnknown())
-        painter->setPen(Qt::red);
-    if (showing)
-        painter->setPen(Qt::magenta);
-    if (selectedBlock == this)
-        painter->setPen(Qt::green);
+        else
+            painter->setPen(Qt::gray);
+
+        if (element->isUnknown())
+            painter->setPen(Qt::red);
+    }
     //*****
 
     painter->drawRect(rect);
     //    QGraphicsRectItem::paint(painter, option, widget);
 }
 
-void Block::setShowing(bool newState) {
+void Block::setShowing(bool newState, Block *stopAt) {
+    if (this == stopAt) return;
     if (element->isSelectable()) {
         if (newState == showing) {
             return;
         }
-        prepareGeometryChange();
         showing = newState;
     }
     if (parent != 0)
-        parent->setShowing(newState);
+        parent->setShowing(newState, stopAt);
     return;
 }
 
 // calling with true deselects current selected block and selects this block
 // calling with false deselects current selected block (it need not to be this one)
 void Block::setSelected(bool flag) {
-    if (selectedBlock == this && flag) return;
+    if (!element->isSelectable() && parent != 0) {
+        parent->setSelected(flag);
+        return;
+    }
+
+    Block *stopHidingAt;
+    if (flag) {
+        stopHidingAt = this;
+        while (!stopHidingAt->showing && stopHidingAt->parent != 0)
+            stopHidingAt = stopHidingAt->parent;
+    } else {
+        stopHidingAt = 0;
+    }
 
     if (selectedBlock != 0) {
         Block *oldSelected = selectedBlock;
         selectedBlock = 0;
-        oldSelected->setShowing(false);
-        oldSelected->updatePosAfter();
+        oldSelected->setShowing(false, stopHidingAt);
+//        oldSelected->updatePosAfter();
     }
     if (flag) {
-        if (element->isSelectable()) {
-            selectedBlock = this;
-            setShowing(true);
-            updatePosAfter();
-        } else {
-            if (parent != 0)
-                parent->setSelected();
-        }
+        selectedBlock = this;
+        setShowing(true);
+//        updatePosAfter();
     } else {
         selectedBlock = 0;
     }
+    updateAll();//
     docScene->update();
     return;
 }
 
 QPointF Block::getOffset() const
 {
-    if (element->isSelectable() && (showing
-                                    /*|| (selectedBlock != 0 && line == selectedBlock->line)*/))
+    if (element->isSelectable() && showing)
         return OFFSET;
-    else return QPointF(3,3);
+    else
+        return NO_OFFSET;
 }
 
 void Block::setFolded(bool fold)
@@ -1123,7 +1251,8 @@ bool Block::isFolded() const
 {
     return folded;
 }
-void Block::setLine(int newLine)
+
+/*void Block::setLine(int newLine)
 {
     if (line == newLine)
         return;
@@ -1132,7 +1261,8 @@ void Block::setLine(int newLine)
     foreach (Block *child, childBlocks()) {
         child->setLine(child->line + diff);
     }
-}
+}*/
+
 int Block::getSpaces() const
 {
     return element->getSpaces();
