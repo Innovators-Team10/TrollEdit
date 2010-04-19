@@ -131,6 +131,8 @@ private:
 
     Block *nextSib, *prevSib, *firstChild;    // used to create links
 
+    QHash<QString, QColor> format;
+
     // graphic elements
     HideBlockButton *hideButton;
 

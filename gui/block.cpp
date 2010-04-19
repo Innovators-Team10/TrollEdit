@@ -1184,6 +1184,9 @@ QPainterPath Block::shape() const   // default implementation
 
 void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+
     QRectF rect = boundingRect();
 
     if (moveStarted)
@@ -1198,9 +1201,9 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
         Qt::PenStyle style;
         QColor color;
         if (selectedBlock == this) {
-            width = 4; style = Qt::SolidLine; color = Qt::green;
+            width = 4; style = Qt::SolidLine; color = format["selected"];
         } else {
-            width = 2; style = Qt::DotLine; color = Qt::darkGreen;
+            width = 2; style = Qt::DotLine; color = format["showing"];
         }
         painter->setPen(QPen(QBrush(color), width, style));
         rect.adjust(-width/2, -width/2, width/2, width/2);
@@ -1212,7 +1215,7 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
             painter->setPen(Qt::gray);
 
         if (element->isUnknown()) {
-            painter->setPen(Qt::red);
+            painter->setPen(parent->format["selected"]);
             painter->drawRect(rect);
         }
     }
