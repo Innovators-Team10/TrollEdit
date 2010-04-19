@@ -4,7 +4,6 @@
 TextItem::TextItem(const QString &text, Block *parent, bool multiText)
     : QGraphicsTextItem(text, parent)
 {
-    setFont(QFont("Courier"));
     QFontMetricsF *fm = new QFontMetricsF(font());
     margin = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
 

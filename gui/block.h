@@ -143,6 +143,8 @@ private:
 
     QPropertyAnimation *animation;
     QPointF lastPos;
+
+    QHash<QString, QColor> format;
 };
 
 #endif // BLOCK_H

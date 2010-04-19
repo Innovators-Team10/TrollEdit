@@ -14,6 +14,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 
     //readSettings();
     initializeHighlightning();
+    initializeBlockFormatting();
 
     createActions();
     createMenus();
@@ -45,7 +46,6 @@ void MainWindow::createActions()
 
     // save as
     saveAsAction = new QAction(tr("Save &As..."), this);
-//    saveAsAction->setShortcut(tr("CTRL+A"));
     saveAsAction->setToolTip(tr("Save the file as..."));
     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
 
@@ -54,6 +54,7 @@ void MainWindow::createActions()
     printPdfAction->setShortcut(tr("CTRL+P"));
     printPdfAction->setToolTip(tr("Print scene to PDF"));
     connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
+
 
     // close
     closeAction = new QAction(tr("&Close"), this);
@@ -151,7 +152,7 @@ void MainWindow::createActions()
     connect(analyzeAction, SIGNAL(triggered()), this, SLOT(reanalyze()));
     // toggle offset
     offsetAction = new QAction(tr("Toggle OFFS"), this);
-    connect(offsetAction, SIGNAL(triggered()), this, SLOT(toggleOffset()));
+    connect(offsetAction, SIGNAL(triggered()), this, SLOT(toggleOffset()));    
 
     // show printable area
     printableAreaAction = new QAction(tr("Printable area"), this);
@@ -210,6 +211,7 @@ void MainWindow::newFile()
 {
     DocumentScene *scene = new DocumentScene(langManager->getAnalyzerFor("*")); // default grammar
     scene->setHighlightning(*highlightFormats);
+    scene->setBlockFormatting(*blockFormats);
     connect(documentTabs, SIGNAL(adjustScenes(QRectF)), scene, SLOT(adjustSceneRect(QRectF)));
     connect(scene, SIGNAL(requestSize()), documentTabs, SLOT(provideSize()));
     QGraphicsView *view = new QGraphicsView(scene);
@@ -383,6 +385,7 @@ void MainWindow::hideArea()
         scene->removeItem(list.at(i));
 }
 
+
 void MainWindow::openRecentFile()
 {
     QAction *action = qobject_cast<QAction *>(sender());
@@ -540,12 +543,14 @@ void MainWindow::initializeHighlightning()
 
     for (int i = 0; i < configData.length(); i++) {
         QHash<QString, QString>  attributes = configData.value(i).second;
+        if (attributes.value("target") == "block")
+            continue;
 
         QFont font;
         QColor color;
 
-        if (attributes.contains("base")) {
-            QPair<QFont, QColor> baseStyle = highlightFormats->value(attributes.value("base"));
+        if (attributes.contains("base_t")) {
+            QPair<QFont, QColor> baseStyle = highlightFormats->value(attributes.value("base_t"));
             font = QFont(baseStyle.first);
             color = QColor(baseStyle.second);
         }
@@ -565,6 +570,34 @@ void MainWindow::initializeHighlightning()
             font.setUnderline(toBool(attributes.value("underline")));
 
         highlightFormats->insert(configData.value(i).first, QPair<QFont, QColor>(font, color));
+    }
+}
+
+void MainWindow::initializeBlockFormatting()
+{
+    blockFormats = new QHash<QString, QHash<QString, QColor> >();
+    QList<QPair<QString, QHash<QString, QString> > > configData = langManager->getConfigData();
+
+    for (int i = 0; i < configData.length(); i++) {
+        QHash<QString, QString>  attributes = configData.value(i).second;
+        if (attributes.value("target") == "text")
+            continue;
+
+        QHash<QString, QColor> format;
+
+        if (attributes.contains("base_b")) {
+            format = QHash<QString, QColor>(blockFormats->value(attributes.value("base_b")));
+        }
+
+        // set attributes
+        if (attributes.contains("hovered"))
+            format["hovered"] = QColor(attributes.value("hovered"));
+        if (attributes.contains("selected"))
+            format["selected"] = QColor(attributes.value("selected"));
+        if (attributes.contains("showing"))
+            format["showing"] = QColor(attributes.value("showing"));
+
+        blockFormats->insert(configData.value(i).first, format);
     }
 }
 

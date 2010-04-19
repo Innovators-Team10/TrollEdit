@@ -32,6 +32,9 @@ public:
 
     void setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning);
     QHash<QString, QPair<QFont, QColor> > getHighlightning() const;
+    void setBlockFormatting(const QHash<QString, QHash<QString, QColor> > &blockFormats);
+    QHash<QString, QHash<QString, QColor> > getBlockFormatting() const;
+
     Block *mainBlock;
 
 signals:
@@ -52,6 +55,7 @@ private slots:
 private:
 
     QHash<QString, QPair<QFont, QColor> > highlightning;
+    QHash<QString, QHash<QString, QColor> > blockFormats;
     QGraphicsLineItem *insertLine;
 
     Block* blockAt(QPointF pos) const;

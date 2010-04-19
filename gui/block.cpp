@@ -82,6 +82,11 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
         }
     }
     createControls();
+
+    if (docScene->getBlockFormatting().contains(element->getType()))
+        format = docScene->getBlockFormatting().value(element->getType());
+    else
+        format = docScene->getBlockFormatting().value("block_style");
     
     setFlag(QGraphicsItem::ItemIsMovable);
     folded = false;
@@ -1150,7 +1155,6 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     QRectF rect = boundingRect();
     rect.adjust(-NO_OFFSET.x(), -NO_OFFSET.y(), NO_OFFSET.x(), NO_OFFSET.y());
 
-    painter->setPen(pen());
     painter->fillRect(rect, Qt::white);
     
     //*****
@@ -1158,12 +1162,13 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
         painter->fillRect(QRectF(rect.width()-6,0,6,6), Qt::blue);
 
     if (showing) {
-        if (selectedBlock == this)
-            painter->setPen(QPen(QBrush(Qt::green), 5, Qt::SolidLine));
-        else
-            painter->setPen(QPen(QBrush(Qt::darkGreen), 3, Qt::DotLine));
-    } else {if (!element->isSelectable())
-        painter->setPen(Qt::lightGray);
+        if (selectedBlock == this) {
+            painter->setPen(QPen(QBrush(format["selected"]), 5, Qt::SolidLine));
+        } else
+            painter->setPen(QPen(QBrush(format["showing"]), 3, Qt::DotLine));
+    } else {
+        if (!element->isSelectable())
+            painter->setPen(Qt::lightGray);
         else
             painter->setPen(Qt::gray);
 

@@ -231,3 +231,12 @@ QHash<QString, QPair<QFont, QColor> > DocumentScene::getHighlightning() const
     return highlightning;
 }
 
+void DocumentScene::setBlockFormatting(const QHash<QString, QHash<QString, QColor> > &blockFormats)
+{
+    this->blockFormats = blockFormats;
+}
+
+QHash<QString, QHash<QString, QColor> > DocumentScene::getBlockFormatting() const
+{
+    return blockFormats;
+}

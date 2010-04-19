@@ -100,6 +100,7 @@ private:
     QStringList recentFiles;
     QString currentFile;
     QHash<QString, QPair<QFont, QColor> > *highlightFormats;
+    QHash<QString, QHash<QString, QColor> > *blockFormats;
     //SettingsDialog *settingsDialog;
 
     QPrinter *printer;
@@ -108,6 +109,7 @@ private:
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
 
+
     void createActions();
     void createMenus();
     void createToolBars();
@@ -115,7 +117,8 @@ private:
     void updateRecentFileActions();
     void load(QString fileName);
     void initializeHighlightning();
-    bool toBool(QString textBool);
+    void initializeBlockFormatting();
+    bool toBool(QString textBool);    
 
     void showArea();
     void hideArea();
