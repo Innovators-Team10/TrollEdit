@@ -93,9 +93,11 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     edited = false;
     showing = false;
     moveStarted = false;
+    hovered = false;
+    pointed = false;
     toAnimate = false;
 
-    //    setAcceptHoverEvents(true);
+    setAcceptHoverEvents(true);
     setRect(computeRect());
     animation = new QPropertyAnimation(this, "geometry");
     animation->setDuration(200);
@@ -319,6 +321,17 @@ Block *Block::getPrev(bool textOnly) const
         return prev->getLastLeaf();
     }
     return prev;
+}
+
+Block *Block::getFirstSelectableAncestor() const
+{
+    Block *block = const_cast<Block*>(this);
+    if (parent)
+        block = block->parent;
+
+    while (!block->element->isSelectable() && block->parent)
+        block = block->parent;
+    return block;
 }
 
 int Block::numberOfLines() const
@@ -899,7 +912,12 @@ void Block::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
         event->ignore();
         return;
     } else {
-        ;
+        hovered = true;
+        pointed = true;
+        Block *block = getFirstSelectableAncestor();
+        if (block != this)
+            block->pointed = false;
+        docScene->update();
     }
 }
 
@@ -909,10 +927,16 @@ void Block::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         event->ignore();
         return;
     } else {
-        ;
+        hovered = false;
+        pointed = false;
+        Block *block = getFirstSelectableAncestor();
+        if (block != this && block->hovered)
+            block->pointed = true;
+        docScene->update();
     }
 }
 
+//****
 void Block::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if (!element->isSelectable()){
@@ -922,6 +946,7 @@ void Block::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         ;
     }
 }
+//****
 
 void Block::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
@@ -1195,6 +1220,12 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     //*****
 //    if (element->isLineBreaking())
 //        painter->fillRect(QRectF(rect.width()-6,0,6,6), Qt::blue);
+
+    if (pointed) {
+        painter->fillRect(rect, format["hovered"]);
+        painter->setPen(format["hovered_border"]);
+        painter->drawRect(rect);
+    }
 
     if (showing) {
         qreal width;

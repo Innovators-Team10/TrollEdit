@@ -590,8 +590,13 @@ void MainWindow::initializeBlockFormatting()
         }
 
         // set attributes
-        if (attributes.contains("hovered"))
-            format["hovered"] = QColor(attributes.value("hovered"));
+        if (attributes.contains("hovered")) {
+            QColor hoveredColor(attributes.value("hovered"));
+            hoveredColor.setAlphaF(0.15);
+            format["hovered"] = hoveredColor;
+        }
+        if (attributes.contains("hovered_border"))
+            format["hovered_border"] = QColor(attributes.value("hovered_border"));
         if (attributes.contains("selected"))
             format["selected"] = QColor(attributes.value("selected"));
         if (attributes.contains("showing"))

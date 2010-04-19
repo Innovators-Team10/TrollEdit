@@ -36,6 +36,7 @@ public:
     Block *getNextSibling() const;
     Block *getNext(bool textOnly = false) const;
     Block *getPrev(bool textOnly = false) const;
+    Block *getFirstSelectableAncestor() const;
 
     // property getters and setters
     int type() const;
@@ -119,6 +120,8 @@ private:
     bool moveStarted;// true while block is moving
     bool edited;     // edited after last AST analysis
     bool showing;    // true when block border is painted
+    bool hovered;    // true after hoverEnterEvent
+    bool pointed;    // true if it is last hovered block
     bool toAnimate;
     static Block *selectedBlock;
 

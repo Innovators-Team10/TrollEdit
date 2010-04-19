@@ -19,12 +19,12 @@ markup_tag = {target="text", base_t="text_style", color="brown"}
 attribute_key = {target="text", base_t="text_style", color="red"}
 attribute_value = {target="text", base_t="text_style", color="blue"}
 
-block_style = {target="block", hovered="", selected="green", showing="goldenrod"}
+block_style = {target="block", hovered="white", hovered_border="black", selected="green", showing="goldenrod"}
 
-if_statement = {target="block", base_b="block_style"}
-unknown = {target="block", base_b="block_style", selected="red", showing="red", hovered="red"}
+if_statement = {target="block", base_b="block_style", hovered="yellow", hovered_border="red"}
+unknown = {target="block", base_b="block_style", selected="red", showing="red", hovered="red", hovered_border="red"}
 preprocessor = {target="block", base_b="block_style"}
-while_statement = {target="block", base_b="block_style"}
+while_statement = {target="block", base_b="block_style", hovered="blue", hovered_border="blue"}
 for_statement = {target="block", base_b="block_style"}
 switch_statement = {target="block", base_b="block_style"}
 funct_param = {target="block", base_b="block_style"}

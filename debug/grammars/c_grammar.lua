@@ -19,7 +19,8 @@ selectable = {
 	"preprocessor", "funct_definition", "declaration", 
 	"initializer", "block", "simple_statement", 
 	"funct_call", "funct_param", "expression",  
-	"unknown",
+	"unknown", "if_statement", "while_statement",
+	"for_statement", "switch_statement"
 	}	
 multi_text = {"multi_comment", "doc_comment",}
 
