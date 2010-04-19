@@ -6,19 +6,25 @@ const char *TreeElement::UNKNOWN_EL = "unknown";
 const char *TreeElement::NEWLINE_EL = "nl";
 
 TreeElement::TreeElement(QString type, bool selectable,
-                         bool multiText, bool lineBreaking)
+                         bool multiText, bool lineBreaking, bool paired)
 {
     parent = 0;
     this->type = type;
     this->selectable = selectable;
     this->paragraphsAllowed = multiText;
     this->lineBreaking = lineBreaking;
+    this->paired = paired;
     spaces = 0;
     myBlock = 0;
+    pair = 0;
 }
 
 TreeElement::~TreeElement()
 {
+    if (pair != 0) {
+        pair->setPair(0);
+        pair = 0;
+    }
     if (!isLeaf())
         removeAllChildren();
     if (parent != 0) {
@@ -33,6 +39,7 @@ void TreeElement::setType(QString type)
 {
     this->type = type;
 }
+
 void TreeElement::setBlock(Block *block)
 {
     myBlock = block;
@@ -41,6 +48,16 @@ void TreeElement::setBlock(Block *block)
 Block *TreeElement::getBlock() const
 {
     return myBlock;
+}
+
+void TreeElement::setPair(TreeElement *pair)
+{
+    this->pair = pair;
+}
+
+TreeElement *TreeElement::getPair() const
+{
+    return pair;
 }
 
 void TreeElement::appendChild(TreeElement *child)
@@ -179,8 +196,15 @@ bool TreeElement::isSelectable() const
     }
     return false;
 }
-bool TreeElement::allowsParagraphs() const {
+
+bool TreeElement::allowsParagraphs() const
+{
     return paragraphsAllowed;
+}
+
+bool TreeElement::isPaired() const
+{
+    return paired;
 }
 
 int TreeElement::childCount() const

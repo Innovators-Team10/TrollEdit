@@ -93,7 +93,9 @@ preprocessor = (NI'include' + ((TK"#define" + TK"#elif" + TK"#else" + TK"#endif"
 	TK"#error" + TK"#ifdef" + TK"#ifndef" + TK"#if" + TK"#import" + TK"#line" +
 	TK"#pragma" + TK"#undef") * T((1 - S"\n\r")^0))),
 	
-include = TK"#include" * (T"<" * T((1 - P">")^1) * T">" + N'string_constant'),
+include = TK"#include" * N'header_file',
+
+header_file = T"<" * T((1 - P">")^1) * T">" + T(P'"' * T((1 - P'"')^1) * P'"'),
 
 funct_definition =
 	NI'declaration_specifiers'^-1 * N'declarator' *N'declaration'^0 * T"{" * N'block'^-1 * T"}",

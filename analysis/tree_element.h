@@ -12,7 +12,7 @@ public:
      int spaces;
 
      TreeElement(QString type = "", bool selectable = false,
-                 bool multiText = false, bool lineBreaking = false);
+                 bool multiText = false, bool lineBreaking = false, bool paired = false);
      ~TreeElement();
 
      void setType(QString type);
@@ -43,6 +43,7 @@ public:
      bool isLineBreaking() const;
      bool allowsParagraphs() const;
      bool isSelectable() const;
+     bool isPaired() const;
 
      TreeElement *operator<<(TreeElement *child);
      TreeElement *operator<<(QList<TreeElement *> children);
@@ -61,6 +62,8 @@ public:
      bool isImportant() const;
      void setBlock(Block *block);
      Block *getBlock() const;
+     void setPair(TreeElement *pair);
+     TreeElement *getPair() const;
 
      bool hasNext();
      TreeElement *next();
@@ -76,9 +79,11 @@ public:
      QList<TreeElement*> children;
      QString type;
      Block *myBlock;
+     TreeElement *pair;
      bool lineBreaking;
      bool selectable;
      bool paragraphsAllowed;
+     bool paired;
 
      bool hasNext(int index);
      TreeElement *next(int index);

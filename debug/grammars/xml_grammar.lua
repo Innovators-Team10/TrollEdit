@@ -14,7 +14,7 @@ other_grammars = {
 	markup_element="in_markup_element", 
 }
 paired = {"<", ">", "el_start", "el_end"}
-selectable = {"markup_element", "unknown"}
+selectable = {"xml_header", "markup_element", "unknown"}
 multi_text = {"unknown"}
 
 require 'lpeg'

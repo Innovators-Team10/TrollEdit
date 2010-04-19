@@ -11,9 +11,7 @@ public:
     PairedTreeElement(QString type);
     PairedTreeElement(TreeElement *source);
     void setPair(PairedTreeElement *element);
-    PairedTreeElement *getPair() const;
-
-    void select();
+    PairedTreeElement *getPair() const {return pair;}
 
 private:
     PairedTreeElement *pair;

@@ -50,7 +50,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 private slots:
-    void lostFocus(Block *block);
+    void animationFinished();
 
 private:
 

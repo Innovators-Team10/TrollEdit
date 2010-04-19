@@ -1,6 +1,5 @@
 #include "analyzer.h"
 #include "tree_element.h"
-#include "paired_tree_element.h"
 
 const char *Analyzer::EXTENSION_FIELD = "extension";
 const char *Analyzer::MAIN_GRAMMAR_FIELD = "full_grammar";
@@ -205,42 +204,40 @@ TreeElement *Analyzer::createTreeFromLuaStack()
             }
         } else {
             QString nodeName = QString(lua_tostring(L, -1));
-            int pairIndex = pairedTokens.indexOf(nodeName, 0);
-
-            if (pairIndex >= 0) {               // pairing needed
-                root = new PairedTreeElement(nodeName);
-            } else {
-                root = new TreeElement(nodeName,
-                                       selectableTokens.contains(nodeName),
-                                       multiTextTokens.contains(nodeName));
+            bool paired = false;
+            if (pairedTokens.indexOf(nodeName, 0) >= 0) { // pairing needed
+                paired = true;
             }
+            root = new TreeElement(nodeName,
+                                   selectableTokens.contains(nodeName),
+                                   multiTextTokens.contains(nodeName),
+                                   false, paired);
+
         }
         lua_pop(L, 1); // removes 'value'; keeps 'key' for next iteration
     }
     return root;
 }
 
-void Analyzer::checkPairing(TreeElement *element)
+void Analyzer::checkPairing(TreeElement *closeEl)
 {
-    QString nodeName = element->getType();
+    QString nodeName = closeEl->getType();
     int pairIndex = pairedTokens.indexOf(nodeName, 0);
     if (pairIndex >= 0) {               // pairing needed
-        PairedTreeElement *pairedEl = (PairedTreeElement *)element;
 
         if (pairIndex % 2 == 1) {   // closing element found
-            QList<TreeElement *> siblings = pairedEl->getParent()->getChildren();
-            siblings.removeOne(pairedEl);
+            QList<TreeElement *> siblings = closeEl->getParent()->getChildren();
+            siblings.removeOne(closeEl);
             int index = siblings.size()-1;
 
             QString openString = pairedTokens[pairIndex-1];
             while (index >= 0) {
                 // find closest matching unused opening element
-                TreeElement *item = siblings[index];
-                if (item->getType() == openString) {    // is matching?
-                    PairedTreeElement *openEl = (PairedTreeElement *)siblings[index];
+                TreeElement *openEl = siblings[index];
+                if (openEl->getType() == openString) {    // is matching?
                     if (openEl->getPair() == 0) {  // is unused?
-                        openEl->setPair(pairedEl);
-                        pairedEl->setPair(openEl);
+                        openEl->setPair(closeEl);
+                        closeEl->setPair(openEl);
                         break;
                     }
                 }

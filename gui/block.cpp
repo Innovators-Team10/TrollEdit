@@ -4,8 +4,8 @@
 #include "../analysis/tree_element.h"
 #include "../widget/document_scene.h"
 
-QPointF Block::OFFSET = QPointF(10, 10);
-QPointF Block::NO_OFFSET = QPointF(3, 3);
+QPointF Block::OFFSET = QPointF(8, 8);
+QPointF Block::NO_OFFSET = QPointF(0, 0);
 QMap<int, Block*> Block::lineStarts;
 int Block::lastLine = 0;
 static int lastX = -1;
@@ -97,8 +97,10 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
 
     //    setAcceptHoverEvents(true);
     setRect(computeRect());
-    animation = new QPropertyAnimation(this, "pos");
+    animation = new QPropertyAnimation(this, "geometry");
     animation->setDuration(200);
+    connect(animation, SIGNAL(finished()), docScene, SLOT(animationFinished()));
+//    animation->setEasingCurve(QEasingCurve::OutExpo);
 }
 
 Block::~Block()
@@ -450,8 +452,23 @@ int Block::computeLine() const
 
 void Block::textFocusChanged(QFocusEvent* event)
 {
-    if (event->gotFocus())
-        setSelected();
+    if (event->gotFocus()) {    // focus in
+        if (event->reason() == Qt::MouseFocusReason)
+            setSelected();
+        if (element->isPaired()) {
+            TreeElement *pair = element->getPair();
+            if (pair != 0 && isTextBlock()) {//temp
+                pair->getBlock()->textItem()->setDefaultTextColor(Qt::red);
+                myTextItem->setDefaultTextColor(Qt::red);
+            }
+        }
+    } else {                    // focus out
+        TreeElement *pair = element->getPair();
+        if (pair != 0 && isTextBlock()) {// temp
+            pair->getBlock()->textItem()->setDefaultTextColor(Qt::black);
+            myTextItem->setDefaultTextColor(Qt::black);
+        }
+    }
 }
 
 void Block::textChanged()
@@ -462,6 +479,7 @@ void Block::textChanged()
         if (!element->isLineBreaking() || getPrev()->line == line) {
             // don't delete if block is single newline in this line
 
+            myTextItem->clearFocus();
             Block *next = getNext();
             QList<Block*> toDelete = removeBlock();
 
@@ -474,14 +492,15 @@ void Block::textChanged()
                         prev->textItem()->setTextCursorPosition(-1);
                         //                        prev->element->setLineBreaking(true);
                     }
-                    next->updateAll();//updateAfter(true);
+//                    next->updateAll();//updateAfter(true);
                 } else if (next->line < line) { // jumped to the beginning of file
                     next->getPrev(true)->textItem()->setTextCursorPosition(-1);
                 } else {                         // on same line
                     next->element->addSpaces(element->getSpaces());
                     next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
-                    next->updateAll();//updateAfter(true);
+//                    next->updateAll();//updateAfter(true);
                 }
+                updateAll();
             }
             docScene->update();
 
@@ -491,10 +510,6 @@ void Block::textChanged()
             return;
         }
     }
-    if (element->getType() != text) {
-        edited = true;
-        lastX = -1;
-    }
     if (text.startsWith(" ")) { // remove leading spaces
         Block *ancestor = getAncestorWhereFirst();
         do {
@@ -503,12 +518,15 @@ void Block::textChanged()
         } while(text.startsWith(" "));
         element->setType(text);
         myTextItem->setPlainText(text);
-        ancestor->updateAll();//updateAfter(true);
+        ancestor->updateAll(false);//updateAfter(true);
     } else {
-        element->setType(text);
-        updateAll();//updateXPosInLine(line);
+        if (element->getType() != text) {
+            edited = true;
+            lastX = -1;
+            element->setType(text);
+            updateAll(false);//updateXPosInLine(line);
+        }
     }
-
     docScene->update();
     myTextItem->document()->blockSignals(false);
 }
@@ -526,6 +544,8 @@ void Block::splitLine(int cursorPos)
         updateAll();//updateAfter();
         return;
     }
+    if (isTextBlock())
+        myTextItem->clearFocus();
     // check what block should be splitted
     if (cursorPos == 0) {
         Block *block = getPrev();           // split previous block
@@ -545,14 +565,18 @@ void Block::splitLine(int cursorPos)
             textItem()->setPlainText(text.left(cursorPos));
             text.remove(0,cursorPos);
         }
-        bool alreadyBreaking = !this->element->setLineBreaking(true);
 
         Block *next = getNext();
+        bool alreadyBreaking = !this->element->setLineBreaking(true);
+
         // create new block (either with text or with newline)
         if (!text.isEmpty() || alreadyBreaking) {
             Block *newBlock = new Block(new TreeElement(text), parent);
-            newBlock->element->setLineBreaking(alreadyBreaking);
             newBlock->stackBefore(next);
+            newBlock->element->setLineBreaking(alreadyBreaking);
+            this->element->setLineBreaking(false);
+            newBlock->setPos(newBlock->computePos());
+            this->element->setLineBreaking(true);
             newBlock->textItem()->setTextCursorPosition(0);
         } else {
             next->element->setSpaces(0);
@@ -570,6 +594,7 @@ void Block::eraseChar(int key) {
         if (target->getSpaces() > 0) {
             target->element->addSpaces(-1);
 //            target->updateAfter(true);
+            updateAll(false);
         } else {
             target = getPrev(true);
             if (target->line < line) {          // jumped to previous line
@@ -577,6 +602,7 @@ void Block::eraseChar(int key) {
                     target = target->parent;
                 target->element->setLineBreaking(false);
 //                target->updateAfter();
+                updateAll();
                 if (target->isTextBlock())
                     target->textChanged();
             } else if (target->line > line) {   // jumped to the end of file
@@ -585,12 +611,12 @@ void Block::eraseChar(int key) {
                 target->textItem()->removeCharAt(-1);
             }
         }
-        textItem()->setTextCursorPosition(0);
     } else if (key == Qt::Key_Delete) {     // move to next block
         target = getNext();
         if (target->getSpaces() > 0) {
             target->element->addSpaces(-1);
 //            updateXPosInLine(line);
+            updateAll(false);
         } else {
             target = getNext(true);
             if (target->line > line) {          // jumped to next line
@@ -599,6 +625,7 @@ void Block::eraseChar(int key) {
                     target = target->parent;
                 target->element->setLineBreaking(false);
 //                target->updateAfter();
+                updateAll();
                 if (target->isTextBlock()) target->textChanged();
             } else if (target->line < line) {   // jumped to the beginning of file
                 return;
@@ -606,9 +633,7 @@ void Block::eraseChar(int key) {
                 target->textItem()->removeCharAt(0);
             }
         }
-        textItem()->setTextCursorPosition(-1);
     }
-    updateAll();
     docScene->update();
 }
 
@@ -633,6 +658,7 @@ void Block::moveCursorLR(int key)
     } else return;
     target->textItem()->setTextCursorPosition(position);
     lastX = -1;
+    target->setSelected();
 }
 
 void Block::moveCursorUD(int key, int from)
@@ -673,6 +699,7 @@ void Block::moveCursorUD(int key, int from)
         int le = target->length() + whites;
         if (le >= x) {
             target->textItem()->setTextCursorPosition(qMax(0, x - whites));
+            target->setSelected();
             return;
         } else {
             x -= le;
@@ -680,6 +707,7 @@ void Block::moveCursorUD(int key, int from)
         Block *next = target->getNext(true);
         if (next->line != y) {
             target->textItem()->setTextCursorPosition(-1);
+            target->setSelected();
             return;
         }
         target = next;
@@ -694,11 +722,15 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
         clickPos = myTextItem->mapFromScene(clickPos);
         int pos = myTextItem->document()->documentLayout()->hitTest(clickPos, Qt::FuzzyHit);
         myTextItem->setTextCursorPosition(qMax(0, pos));
+    } else {
+        if (element->isSelectable() && selectedBlock != this)
+            setSelected();
     }
     if (!element->isSelectable()){
         event->ignore();
         return;
     } else {
+//        setSelected();
     }
     QGraphicsRectItem::mousePressEvent(event);
 }
@@ -786,7 +818,7 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         futureSibling = 0;
         docScene->hideInsertLine();
     } else {
-        setSelected();
+//        setSelected();
     }
 
     moveStarted = false;
@@ -901,7 +933,7 @@ void Block::updateBlock() // parent to child updater
         // used when new root is created
 {
     if (!toAnimate) {
-        lastPos = pos();
+        lastGeometry = geometry();
         toAnimate = true;
     }
 
@@ -937,21 +969,21 @@ void Block::updateAll(bool animate) {
 
     mainBlock->updateBlock();
 
-    animate = false;
-    if (animate)
-        mainBlock->animate();
+//    animate = false;
+    mainBlock->animate(animate);
 }
 
-void Block::animate()
+void Block::animate(bool enabled)
 {
+    toAnimate &= enabled;
     if (toAnimate) {
         toAnimate = false;
-        animation->setStartValue(lastPos);
-        animation->setEndValue(pos());
+        animation->setStartValue(lastGeometry);
+        animation->setEndValue(geometry());
         animation->start();
     }
     foreach (Block *child, childBlocks()) {
-        child->animate();
+        child->animate(enabled);
     }
 }
 
@@ -1153,32 +1185,39 @@ QPainterPath Block::shape() const   // default implementation
 void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QRectF rect = boundingRect();
-    rect.adjust(-NO_OFFSET.x(), -NO_OFFSET.y(), NO_OFFSET.x(), NO_OFFSET.y());
 
-    painter->fillRect(rect, Qt::white);
+    if (moveStarted)
+        painter->fillRect(rect, Qt::white);
     
     //*****
-    if (element->isLineBreaking())
-        painter->fillRect(QRectF(rect.width()-6,0,6,6), Qt::blue);
+//    if (element->isLineBreaking())
+//        painter->fillRect(QRectF(rect.width()-6,0,6,6), Qt::blue);
 
     if (showing) {
+        qreal width;
+        Qt::PenStyle style;
+        QColor color;
         if (selectedBlock == this) {
-            painter->setPen(QPen(QBrush(format["selected"]), 5, Qt::SolidLine));
-        } else
-            painter->setPen(QPen(QBrush(format["showing"]), 3, Qt::DotLine));
+            width = 4; style = Qt::SolidLine; color = Qt::green;
+        } else {
+            width = 2; style = Qt::DotLine; color = Qt::darkGreen;
+        }
+        painter->setPen(QPen(QBrush(color), width, style));
+        rect.adjust(-width/2, -width/2, width/2, width/2);
+        painter->drawRect(rect);
     } else {
         if (!element->isSelectable())
             painter->setPen(Qt::lightGray);
         else
             painter->setPen(Qt::gray);
 
-        if (element->isUnknown())
+        if (element->isUnknown()) {
             painter->setPen(Qt::red);
+            painter->drawRect(rect);
+        }
     }
     //*****
-
     painter->drawRect(rect);
-    //    QGraphicsRectItem::paint(painter, option, widget);
 }
 
 void Block::setShowing(bool newState, Block *stopAt) {

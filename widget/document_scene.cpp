@@ -129,13 +129,17 @@ void DocumentScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsScene::mouseMoveEvent(event);
 }
+
 void DocumentScene::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
 {
     //
 }
-void DocumentScene::lostFocus(Block *block)
+
+void DocumentScene::animationFinished()
 {
+    update();
 }
+
 void DocumentScene::toggleOffset()
 {
     //
@@ -154,6 +158,7 @@ void DocumentScene::reanalyze()
 bool DocumentScene::reanalyze(Block *block)
 {
     if (block == 0) return false;
+//    int line = block->getLine();
     block->setSelected(false);
 
     TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
@@ -177,10 +182,10 @@ bool DocumentScene::reanalyze(Block *block)
 
     Block *newBlock = new Block(newEl, parentBl, this);
     newBlock->getElement()->setLineBreaking(lineBreaking);
-    newBlock->setSelected(false);
     if (nextSib != 0) newBlock->stackBefore(nextSib);
 
-    mainBlock->updateBlock();
+    mainBlock->updateAll(false);
+//    mainBlock->lineStarts[]
     update();
 
     analysedBl->deleteLater();
@@ -198,7 +203,7 @@ bool DocumentScene::analyzeAll(QString text)
     mainBlock->setPos(30,20); //temp
     mainBlock->setFlag(QGraphicsItem::ItemIsMovable, false);
     mainBlock->setFlag(QGraphicsItem::ItemIsSelectable, false);
-    mainBlock->updateBlock();
+    mainBlock->updateAll(false);//updateBlock();
     update();
     return true;
 }
@@ -217,7 +222,6 @@ Block* DocumentScene::blockAt(QPointF pos) const
 void DocumentScene::update(const QRectF &rect)
 {
     emit requestSize();
-
     QGraphicsScene::update(rect);
 }
 

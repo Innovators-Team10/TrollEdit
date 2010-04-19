@@ -72,7 +72,7 @@ public:
 //    void updateLineStarts();
 //    void updateXPosInLine(int lineNo);
     void updateAll(bool animate = true);
-    void animate();
+    void animate(bool enabled);
 
     static QMap<int, Block*> lineStarts;// move to private..
     void setSelected(bool flag = true);
@@ -143,8 +143,7 @@ private:
 
     QPropertyAnimation *animation;
     QPointF lastPos;
-
-    QHash<QString, QColor> format;
+    QRectF lastGeometry;
 };
 
 #endif // BLOCK_H

@@ -6,7 +6,6 @@
 #include <QList>
 
 class TreeElement;
-class PairedTreeElement;
 
 extern "C" {
 #include "lua.h"
