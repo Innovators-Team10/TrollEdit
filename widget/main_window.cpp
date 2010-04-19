@@ -49,6 +49,12 @@ void MainWindow::createActions()
     saveAsAction->setToolTip(tr("Save the file as..."));
     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
 
+    // print pdf
+    printPdfAction = new QAction(tr("&Print PDF"), this);
+    printPdfAction->setShortcut(tr("CTRL+P"));
+    printPdfAction->setToolTip(tr("Print scene to PDF"));
+    connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
+
     // close
     closeAction = new QAction(tr("&Close"), this);
     closeAction->setToolTip(tr("Close the active file"));
@@ -146,6 +152,11 @@ void MainWindow::createActions()
     // toggle offset
     offsetAction = new QAction(tr("Toggle OFFS"), this);
     connect(offsetAction, SIGNAL(triggered()), this, SLOT(toggleOffset()));
+
+    // show printable area
+    printableAreaAction = new QAction(tr("Printable area"), this);
+    connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
+    printableAreaAction->setCheckable(true);
 }
 
 void MainWindow::createMenus()
@@ -158,6 +169,7 @@ void MainWindow::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction(saveAction);
     fileMenu->addAction(saveAsAction);
+    fileMenu->addAction(printPdfAction);
     separatorAction = fileMenu->addSeparator();
     for (int i = 0; i < MaxRecentFiles; ++i)
         fileMenu->addAction(recentFileActions[i]);
@@ -191,6 +203,7 @@ void MainWindow::createToolBars()
     formatToolBar->addAction(textItalicAction);
     formatToolBar->addAction(textUnderlineAction);
     formatToolBar->addAction(analyzeAction);
+    formatToolBar->addAction(printableAreaAction);
 }
 
 void MainWindow::newFile()
@@ -265,6 +278,109 @@ bool MainWindow::saveAs()
         return true;
     } else
         return false;
+}
+
+void MainWindow::printPdf()
+{
+    QGraphicsView *view = static_cast<QGraphicsView*>(documentTabs->currentWidget());
+    DocumentScene *scene =  static_cast<DocumentScene*>(view->scene());
+
+    QString fileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
+    if (fileName.isEmpty())
+        return;
+    int resolution = 1200;
+    QPrinter printer(QPrinter::HighResolution);
+//    printer.setOrientation(QPrinter::Landscape);
+    printer.setPageSize(QPrinter::A4);
+//    printer.setFullPage(TRUE);
+    printer.setResolution(resolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
+    QRectF rect;
+    rect = QRectF(printer.pageRect());
+    rect.setHeight(printer.pageRect().height() - (printer.paperRect().height() - printer.pageRect().height()));
+    rect.setWidth(printer.pageRect().width() - (printer.paperRect().width() - printer.pageRect().width()));
+
+    int y = 0;
+    int h = 1200;
+    int w = 802;
+    QRectF rect2;
+    rect2 = QRectF(0, y, w, h);
+
+
+//    QColor color;
+//    color.setBlue(250);
+    QPainter painter( &printer );
+//    scene->setSceneRect(0, 0, 1600, 2000);
+
+    if(printableAreaAction->isChecked())
+        hideArea();
+    for(int i=0; i<10; i++){
+        scene->render(&painter, rect, rect2, Qt::KeepAspectRatio);
+        y+=1200;
+        if(y < scene->sceneRect().height())
+        {
+            rect2.setRect(0, y, w, h);
+            printer.newPage();
+        }
+        else
+            break;
+    }
+    if(printableAreaAction->isChecked())
+        showArea();
+}
+
+void MainWindow::showPrintableArea()
+{
+    DocumentScene *scene = currentScene;
+    QColor color;
+    color.setBlue(255);
+    color.setGreen(150);
+    QPen pen(color, 2, Qt::DashDotDotLine);
+
+    int pagelength = 1200;
+    int endpage = pagelength;
+
+    if(printableAreaAction->isChecked())
+    {
+        line = new QGraphicsLineItem(0);
+        line->setLine(802, 0, 802, scene->sceneRect().height());
+        line->setVisible(true);
+        line->setPen(pen);
+        line->setZValue(-50);
+        list.append(line);
+
+        while(endpage < scene->sceneRect().height())
+        {
+            line = new QGraphicsLineItem(0);
+            line->setLine(0, endpage, 802, endpage);
+            line->setVisible(true);
+            line->setPen(pen);
+            line->setZValue(-50);
+            list.append(line);
+            endpage += pagelength;
+        }
+        showArea();
+    }
+
+    else
+    {
+        hideArea();
+    }
+}
+
+void MainWindow::showArea()
+{
+    DocumentScene *scene = currentScene;
+    for(int i=0; i<list.size(); i++)
+        scene->addItem(list.at(i));
+}
+
+void MainWindow::hideArea()
+{
+    DocumentScene *scene = currentScene;
+    for(int i=0; i<list.size(); i++)
+        scene->removeItem(list.at(i));
 }
 
 void MainWindow::openRecentFile()

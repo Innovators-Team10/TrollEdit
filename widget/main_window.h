@@ -3,6 +3,16 @@
 
 #include <QMainWindow>
 #include <QtGui>
+#include <QPrinter>
+#include <QPrintDialog>
+#include <QPrintPreviewDialog>
+#include <QPainter>
+#include <QList>
+#include <QBrush>
+#include <QColor>
+#include <QRectF>
+#include <QLine>
+#include <QGraphicsLineItem>
 
 class DocumentTabs;
 class DocumentScene;
@@ -42,6 +52,9 @@ private slots:
     void reanalyze();
     void toggleOffset();
 
+    void printPdf();
+    void showPrintableArea();
+
 private:
     enum { MaxRecentFiles = 4 };
 
@@ -50,6 +63,8 @@ private:
     QAction *openAction;
     QAction *saveAction;
     QAction *saveAsAction;
+    QAction *printPdfAction;
+    QAction *printableAreaAction;
     QAction *closeAction;
     QAction *recentFileActions[MaxRecentFiles];
     QAction *separatorAction;
@@ -87,6 +102,12 @@ private:
     QHash<QString, QPair<QFont, QColor> > *highlightFormats;
     //SettingsDialog *settingsDialog;
 
+    QPrinter *printer;
+    QPainter *painter;
+
+    QGraphicsLineItem *line;
+    QList<QGraphicsLineItem *> list;
+
     void createActions();
     void createMenus();
     void createToolBars();
@@ -95,6 +116,9 @@ private:
     void load(QString fileName);
     void initializeHighlightning();
     bool toBool(QString textBool);
+
+    void showArea();
+    void hideArea();
     //void writeSettings();
     //void readSettings();
 };
