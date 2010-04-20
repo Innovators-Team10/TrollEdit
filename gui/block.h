@@ -26,7 +26,7 @@ public:
     // overriden methods to provide AST consistency
     void setParentItem (QGraphicsItem *parent);
     void stackBefore (const QGraphicsItem *sibling);
-    QList<Block*> removeBlock();
+    QPair<Block*, QList<Block*> > removeBlock();
 
     // block management methods
     Block *getFirstLeaf() const;
@@ -44,6 +44,7 @@ public:
     QList<Block*> childBlocks() const;
     TextItem *textItem() const;
     TreeElement *getElement() const;
+    int getLine() const {return line;}
     static int getLastLine(){return lastLine;}
 
     void setFolded(bool folded);

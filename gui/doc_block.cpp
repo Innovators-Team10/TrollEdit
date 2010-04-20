@@ -2,19 +2,28 @@
 
 
 DocBlock::DocBlock(QString text, QPointF pos, Block *relatedBlock, QGraphicsScene *parentScene)
-    : Block(new TreeElement(text), 0, parentScene)
+    : Block(new TreeElement("", false, true), 0, parentScene)
 {
     Block *commentBl = new Block(new TreeElement("doc_comment", true, true),
                                  0, parentScene);
     element->setFloating(false);
+    element->setType(text);
+
     setParentItem(commentBl);
-    commentBl->getElement()->setFloating(true);
+
+    arrow = 0;
     if (relatedBlock != 0) {
 //        relatedBlock->element->appendChild(commentBl->element);
         addArrow(this, relatedBlock, parentScene);
     }
 
+    commentBl->getElement()->setFloating(true);
     commentBl->setPos(pos);
+
+//    if (docScene->getHighlightning().contains("multi_comment")) {
+//        myTextItem->setFont(docScene->getHighlightning().value("multi_comment").first);
+//    }
+
 }
 
 DocBlock::~DocBlock()
@@ -22,7 +31,6 @@ DocBlock::~DocBlock()
     if (arrow != 0) {
         arrow->setVisible(false);
         docScene->update();
-
         arrow->deleteLater();
     }
 }
@@ -33,12 +41,13 @@ void DocBlock::addImage(const QImage &image){
     if (!image.isNull())
         cursor.insertImage(image);
     myTextItem->setTextCursor(cursor);
+    myTextItem->setTextInteractionFlags(Qt::NoTextInteraction);
 }
 
 void DocBlock::addFile(QUrl url){
     //todo: pridanie linkov na subory ktore sa dragnu na scenu do dokumentacnych blokov
     //file = new QTextBrowser();
-    textItem()->setTextInteractionFlags(Qt::NoTextInteraction);
+    myTextItem->setTextInteractionFlags(Qt::NoTextInteraction);
 }
 
 void DocBlock::addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene){
@@ -66,6 +75,8 @@ void DocBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     width = 2; style = Qt::SolidLine; color = format["selected"];
 
     painter->setPen(QPen(QBrush(color), width, style));
-    rect.adjust(-width/2, -width/2, width/2, width/2);
+    rect.adjust(-width/2-2, -width/2, width/2+2, width/2);
     painter->drawRect(rect);
+
+//    Block::paint(painter, option, widget);
 }

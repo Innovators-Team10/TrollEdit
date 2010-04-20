@@ -170,7 +170,7 @@ abstract_declarator =
 	T"(" * N'parameter_type_list'^-1 * T")"
 	)^1,
 	
-statement = NI"simple_statement" + T"{" * N'block'^-1* T"}",
+statement = NI"simple_statement" + T"{" * (N'block'^-1 + N'unknown'^1) * T"}",
 simple_statement =
 	N'if_statement' +
 	N'switch_statement' +

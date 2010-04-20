@@ -86,6 +86,7 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton) {
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
             addDocBlock(event->scenePos());
+            return;
         } else {
             if (mainBlock != 0) {
                 if (itemAt(event->scenePos()) == 0)
@@ -142,15 +143,13 @@ void DocumentScene::reanalyze()
         update();
         return;
     }
-    if (!reanalyze(Block::getSelectedBlock()))
+    if (!reanalyze(Block::getSelectedBlock(), QPoint(0, 0)))
         analyzeAll(mainBlock->getElement()->getRoot()->getText());
 }
 
-bool DocumentScene::reanalyze(Block *block)
+bool DocumentScene::reanalyze(Block *block, QPoint cursorPos)
 {
     if (block == 0) return false;
-    //    int line = block->getLine();
-    block->setSelected(false);
 
     TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
 
@@ -176,9 +175,12 @@ bool DocumentScene::reanalyze(Block *block)
     if (nextSib != 0) newBlock->stackBefore(nextSib);
 
     mainBlock->updateAll(false);
-    //    mainBlock->lineStarts[]
-    update();
 
+    Block *lineBl = mainBlock->lineStarts[cursorPos.y()]->getFirstLeaf();
+    lineBl->textItem()->setTextCursorPosition(0);
+    lineBl->setSelected();
+
+    update();
     analysedBl->deleteLater();
     return true;
 }
@@ -191,7 +193,7 @@ bool DocumentScene::analyzeAll(QString text)
         delete(mainBlock);
 
     mainBlock = new Block(analyzer->analyzeFull(text), 0, this);
-    mainBlock->setPos(40,20); //temp
+    mainBlock->setPos(40, 20); //temp
     mainBlock->updateAll(false);//updateBlock();
     update();
     return true;

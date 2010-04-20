@@ -5,7 +5,7 @@
 #include "../widget/document_scene.h"
 
 QPointF Block::OFFSET = QPointF(8, 8);
-QPointF Block::NO_OFFSET = QPointF(0, 1);
+QPointF Block::NO_OFFSET = QPointF(0, 0);
 QMap<int, Block*> Block::lineStarts;
 int Block::lastLine = 0;
 static int lastX = -1;
@@ -70,11 +70,6 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
         format = docScene->getBlockFormatting().value(element->getType());
     else
         format = docScene->getBlockFormatting().value("block_style");
-    //
-    //    if (docScene->getBlockFormatting().contains(element->getType()))
-    //        format = docScene->getBlockFormatting().value(element->getType());
-    //    else
-    //        format = docScene->getBlockFormatting().value("block_style");
     
     setFlag(QGraphicsItem::ItemIsMovable);
     folded = false;
@@ -94,13 +89,13 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     createControls();
 }
 
-void Block::assignHighlighting(TreeElement *elm)
+void Block::assignHighlighting(TreeElement *el)
 {
-    if (elm->isLeaf()) {
-        if(elm->getParent()) {
+    if (el->isLeaf()) {
+        if(el->getParent()) {
             QPair<QFont, QColor> highlightFormat;
-            QString parentType = elm->getParent()->getType();
-            if (docScene->getHighlightning().contains(parentType) && !elm->getParent()->getType().startsWith("funct_")) {
+            QString parentType = el->getParent()->getType();
+            if (docScene->getHighlightning().contains(parentType) && !el->getParent()->getType().startsWith("funct_")) {
                 highlightFormat = docScene->getHighlightning().value(parentType);
             } else {
                 highlightFormat = docScene->getHighlightning().value("text_style");
@@ -108,11 +103,11 @@ void Block::assignHighlighting(TreeElement *elm)
             highlight(highlightFormat);
         }
     } else {
-        if (docScene->getHighlightning().contains(elm->getType())) {
-            QPair<QFont, QColor> highlightFormat = docScene->getHighlightning().value(elm->getType());
-            if (!elm->getType().compare("funct_call")) {
+        if (docScene->getHighlightning().contains(el->getType())) {
+            QPair<QFont, QColor> highlightFormat = docScene->getHighlightning().value(el->getType());
+            if (!el->getType().compare("funct_call")) {
                 getFirstLeaf()->highlight(highlightFormat);
-            } else if (!elm->getType().compare("funct_definition")) {
+            } else if (!el->getType().compare("funct_definition")) {
                 QList<Block*> blocks = childBlocks();
                 foreach(Block* block, blocks) {
                     if (!block->element->getType().compare("declarator")) {
@@ -141,8 +136,6 @@ void Block::createControls()
 
 Block::~Block()
 {
-    if (selectedBlock == this);
-    selectedBlock = 0;
     delete(element);
 }
 
@@ -208,6 +201,7 @@ void Block::setParentItem(QGraphicsItem *parentItem)
             nextSib = 0;
         }
         if (newParent->isTextBlock()) {
+
             delete(newParent->myTextItem);
             newParent->myTextItem = 0;
         }
@@ -253,29 +247,30 @@ void Block::stackBefore(const QGraphicsItem *sibling)
     QGraphicsRectItem::stackBefore(sibling);
 }
 
-QList<Block*> Block::removeBlock()
+QPair<Block*, QList<Block*> > Block::removeBlock()
 {
     int remSpaces = 0;
     QList<Block*> toDelete;
     Block *block = this;
-    bool needSelecting = false;
     do {    // remove this block and all ancestors (that would became leafs) from hierarchy
         remSpaces += block->getSpaces();    // collect spaces from deleted blocks
-        needSelecting |= (selectedBlock == block);
         Block *oldParent = block->parent;
         block->setParentItem(0);
+        block->ignoreUpdate = true;
+
+        if (element->isPaired()) {
+            TreeElement *pair = block->element->getPair();
+            if (pair != 0 && pair->getBlock()->isTextBlock()) {// temp
+                pair->getBlock()->textItem()->setDefaultTextColor(Qt::black);
+            }
+        }
+
         toDelete << block;
         block = oldParent;
     } while (block != 0 && block->element->isLeaf());
-    if (block != 0) {
-        block->edited = true;
-        if (needSelecting) block->setSelected();
-    } else {
-//        if (needSelecting) block->setSelected();
-    }
     toDelete.removeOne(this);
     element->setSpaces(remSpaces);
-    return toDelete;
+    return QPair<Block*, QList<Block*> >(block, toDelete);
 }
 
 Block *Block::parentBlock() const
@@ -485,19 +480,26 @@ void Block::textFocusChanged(QFocusEvent* event)
     if (event->gotFocus()) {    // focus in
         if (event->reason() == Qt::MouseFocusReason)
             setSelected();
-        //        if (element->isPaired()) {
-        //            TreeElement *pair = element->getPair();
-        //            if (pair != 0 && isTextBlock()) {//temp
-        //                pair->getBlock()->textItem()->setDefaultTextColor(Qt::red);
-        //                myTextItem->setDefaultTextColor(Qt::red);
-        //            }
-        //        }
+        if (element->isPaired()) {
+            TreeElement *pair = element->getPair();
+            if (pair != 0 && pair->getBlock()->isTextBlock() && isTextBlock()) {//temp
+                pair->getBlock()->textItem()->setDefaultTextColor(Qt::blue);
+                myTextItem->setDefaultTextColor(Qt::blue);
+            } else if (isTextBlock()) {
+                myTextItem->setDefaultTextColor(Qt::red);
+            }
+        }
     } else {                    // focus out
-        //        TreeElement *pair = element->getPair();
-        //        if (pair != 0 && isTextBlock()) {// temp
-        //            pair->getBlock()->textItem()->setDefaultTextColor(Qt::black);
-        //            myTextItem->setDefaultTextColor(Qt::black);
-        //        }
+        if (element->isPaired()) {
+            TreeElement *pair = element->getPair();
+            if (pair != 0 && pair->getBlock()->isTextBlock() && isTextBlock()) {// temp
+                pair->getBlock()->textItem()->setDefaultTextColor(Qt::black);
+                myTextItem->setDefaultTextColor(Qt::black);
+            } else if (isTextBlock()) {
+                myTextItem->setDefaultTextColor(Qt::black);
+            }
+
+        }
     }
 }
 
@@ -506,35 +508,41 @@ void Block::textChanged()
     QString text = myTextItem->toPlainText();
     myTextItem->document()->blockSignals(true);
     if (text.isEmpty()) {   // delete block
-        if (!(element->isLineBreaking() && getPrev()->line != line) || element->isFloating()) {
+        if (!(element->isLineBreaking() && getPrev()->line != line) || false) { // todo
             // don't delete if block is single newline in this line OR floating
 
 
             Block *next = getNext();
-            QList<Block*> toDelete = removeBlock();
+            QPair<Block*, QList<Block*> > parentAndtoDelete = removeBlock();
 
-            if (!toDelete.contains(next)) {
+            if (!parentAndtoDelete.second.contains(next)) {
                 if (next->line > line) { // jumped to next line
                     Block *prev = next->getPrev(true);
                     if (prev->line > line) {  // jumped to the end of file
                         next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
+//                        next->setSelected();
                     } else {                  // same line
                         prev->textItem()->setTextCursorPosition(-1);
-                        //                        prev->element->setLineBreaking(true);
+//                        prev->setSelected();
                     }
-                    next->updateAll();//updateAfter(true);
                 } else if (next->line < line) { // jumped to the beginning of file
-                    next->getPrev(true)->textItem()->setTextCursorPosition(-1);
+                    Block *prev = next->getPrev(true);
+                    prev->textItem()->setTextCursorPosition(-1);
+//                    prev->setSelected();
                 } else {                         // on same line
                     next->element->addSpaces(element->getSpaces());
                     next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
-                    next->updateAll();//updateAfter(true);
+//                    next->setSelected();
                 }
+                if (parentAndtoDelete.first != 0)
+                    parentAndtoDelete.first->setSelected();
+            } else {
+                selectedBlock = 0;
             }
             docScene->update();
 
             deleteLater();
-            foreach (Block* block, toDelete) block->deleteLater();
+            foreach (Block* block, parentAndtoDelete.second) block->deleteLater();
             // it is very important to call deleteLater() only AFTER update() !!
             return;
         }
@@ -796,7 +804,7 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             oldParent->setShowing(false);
 //            Block *next = getNext();
             setPos(scenePos());
-            toDelete = removeBlock();
+            toDelete = removeBlock().second;
 //            if (next!= 0)
 //                next->updateAll();//updateAfter(true);  // update blocks after removal
         }
@@ -1268,7 +1276,7 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     if (moveStarted)
         painter->fillRect(rect, Qt::white);
 
-    if (showing || pointed ) {
+    if (showing || pointed) {
         qreal width;
         Qt::PenStyle style;
         QColor color;
@@ -1281,7 +1289,7 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
             width = 2; style = Qt::DotLine; color = format["showing"];
         }
         painter->setPen(QPen(QBrush(color), width, style));
-        rect.adjust(-width/2, -width/2, width/2, width/2);
+        rect.adjust(-width/2-2, -width/2, width/2+2, width/2);
         painter->drawRect(rect);
     } else {
         painter->setPen(Qt::gray); // temp
@@ -1322,23 +1330,29 @@ void Block::setSelected(bool flag) {
         stopHidingAt = 0;
     }
 
-    if (selectedBlock != 0) {
-        Block *oldSelected = selectedBlock;
-        selectedBlock = 0;
+    Block *oldSelected = selectedBlock;
+    selectedBlock = 0;
+    if (oldSelected != 0) {
         oldSelected->setShowing(false, stopHidingAt);
-        //        oldSelected->updatePosAfter();
+//        oldSelected->updatePosAfter();
+//        if (oldSelected->line != line) {
+//            docScene->reanalyze(oldSelected, QPoint(0, line));
+//            return;
+//        }
     }
     if (flag) {
         selectedBlock = this;
         setShowing(true);
         //        updatePosAfter();
     } else {
-        selectedBlock = 0;
 //        docScene->reanalyze(this);
 //        return;
     }
-    updateAll();//
+    updateAll();
     docScene->update();
+
+
+
     return;
 }
 

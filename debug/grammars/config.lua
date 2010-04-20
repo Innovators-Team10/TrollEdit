@@ -6,6 +6,7 @@ comment_style = {target="text", base_t="text_style", family="verdana", italic="t
 keyword = {target="text", base_t="text_style", color="blue"}
 line_comment = {target="text", base_t="comment_style", color="gray"}
 multi_comment = {target="text", base_t="comment_style", color="gray"}
+doc_comment = {target="text", base_t="comment_style", color="gray"}
 string_constant = {target="text", base_t="text_style", color="darkmagenta"}
 character_constant = {target="text", base_t="text_style", color="darkmagenta"}
 number_constant = {target="text", base_t="text_style", color="orangered"}
