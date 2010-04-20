@@ -126,7 +126,7 @@ void MainWindow::createActions()
     QFont bold;
     bold.setBold(true);
     textBoldAction->setFont(bold);
-    connect(textBoldAction, SIGNAL(triggered()), this, SLOT(handleFontChange()));
+//    connect(textBoldAction, SIGNAL(triggered()), this, SLOT(handleFontChange()));
     textBoldAction->setCheckable(true);
 
     // text italic
@@ -135,7 +135,7 @@ void MainWindow::createActions()
     QFont italic;
     italic.setItalic(true);
     textItalicAction->setFont(italic);
-    connect(textItalicAction, SIGNAL(triggered()), this, SLOT(handleFontChange()));
+//    connect(textItalicAction, SIGNAL(triggered()), this, SLOT(handleFontChange()));
     textItalicAction->setCheckable(true);
 
     // text underline
@@ -144,20 +144,21 @@ void MainWindow::createActions()
     QFont underline;
     underline.setUnderline(true);
     textUnderlineAction->setFont(underline);
-    connect(textUnderlineAction, SIGNAL(triggered()), this, SLOT(handleFontChange()));
+//    connect(textUnderlineAction, SIGNAL(triggered()), this, SLOT(handleFontChange()));
     textUnderlineAction->setCheckable(true);
 
     // analyze text
     analyzeAction = new QAction(tr("Analyze"), this);
     connect(analyzeAction, SIGNAL(triggered()), this, SLOT(reanalyze()));
-    // toggle offset
-    offsetAction = new QAction(tr("Toggle OFFS"), this);
-    connect(offsetAction, SIGNAL(triggered()), this, SLOT(toggleOffset()));    
 
     // show printable area
     printableAreaAction = new QAction(tr("Printable area"), this);
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
+
+    // add Doc Blok
+    addDocBlockAction = new QAction(tr("AddDocumentation"), this);
+    connect(addDocBlockAction, SIGNAL(triggered()), this, SLOT(addDocBlock()));
 }
 
 void MainWindow::createMenus()
@@ -187,7 +188,6 @@ void MainWindow::createMenus()
     // options menu
     optionsMenu = menuBar()->addMenu(tr("&Options"));
     optionsMenu->addAction(stylesAction);
-    optionsMenu->addAction(offsetAction);
 
     // help menu
     helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -205,6 +205,7 @@ void MainWindow::createToolBars()
     formatToolBar->addAction(textUnderlineAction);
     formatToolBar->addAction(analyzeAction);
     formatToolBar->addAction(printableAreaAction);
+    formatToolBar->addAction(addDocBlockAction);
 }
 
 void MainWindow::newFile()
@@ -403,11 +404,16 @@ void MainWindow::openRecentFile()
 
 void MainWindow::about()
 {
-   /* QMessageBox::about(this, tr("About TrollText"),
+   QMessageBox::about(this, tr("About TrollText"),
         tr("<h2>TrollText 0.1</h2>"
         "<p/>Team 5 - UFOPAK"
         "<p/>This is just a prototype of text editor"
-        "which is being developed for Team project course."));*/
+        "which is being developed for Team project course."));
+}
+
+void MainWindow::addDocBlock()
+{
+    currentScene->addDocBlock();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -435,22 +441,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::reanalyze()
 {
     currentScene->reanalyze();
-}
-
-void MainWindow::toggleOffset()
-{
-    currentScene->toggleOffset();
-}
-
-void MainWindow::handleFontChange()
-{
-   /* QFont font;
-    font.setWeight(textBoldAction->isChecked() ? QFont::Bold : QFont::Normal);
-    font.setItalic(textItalicAction->isChecked());
-    font.setUnderline(textUnderlineAction->isChecked());
-
-    DocumentScene *scene = currentScene;
-    scene->setFont(font);*/
 }
 
 void MainWindow::updateRecentFileActions()
@@ -512,18 +502,6 @@ void MainWindow::settings()
 
 bool MainWindow::closeTab()
 {
-    /*DocumentScene *scene = currentScene;
-    if (scene->modified) {
-        int ret = QMessageBox::warning(this, QString(tr("TrollText")),
-            QString(tr("Do you want to save file %1?").arg(documentTabs->tabText(documentTabs->currentIndex()))),
-            QMessageBox::Yes, QMessageBox::No, QMessageBox::Cancel);
-        if (ret == QMessageBox::Cancel)
-            return false;
-        else if (ret == QMessageBox::Yes)
-            if (!save())
-                return false;
-    }
-*/
     documentTabs->removeTab(documentTabs->currentIndex());
     return true;
 }
@@ -612,54 +590,3 @@ bool MainWindow::toBool(QString textBool)
         return true;
     return false;
 }
-
-void MainWindow::applyChanges()
-{/*
-    QPen *pen = new QPen;
-    QBrush *brush = new QBrush;
-
-    BrushPage *brushPage = qobject_cast<BrushPage*>(settingsDialog->pagesWidget->widget(0));
-    brush->setColor(brushPage->color);
-    brush->setStyle(brushPage->stylesMap.value(brushPage->styleCombo->currentText()));
-
-    PenPage *penPage = qobject_cast<PenPage*>(settingsDialog->pagesWidget->widget(1));
-    pen->setColor(penPage->color);
-    pen->setCapStyle(penPage->capMap.value(penPage->capCombo->currentText()));
-    pen->setJoinStyle(penPage->joinMap.value(penPage->joinCombo->currentText()));
-    if (pen->joinStyle() == Qt::MiterJoin)
-        pen->setMiterLimit(penPage->limitSpin->value());
-    pen->setStyle(penPage->penMap.value(penPage->penCombo->currentText()));
-    pen->setWidth(penPage->widthSpin->value());
-
-    emit apply(brush, pen);*/
-}
-
-/*void MainWindow::writeSettings()
-{
-    QSettings settings("UFOPAK", "TrollEdit");
-    BrushPage *brushPage = qobject_cast<BrushPage*>(settingsDialog->pagesWidget->widget(0));
-    PenPage *penPage = qobject_cast<PenPage*>(settingsDialog->pagesWidget->widget(1));
-
-    settings.setValue("recentFiles", recentFiles);
-
-    settings.beginGroup("brush");
-    settings.setValue("color", brushPage->color);
-    settings.setValue("style",brushPage->styleCombo->currentText());
-    settings.endGroup();
-
-    settings.beginGroup("pen");
-    settings.setValue("color", penPage->color);
-    settings.setValue("capStyle", penPage->capCombo->currentText());
-    settings.setValue("joinStyle", penPage->joinCombo->currentText());
-    settings.setValue("miterLimit", penPage->limitSpin->value());
-    settings.setValue("style", penPage->penCombo->currentText());
-    settings.setValue("width", penPage->widthSpin->value());
-    settings.endGroup();
-}
-
-void MainWindow::readSettings()
-{
-    QSettings settings("UFOPAK", "TrollEdit");
-    settingsDialog = new SettingsDialog(this, settings);
-    recentFiles = settings.value("recentFiles").toStringList();
-}*/

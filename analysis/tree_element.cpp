@@ -17,6 +17,7 @@ TreeElement::TreeElement(QString type, bool selectable,
     spaces = 0;
     myBlock = 0;
     pair = 0;
+    floating = false;
 }
 
 TreeElement::~TreeElement()
@@ -177,10 +178,22 @@ bool TreeElement::setLineBreaking(bool flag)
     lineBreaking = flag;
     return true;
 }
+
 bool TreeElement::isLineBreaking() const
 {
     return lineBreaking;
 }
+
+bool TreeElement::isFloating() const
+{
+    return this->floating;
+}
+
+void TreeElement::setFloating(bool floating)
+{
+    this->floating=floating;
+}
+
 bool TreeElement::isSelectable() const
 {
     if (selectable) {
@@ -199,7 +212,10 @@ bool TreeElement::isSelectable() const
 
 bool TreeElement::allowsParagraphs() const
 {
-    return paragraphsAllowed;
+    if (parent != 0)
+        return paragraphsAllowed || parent->allowsParagraphs();
+    else
+        return paragraphsAllowed;
 }
 
 bool TreeElement::isPaired() const

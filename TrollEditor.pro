@@ -13,7 +13,8 @@ SOURCES += widget/main.cpp \
     gui/text_item.cpp \
     analysis/language_manager.cpp \
     analysis/analyzer.cpp \
-    analysis/tree_element.cpp
+    analysis/tree_element.cpp \
+    gui/arrow.cpp
 HEADERS += widget/main_window.h \
     widget/document_tabs.h \
     widget/document_scene.h \
@@ -23,7 +24,8 @@ HEADERS += widget/main_window.h \
     gui/text_item.h \
     analysis/language_manager.h \
     analysis/analyzer.h \
-    analysis/tree_element.h
+    analysis/tree_element.h \
+    gui/arrow.h
 RESOURCES += resources.qrc
 INCLUDEPATH += "lua\include"
 LIBS += "lua\lua5.1.dll"

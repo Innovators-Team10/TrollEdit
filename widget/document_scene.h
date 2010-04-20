@@ -4,6 +4,7 @@
 #include <QGraphicsScene>
 #include <QHash>
 #include <QString>
+#include <QUrl>
 
 class Analyzer;
 class Block;
@@ -28,7 +29,7 @@ public:
     bool analyzeAll(QString text);
     void reanalyze();
     bool reanalyze(Block* block);
-    void toggleOffset();
+    void addDocBlock();
 
     void setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning);
     QHash<QString, QPair<QFont, QColor> > getHighlightning() const;
@@ -43,11 +44,18 @@ signals:
 public slots:
     void adjustSceneRect(QRectF rect);
 
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+
+    void dragEnterEvent(QGraphicsSceneDragDropEvent *event);
+    void dropEvent(QGraphicsSceneDragDropEvent *event);
+    void dragMoveEvent(QGraphicsSceneDragDropEvent *event);
+    void dragLeaveEvent(QGraphicsSceneDragDropEvent *event);
+
+protected:
 
 private slots:
     void animationFinished();
@@ -58,6 +66,8 @@ private:
     QHash<QString, QHash<QString, QColor> > blockFormats;
     QGraphicsLineItem *insertLine;
 
+    void dropImage(const QImage &image, QGraphicsSceneDragDropEvent *event);
+    void dropFile(QUrl url, QGraphicsSceneDragDropEvent *event);
     Block* blockAt(QPointF pos) const;
 };
 

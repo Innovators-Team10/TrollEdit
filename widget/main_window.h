@@ -27,7 +27,6 @@ public:
 
 public slots:
     void setCurrentFile(int tabNumber);
-    void applyChanges();
     void open(QString fileName);
 
 signals:
@@ -47,13 +46,12 @@ private slots:
     void help();
     void settings();
     bool closeTab();
-    void handleFontChange();
 
     void reanalyze();
-    void toggleOffset();
 
     void printPdf();
     void showPrintableArea();
+    void addDocBlock();
 
 private:
     enum { MaxRecentFiles = 4 };
@@ -76,7 +74,6 @@ private:
     QAction *deleteAction;
 
     QAction *stylesAction;
-    QAction *offsetAction;
 
     QAction *helpAction;
     QAction *aboutAction;
@@ -85,6 +82,7 @@ private:
     QAction *textItalicAction;
     QAction *textUnderlineAction;
 
+    QAction *addDocBlockAction;
     QAction *analyzeAction;
 
     QMenu *fileMenu;

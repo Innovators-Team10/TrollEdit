@@ -79,10 +79,9 @@ void TextItem::keyPressEvent(QKeyEvent *event)
     int cursorPos = textCursor().position();
     QString text = toPlainText();
 
-    if (event->key() == Qt::Key_Return) {
+    if (event->key() == Qt::Key_Return && !multiText) {
         emit enterPressed(cursorPos);
-        if (!multiText)
-            return;
+        return;
     }
     QGraphicsTextItem::keyPressEvent(event);
 

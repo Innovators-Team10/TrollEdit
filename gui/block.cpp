@@ -5,7 +5,7 @@
 #include "../widget/document_scene.h"
 
 QPointF Block::OFFSET = QPointF(8, 8);
-QPointF Block::NO_OFFSET = QPointF(0, 0);
+QPointF Block::NO_OFFSET = QPointF(0, 1);
 QMap<int, Block*> Block::lineStarts;
 int Block::lastLine = 0;
 static int lastX = -1;
@@ -21,6 +21,10 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
         prevSib = 0;
     } else {
         parent = parentBlock;
+        if (parent->isTextBlock()) {
+            delete(parent->myTextItem);
+            parent->myTextItem = 0;
+        }
         docScene = parent->docScene;
 
         QList<Block*> siblings = parent->childBlocks();
@@ -37,13 +41,17 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     }
     firstChild = 0;
     nextSib = 0;
-    line = 0;
+    ignoreUpdate = false;
+    line = computeLine();
+
 
     while (!element->isImportant()) // skip "unimportant" elements
         element = (*element)[0];
 
     this->element = element;
     element->setBlock(this);
+    if (parent == 0)
+        element->setFloating(true);
 
     if (element->isLeaf()){
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs());
@@ -81,12 +89,16 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
             }
         }
     }
-    createControls();
 
     if (docScene->getBlockFormatting().contains(element->getType()))
         format = docScene->getBlockFormatting().value(element->getType());
     else
         format = docScene->getBlockFormatting().value("block_style");
+    //
+    //    if (docScene->getBlockFormatting().contains(element->getType()))
+    //        format = docScene->getBlockFormatting().value(element->getType());
+    //    else
+    //        format = docScene->getBlockFormatting().value("block_style");
     
     setFlag(QGraphicsItem::ItemIsMovable);
     folded = false;
@@ -96,13 +108,28 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     hovered = false;
     pointed = false;
     toAnimate = false;
+    futureParent = 0;
+    futureSibling = 0;
 
-    setAcceptHoverEvents(true);
+//    setAcceptHoverEvents(true);
+    setPos(computePos());
     setRect(computeRect());
+
+    createControls();
+}
+
+void Block::createControls()
+{
     animation = new QPropertyAnimation(this, "geometry");
     animation->setDuration(200);
     connect(animation, SIGNAL(finished()), docScene, SLOT(animationFinished()));
-//    animation->setEasingCurve(QEasingCurve::OutExpo);
+
+    if (element->isSelectable() &&
+        hasMoreLines() && element->getType() != "block") {
+        hideButton = new HideBlockButton(this);
+    }else {
+        hideButton = 0;
+    }
 }
 
 Block::~Block()
@@ -126,17 +153,6 @@ void Block::removeLinks()
         }
     }
     if (parent != 0 && parent->firstChild == this) parent->firstChild = nextSib;
-}
-
-void Block::createControls()
-{
-    //    if (element->isMultiLine()) {
-    //        hideButton = new HideBlockButton(this);
-    //        hideButton->setPos(0,0);
-    //        hideButton->setVisible(false);
-    //        setAcceptHoverEvents(true);
-    //    } else
-    hideButton = 0;
 }
 
 void Block::setParentItem(QGraphicsItem *parentItem)
@@ -170,16 +186,18 @@ void Block::setParentItem(QGraphicsItem *parentItem)
         TreeElement *newParentEl = newParent->element;
         newParentEl->appendChild(branch);
         branch = 0;
-        // update links
-        QList<Block*> siblings = newParent->childBlocks();
-        if (siblings.size() > 0) {      // this block is not in siblings yet!
-            prevSib = siblings.at(siblings.size() - 1);
-            prevSib->nextSib = this;
-        } else {
-            newParent->firstChild = this;
-            prevSib = 0;
+        // update links if not floating
+        if (!element->isFloating()) {
+            QList<Block*> siblings = newParent->childBlocks();
+            if (siblings.size() > 0) {      // this block is not in siblings yet!
+                prevSib = siblings.at(siblings.size() - 1);
+                prevSib->nextSib = this;
+            } else {
+                newParent->firstChild = this;
+                prevSib = 0;
+            }
+            nextSib = 0;
         }
-        nextSib = 0;
     }
 
     // remove from old parent block & append to new parent block
@@ -207,14 +225,16 @@ void Block::stackBefore(const QGraphicsItem *sibling)
             parentEl->insertChild(index, branch);
             // update links
             removeLinks();
-            prevSib = nextSibling->prevSib;
-            if (prevSib != 0) {
-                prevSib->nextSib = this;
-            } else {
-                parent->firstChild = this;
+            if (!element->isFloating()) {
+                prevSib = nextSibling->prevSib;
+                if (prevSib != 0) {
+                    prevSib->nextSib = this;
+                } else {
+                    parent->firstChild = this;
+                }
+                nextSib = nextSibling;
+                nextSibling->prevSib = this;
             }
-            nextSib = nextSibling;
-            nextSibling->prevSib = this;
         }
     }
     QGraphicsRectItem::stackBefore(sibling);
@@ -232,6 +252,7 @@ QList<Block*> Block::removeBlock()
         toDelete << block;
         block = oldParent;
     } while (block != 0 && block->element->isLeaf());
+    if (block != 0) block->edited = true;
     toDelete.removeOne(this);
     element->setSpaces(remSpaces);
     return toDelete;
@@ -259,7 +280,7 @@ TextItem *Block::textItem() const
 
 Block *Block::getFirstLeaf() const
 {
-    if (firstChild == 0) return const_cast<Block*>(this);
+    if (isTextBlock()) return const_cast<Block*>(this);
     Block *block = firstChild;
     while (!block->isTextBlock())
         block = block->firstChild;
@@ -268,7 +289,7 @@ Block *Block::getFirstLeaf() const
 
 Block *Block::getLastLeaf() const
 {
-    if (firstChild == 0) return const_cast<Block*>(this);
+    if (isTextBlock()) return const_cast<Block*>(this);
     Block *block = childBlocks().last();
     while (!block->isTextBlock())
         block = block->childBlocks().last();
@@ -353,62 +374,33 @@ bool Block::hasMoreLines() const
     }
 }
 
-/*int Block::computeNextSiblingLine() const
-{
-    int lineNo = line + numberOfLines() - 1;
-    if (element->isLineBreaking()) lineNo++;
-    return lineNo;
-}*/
-
-/*QPointF Block::computeNextSiblingPos() const
-{
-    QPointF position(0,0);
-    if (!element->isLineBreaking() || parent == 0) {
-        QPointF offs;
-        if (hasMoreLines()) {
-            Block *block = getLastLeaf();
-            position = mapFromItem(block, block->boundingRect().topRight());
-            offs = block->getOffset();
-        } else {
-            position = boundingRect().topRight();
-            offs = getOffset();
-        }
-        position = mapToParent(position);
-        position.rx() += offs.x();
-        position.ry() -= offs.y();
-    } else {
-        position.rx() = 0;
-        qreal maxY = 0;
-        qreal offsY = 0;
-        foreach (Block *child, parent->childBlocks()) {
-            int y = child->mapToParent(child->boundingRect().bottomRight()).y();
-            if (y > maxY) {
-                maxY = y;
-                offsY = child->getOffset().y();
-            }
-            if (child == this) break;
-        }
-        position.ry() = maxY + offsY;
-    }
-    return position;
-}*/
-
 qreal SPACE_WIDTH = 10; // temp
 QPointF Block::computePos() const
 {
+    if (element->isFloating()) return pos();
+
     QPointF position = QPointF();
-    if (prevSib != 0) {
-        if (!prevSib->element->isLineBreaking() || parent == 0) {
+    Block *prevBl = prevSib;
+    while (prevBl != 0 && prevBl->ignoreUpdate)
+        prevBl = prevBl->prevSib;
+
+    if (prevBl != 0) {
+        if (!prevBl->element->isLineBreaking() || parent == 0) {
             QPointF offs;
-            if (prevSib->hasMoreLines()) {
-                Block *block = prevSib->getLastLeaf();
-                position = prevSib->mapFromItem(block, block->boundingRect().topRight());
-                offs = block->getOffset();
+            if (prevBl->hasMoreLines()) {
+                Block *block = prevBl->getLastLeaf();
+                position = prevBl->mapFromItem(block, block->boundingRect().topRight());
+                if (prevBl->showing) {
+                    position.rx() = prevBl->boundingRect().right();
+                    offs = prevBl->getOffset();
+                } else {
+                    offs = block->getOffset();
+                }
             } else {
-                position = prevSib->boundingRect().topRight();
-                offs = prevSib->getOffset();
+                position = prevBl->boundingRect().topRight();
+                offs = prevBl->getOffset();
             }
-            position = prevSib->mapToParent(position);
+            position = prevBl->mapToParent(position);
             position.rx() += offs.x();
             position.ry() -= offs.y();
         } else {
@@ -442,6 +434,7 @@ QRectF Block::computeRect() const
         rect = QRectF(0,0,0,0);
         // NOTE: childrenBoundingRect() isn't enough any more, because we need to add offsets
         foreach (Block *child, childBlocks()) {
+            if (child->ignoreUpdate || child->element->isFloating()) continue;
             QPointF offs = child->getOffset();
             QRectF childRect = child->mapRectToParent(child->boundingRect());
             childRect.adjust(-offs.x(), -offs.y(), offs.x(), offs.y());
@@ -453,12 +446,16 @@ QRectF Block::computeRect() const
 
 int Block::computeLine() const
 {
-    if (prevSib == 0) {
+    Block *prevBl = prevSib;
+    while (prevBl != 0 && prevBl->ignoreUpdate)
+        prevBl = prevBl->prevSib;
+
+    if (prevBl == 0) {
         if (parent == 0) return 0;
         else return parent->line;
     } else {
-        int lineNo = prevSib->line + prevSib->numberOfLines() - 1;
-        if (prevSib->element->isLineBreaking()) lineNo++;
+        int lineNo = prevBl->line + prevBl->numberOfLines() - 1;
+        if (prevBl->element->isLineBreaking()) lineNo++;
         return lineNo;
     }
 }
@@ -468,19 +465,19 @@ void Block::textFocusChanged(QFocusEvent* event)
     if (event->gotFocus()) {    // focus in
         if (event->reason() == Qt::MouseFocusReason)
             setSelected();
-        if (element->isPaired()) {
-            TreeElement *pair = element->getPair();
-            if (pair != 0 && isTextBlock()) {//temp
-                pair->getBlock()->textItem()->setDefaultTextColor(Qt::red);
-                myTextItem->setDefaultTextColor(Qt::red);
-            }
-        }
+        //        if (element->isPaired()) {
+        //            TreeElement *pair = element->getPair();
+        //            if (pair != 0 && isTextBlock()) {//temp
+        //                pair->getBlock()->textItem()->setDefaultTextColor(Qt::red);
+        //                myTextItem->setDefaultTextColor(Qt::red);
+        //            }
+        //        }
     } else {                    // focus out
-        TreeElement *pair = element->getPair();
-        if (pair != 0 && isTextBlock()) {// temp
-            pair->getBlock()->textItem()->setDefaultTextColor(Qt::black);
-            myTextItem->setDefaultTextColor(Qt::black);
-        }
+        //        TreeElement *pair = element->getPair();
+        //        if (pair != 0 && isTextBlock()) {// temp
+        //            pair->getBlock()->textItem()->setDefaultTextColor(Qt::black);
+        //            myTextItem->setDefaultTextColor(Qt::black);
+        //        }
     }
 }
 
@@ -489,10 +486,9 @@ void Block::textChanged()
     QString text = myTextItem->toPlainText();
     myTextItem->document()->blockSignals(true);
     if (text.isEmpty()) {   // delete block
-        if (!element->isLineBreaking() || getPrev()->line == line) {
-            // don't delete if block is single newline in this line
+        if (!(element->isLineBreaking() && getPrev()->line != line) || element->isFloating()) {
+            // don't delete if block is single newline in this line OR floating
 
-            myTextItem->clearFocus();
             Block *next = getNext();
             QList<Block*> toDelete = removeBlock();
 
@@ -505,15 +501,14 @@ void Block::textChanged()
                         prev->textItem()->setTextCursorPosition(-1);
                         //                        prev->element->setLineBreaking(true);
                     }
-//                    next->updateAll();//updateAfter(true);
+                    next->updateAll();//updateAfter(true);
                 } else if (next->line < line) { // jumped to the beginning of file
                     next->getPrev(true)->textItem()->setTextCursorPosition(-1);
                 } else {                         // on same line
                     next->element->addSpaces(element->getSpaces());
                     next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
-//                    next->updateAll();//updateAfter(true);
+                    next->updateAll();//updateAfter(true);
                 }
-                updateAll();
             }
             docScene->update();
 
@@ -553,10 +548,6 @@ void Block::keyPressed(QKeyEvent* event)
 void Block::splitLine(int cursorPos)
 {
     if (parent == 0) return;
-    if (element->allowsParagraphs()) {      // no splitting is done
-        updateAll();//updateAfter();
-        return;
-    }
     if (isTextBlock())
         myTextItem->clearFocus();
     // check what block should be splitted
@@ -606,7 +597,7 @@ void Block::eraseChar(int key) {
         target = getAncestorWhereFirst();
         if (target->getSpaces() > 0) {
             target->element->addSpaces(-1);
-//            target->updateAfter(true);
+            //            target->updateAfter(true);
             updateAll(false);
         } else {
             target = getPrev(true);
@@ -614,7 +605,7 @@ void Block::eraseChar(int key) {
                 while (!target->element->isLineBreaking())
                     target = target->parent;
                 target->element->setLineBreaking(false);
-//                target->updateAfter();
+                //                target->updateAfter();
                 updateAll();
                 if (target->isTextBlock())
                     target->textChanged();
@@ -628,7 +619,7 @@ void Block::eraseChar(int key) {
         target = getNext();
         if (target->getSpaces() > 0) {
             target->element->addSpaces(-1);
-//            updateXPosInLine(line);
+            //            updateXPosInLine(line);
             updateAll(false);
         } else {
             target = getNext(true);
@@ -637,7 +628,7 @@ void Block::eraseChar(int key) {
                 while (!target->element->isLineBreaking())
                     target = target->parent;
                 target->element->setLineBreaking(false);
-//                target->updateAfter();
+                //                target->updateAfter();
                 updateAll();
                 if (target->isTextBlock()) target->textChanged();
             } else if (target->line < line) {   // jumped to the beginning of file
@@ -735,17 +726,18 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
         clickPos = myTextItem->mapFromScene(clickPos);
         int pos = myTextItem->document()->documentLayout()->hitTest(clickPos, Qt::FuzzyHit);
         myTextItem->setTextCursorPosition(qMax(0, pos));
+        QGraphicsRectItem::mousePressEvent(event);
     } else {
         if (element->isSelectable() && selectedBlock != this)
             setSelected();
+        else
+            QGraphicsRectItem::mousePressEvent(event);
     }
     if (!element->isSelectable()){
         event->ignore();
         return;
-    } else {
-//        setSelected();
     }
-    QGraphicsRectItem::mousePressEvent(event);
+
 }
 
 
@@ -754,6 +746,14 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if (!element->isSelectable()){
         event->ignore();
+        return;
+    }
+
+    if (element->isFloating()) {
+        moveStarted = true;
+        setZValue(100);
+        QGraphicsRectItem::mouseMoveEvent(event);
+        docScene->update();
         return;
     }
 
@@ -768,39 +768,45 @@ void Block::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         // new parent will be resolved after mouse is released
         if (oldParent != 0) {
             oldParent->setShowing(false);
-            Block *next = getNext();
+//            Block *next = getNext();
             setPos(scenePos());
             toDelete = removeBlock();
-            if (next!= 0)
-                next->updateAll();//updateAfter(true);  // update blocks after removal
-            oldParent->edited = true;
+//            if (next!= 0)
+//                next->updateAll();//updateAfter(true);  // update blocks after removal
         }
         moveStarted = true;
+        setButtonVisible(false);
         setZValue(100);
-        docScene->update();
         futureParent = 0;
         futureSibling = 0;
     }
-    futureParent = findFutureParentAt(/*event->*/scenePos());
+
+    if (futureParent != 0) futureParent->showing = false;
+    if (futureSibling != 0) futureSibling->showing = false;
+    Block *pastFuturePar = futureParent;
+    Block *pastFutureSib = futureSibling;
+
+    QPointF searchPos = scenePos() - 2*OFFSET;
+    futureParent = findFutureParentAt(searchPos);
 
     if (futureParent != 0) {
-        futureSibling = futureParent->findNextChildAt(futureParent->mapFromScene(/*event->*/scenePos()));
-        if (!futureParent->element->isSelectable()) {
-            if (futureSibling != 0) {
-                futureSibling = futureSibling->getAncestorWhereFirst();
-                futureParent = futureSibling->parent;
-            } else {
-                futureSibling = futureParent->getNext();
-            }
-            futureParent = futureSibling->parent;
+        futureSibling = futureParent->findNextChildAt(futureParent->mapFromScene(searchPos));
+        futureParent->showing = true;
+        if (futureSibling != 0)
+            futureSibling->showing = true;
+        if (pastFuturePar != futureParent || pastFutureSib != futureSibling) {
+            futureParent->updateAll(false);
         }
         docScene->showInsertLine(futureParent->getInsertLineAt(futureSibling, element->isLineBreaking()));
     } else {
         docScene->hideInsertLine();
         futureSibling = 0;
+        if (pastFuturePar != 0)
+            pastFuturePar->updateAll(false);
     }
-    docScene->update();
+
     QGraphicsRectItem::mouseMoveEvent(event);
+    docScene->update();
 
     if (!toDelete.isEmpty())
         foreach(Block* block, toDelete) block->deleteLater();
@@ -812,48 +818,57 @@ void Block::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         event->ignore();
         return;
     }
-    if (moveStarted && event->button() == Qt::LeftButton) {
-        setZValue(0);               // restore z-value
 
-        if (futureParent != 0) {
-            setParentItem(futureParent);
-            stackBefore(futureSibling);
+    if (!element->isFloating()) {
+        if (moveStarted && event->button() == Qt::LeftButton) {
 
-            futureParent->prepareGeometryChange();    // used to update graphics
-            futureParent->edited = true;
-            futureParent->setShowing(true);
-            updateAll();//updateAfter(true);
-        } else {
-            setSelected(false);
-            deleteLater();
+            if (futureParent != 0) {
+                futureParent->showing = false;
+                setParentItem(futureParent);
+                if (futureSibling != 0) {
+                    stackBefore(futureSibling);
+                    futureSibling->showing = false;
+                }
+
+                futureParent->prepareGeometryChange();    // used to update graphics
+                futureParent->edited = true;
+                futureParent->setShowing(true);
+                setPos(computePos());
+                setRect(computeRect());
+//                QRectF g = geometry();
+//                g.moveTo(computePos());
+//                lastGeometry = g;
+                toAnimate = true;
+                updateAll();//updateAfter(true);
+            } else {
+//                setSelected(false);
+                deleteLater();
+            }
+            futureParent = 0;
+            futureSibling = 0;
+            docScene->hideInsertLine();
+            setButtonVisible(true);
         }
-        futureParent = 0;
-        futureSibling = 0;
-        docScene->hideInsertLine();
-    } else {
-//        setSelected();
     }
 
+    setZValue(0);               // restore z-value
     moveStarted = false;
     QGraphicsRectItem::mouseReleaseEvent(event);
     docScene->update();
 }
 
 Block* Block::findFutureParentAt(QPointF pos) const
+        // pos is position on scene, not in local coordinates!
 {
     Block *resultBl = 0;
-    // target is under left top corner of moved block OR target is under cursor
+
     QList<Block*> blocks = blocklist_cast(docScene->items(pos));
-    foreach (Block *block, blocks) { // find next different block
-        if (block != this) {
+    foreach (Block *block, blocks) { // find next different selectable non-text block ...
+        if (!block->isTextBlock() && block != this &&
+            block->element->isSelectable() &&
+            !block->element->getAncestors().contains(element)) { // .. that is not descendant of this!
             resultBl = block;
             break;
-        }
-    }
-    if (resultBl != 0 && resultBl->element->isLeaf()) {// leaf test - cannot add child to leaf
-        resultBl = resultBl->parent;
-        if (resultBl == this) {
-            resultBl = 0;//debug - toto nemoze nastavat
         }
     }
     return resultBl;
@@ -887,21 +902,26 @@ Block* Block::findNextChildAt(QPointF pos) const
 
 QLineF Block::getInsertLineAt(const Block* nextBlock, bool insertedIsLineBreaking) const
 {
+    QPointF lineOff = OFFSET / 2;
     QLineF iLine;
     if (nextBlock != 0) {   // before child if provided
         QRectF rect = nextBlock->mapRectToScene(nextBlock->boundingRect());
         if (insertedIsLineBreaking &&            // horizontal line
             (nextBlock->prevSib == 0 || nextBlock->prevSib->element->isLineBreaking()))
-            iLine = QLineF(rect.topLeft(), rect.topRight());
+            iLine = QLineF(rect.topLeft() - lineOff,
+                           rect.topRight() + QPointF(lineOff.x(), -lineOff.y()));
         else                                        // vertical line
-            iLine = QLineF(rect.topLeft(), rect.bottomLeft());
+            iLine = QLineF(rect.topLeft() - lineOff,
+                           rect.bottomLeft() + QPointF(-lineOff.x(), lineOff.y()));
     } else {                // after child if not provided
         Block *lastChild = childBlocks().last();// must have at least 1 child
         QRectF rect = lastChild->mapRectToScene(lastChild->boundingRect());
         if (lastChild->element->isLineBreaking())   // horizontal line
-            iLine = QLineF(rect.bottomLeft(), rect.bottomRight());
+            iLine = QLineF(rect.bottomLeft() + QPointF(0, lineOff.y())
+                           , rect.bottomRight() + QPointF(0, lineOff.y()));
         else                                        // vertical line
-            iLine = QLineF(rect.topRight(), rect.bottomRight());
+            iLine = QLineF(rect.topRight() + QPointF(lineOff.x(), 0),
+                           rect.bottomRight() + QPointF(lineOff.x(), 0));
     }
     return iLine;
 }
@@ -936,18 +956,6 @@ void Block::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-//****
-void Block::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
-{
-    if (!element->isSelectable()){
-        event->ignore();
-        return;
-    } else {
-        ;
-    }
-}
-//****
-
 void Block::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
 }
@@ -967,7 +975,8 @@ void Block::updateBlock() // parent to child updater
     if (parent == 0) {
         lineStarts[line] = this;
     }
-    if (prevSib != 0 && prevSib->line < line)
+//    if (prevSib != 0 && prevSib->line < line)
+    if (line > lastLine)
         lineStarts[line] = this;
     lastLine = line;
 
@@ -976,11 +985,24 @@ void Block::updateBlock() // parent to child updater
 
     // update children
     foreach (Block *child, childBlocks()) {
-        child->updateBlock();
+        if (!child->ignoreUpdate)
+            child->updateBlock();
     }
 
     // update size
     setRect(computeRect());
+
+    // update hide button
+    if (folded ||
+        (element->isSelectable() && hasMoreLines() && element->getType() != "block")) {
+        if (hideButton == 0)
+            hideButton = new HideBlockButton(this);
+        hideButton->updatePos();
+    } else {
+        if (hideButton != 0)
+            delete hideButton;
+        hideButton = 0;
+    }
 }
 
 // temporary method..
@@ -989,20 +1011,23 @@ void Block::updateAll(bool animate) {
     TreeElement *root = element->getRoot();
     do {
         mainBlock = root->getBlock();
+        if (root->isLeaf()) break;
         root = (*root)[0];
     } while (mainBlock == 0);
+    if (mainBlock == 0) mainBlock = this;
 
     mainBlock->updateBlock();
 
-//    animate = false;
+    //    animate = false;
     mainBlock->animate(animate);
 }
 
 void Block::animate(bool enabled)
 {
     toAnimate &= enabled;
-    if (toAnimate) {
+    if (toAnimate) {// && !animation->state() == QAbstractAnimation::Running) {
         toAnimate = false;
+
         animation->setStartValue(lastGeometry);
         animation->setEndValue(geometry());
         animation->start();
@@ -1216,22 +1241,15 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 
     if (moveStarted)
         painter->fillRect(rect, Qt::white);
-    
-    //*****
-//    if (element->isLineBreaking())
-//        painter->fillRect(QRectF(rect.width()-6,0,6,6), Qt::blue);
 
-    if (pointed) {
-        painter->fillRect(rect, format["hovered"]);
-        painter->setPen(format["hovered_border"]);
-        painter->drawRect(rect);
-    }
-
-    if (showing) {
+    if (showing || pointed ) {
         qreal width;
         Qt::PenStyle style;
         QColor color;
-        if (selectedBlock == this) {
+        if (pointed) {
+            width = 2; style = Qt::SolidLine; color = format["hovered_border"];
+            painter->fillRect(rect, format["hovered"]);
+        } else if (selectedBlock == this) {
             width = 4; style = Qt::SolidLine; color = format["selected"];
         } else {
             width = 2; style = Qt::DotLine; color = format["showing"];
@@ -1240,18 +1258,12 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
         rect.adjust(-width/2, -width/2, width/2, width/2);
         painter->drawRect(rect);
     } else {
-        if (!element->isSelectable())
-            painter->setPen(Qt::lightGray);
-        else
-            painter->setPen(Qt::gray);
-
+        painter->setPen(Qt::gray); // temp
         if (element->isUnknown()) {
             painter->setPen(parent->format["selected"]);
             painter->drawRect(rect);
         }
     }
-    //*****
-    painter->drawRect(rect);
 }
 
 void Block::setShowing(bool newState, Block *stopAt) {
@@ -1288,14 +1300,16 @@ void Block::setSelected(bool flag) {
         Block *oldSelected = selectedBlock;
         selectedBlock = 0;
         oldSelected->setShowing(false, stopHidingAt);
-//        oldSelected->updatePosAfter();
+        //        oldSelected->updatePosAfter();
     }
     if (flag) {
         selectedBlock = this;
         setShowing(true);
-//        updatePosAfter();
+        //        updatePosAfter();
     } else {
         selectedBlock = 0;
+//        docScene->reanalyze(this);
+//        return;
     }
     updateAll();//
     docScene->update();
@@ -1304,7 +1318,7 @@ void Block::setSelected(bool flag) {
 
 QPointF Block::getOffset() const
 {
-    if (element->isSelectable() && showing)
+    if (showing)
         return OFFSET;
     else
         return NO_OFFSET;
@@ -1314,16 +1328,31 @@ void Block::setFolded(bool fold)
 {
     if (fold == folded) return; // do nothing
     if (fold) {
-        ;// todo fold
+        QString text;
+        Block *block = firstChild->getFirstLeaf();
+        while (block->line == line) {
+            text.append(block->element->getText());
+            block = block->getNext(true);
+        }
+        text.remove('\n');
+        text.append(" ...");
+        myTextItem = new TextItem(text, this, true);
+        myTextItem->setPos(-myTextItem->margin, 0);
     } else {
-        ;//todo unfold
+        if (myTextItem != 0)
+            delete(myTextItem);
+        myTextItem = 0;
     }
     foreach (Block *child, childBlocks()) {    // hide/unhide children
-        if (child->line > 0) {
-            child->setVisible(!fold);
-        }
+        child->ignoreUpdate = fold;
+        child->setVisible(!fold);
     }
-    folded = fold;                          // update folded flag
+    folded = fold;
+    if (fold && selectedBlock != 0 // selected block is descendant of this -> select this
+            && selectedBlock->element->getAncestors().contains(element))
+        setSelected();
+    else
+        updateAll();
 }
 bool Block::isFolded() const
 {
@@ -1361,6 +1390,15 @@ int Block::length() const
 {
     if (!isTextBlock()) return 0;
     return element->getType().length();
+}
+
+void Block::setButtonVisible(bool flag)
+{
+    if (hideButton != 0) {
+        hideButton->setVisible(flag);
+    }
+    foreach (Block* child, childBlocks())
+        child->setButtonVisible(flag);
 }
 
 QList<Block*> Block::blocklist_cast(QList<QGraphicsItem*> list) const

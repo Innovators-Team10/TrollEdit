@@ -108,11 +108,10 @@ protected:
 
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
-    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+    void setButtonVisible(bool flag);
 
-private:
     static QPointF OFFSET, NO_OFFSET;
     static int lastLine;
 
@@ -123,6 +122,7 @@ private:
     bool hovered;    // true after hoverEnterEvent
     bool pointed;    // true if it is last hovered block
     bool toAnimate;
+    bool ignoreUpdate;// when true this block is ignored when updating other blocks
     static Block *selectedBlock;
 
     DocumentScene *docScene;    // my scene
@@ -130,13 +130,11 @@ private:
     TreeElement *element;       // my AST element
     TextItem *myTextItem;       // my text area (AST leafs only)
     int line;                   // my line (global index)
-//    int spaces;                 // number of spaces visible before this block
 
     Block *nextSib, *prevSib, *firstChild;    // used to create links
 
     QHash<QString, QColor> format;
 
-    // graphic elements
     HideBlockButton *hideButton;
 
     void createControls();//todo

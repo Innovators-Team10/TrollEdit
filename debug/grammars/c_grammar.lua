@@ -17,10 +17,10 @@ other_grammars = {
 paired = {"{", "}", "(", ")", "[", "]", }
 selectable = {
 	"preprocessor", "funct_definition", "declaration", 
-	"initializer", "block", "simple_statement", 
-	"funct_call", "funct_param", "expression",  
-	"unknown", "if_statement", "while_statement",
-	"for_statement", "switch_statement"
+	"initializer", "block", "funct_call", "funct_param", "expression",  
+	"comment", "program",
+	"unknown", "if_statement", "while_statement", 
+	"for_statement", "switch_statement", "other_statement"
 	}	
 multi_text = {"multi_comment", "doc_comment",}
 
@@ -170,17 +170,13 @@ abstract_declarator =
 	T"(" * N'parameter_type_list'^-1 * T")"
 	)^1,
 	
-statement = N"simple_statement" + T"{" * N'block'^-1* T"}",
+statement = NI"simple_statement" + T"{" * N'block'^-1* T"}",
 simple_statement =
-	N'expression'^-1 * T";" +
 	N'if_statement' +
 	N'switch_statement' +
 	N'while_statement' +
 	N'for_statement' +
-	TK"goto" * N'identifier' * T";" +
-	TK"continue" * T";" +
-	TK"break" * T";" +
-	TK"return" * N'expression'^-1 * T";",
+	N'other_statement',
 	
 if_statement = TK"if" * T"(" * N'expression' * T")" * NI'statement' * (TK"else" * NI'statement')^-1,
 
@@ -192,6 +188,14 @@ while_statement =
 	
 for_statement = 
 	TK"for" * T"(" * N'expression'^-1 * T";" * N'expression'^-1 * T";" * N'expression'^-1 * T")" * NI'statement',
+	
+other_statement =
+	NI'funct_call' * T";" +
+	TK"goto" * N'identifier' * T";" +
+	TK"continue" * T";" +
+	TK"break" * T";" +
+	TK"return" * N'expression'^-1 * T";" +
+	N'expression'^-1 * T";",
 
 block =  (N'declaration' + NI'statement' + N'preprocessor' + N'label')^1,
 

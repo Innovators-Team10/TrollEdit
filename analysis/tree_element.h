@@ -44,6 +44,8 @@ public:
      bool allowsParagraphs() const;
      bool isSelectable() const;
      bool isPaired() const;
+     bool isFloating() const;
+     void setFloating(bool floating);
 
      TreeElement *operator<<(TreeElement *child);
      TreeElement *operator<<(QList<TreeElement *> children);
@@ -84,6 +86,7 @@ public:
      bool selectable;
      bool paragraphsAllowed;
      bool paired;
+     bool floating;
 
      bool hasNext(int index);
      TreeElement *next(int index);

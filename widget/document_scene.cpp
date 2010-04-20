@@ -2,6 +2,7 @@
 #include "../analysis/analyzer.h"
 #include "../analysis/tree_element.h"
 #include "../gui/block.h"
+#include "../gui/doc_block.h"
 
 
 DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
@@ -88,7 +89,7 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
             QGraphicsScene::update(QRect());
         } else {
             if (mainBlock != 0) {
-                if (blockAt(event->scenePos()) == 0)
+                if (itemAt(event->scenePos()) == 0)
                     mainBlock->setSelected(false);
             }
         }
@@ -125,10 +126,6 @@ void DocumentScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsScene::mouseReleaseEvent(event);
 }
-void DocumentScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
-{
-    QGraphicsScene::mouseMoveEvent(event);
-}
 
 void DocumentScene::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
 {
@@ -138,11 +135,6 @@ void DocumentScene::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
 void DocumentScene::animationFinished()
 {
     update();
-}
-
-void DocumentScene::toggleOffset()
-{
-    //
 }
 
 void DocumentScene::reanalyze()
@@ -200,9 +192,7 @@ bool DocumentScene::analyzeAll(QString text)
         delete(mainBlock);
 
     mainBlock = new Block(analyzer->analyzeFull(text), 0, this);
-    mainBlock->setPos(30,20); //temp
-    mainBlock->setFlag(QGraphicsItem::ItemIsMovable, false);
-    mainBlock->setFlag(QGraphicsItem::ItemIsSelectable, false);
+    mainBlock->setPos(40,20); //temp
     mainBlock->updateAll(false);//updateBlock();
     update();
     return true;
@@ -243,4 +233,84 @@ void DocumentScene::setBlockFormatting(const QHash<QString, QHash<QString, QColo
 QHash<QString, QHash<QString, QColor> > DocumentScene::getBlockFormatting() const
 {
     return blockFormats;
+}
+
+void DocumentScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
+{
+    focusInEvent(new QFocusEvent(QEvent::FocusIn, Qt::MouseFocusReason));
+
+
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
+        event->accept();
+    else
+        event->ignore();
+}
+
+void DocumentScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
+{
+    Q_UNUSED(event);
+
+    focusOutEvent(new QFocusEvent(QEvent::FocusOut, Qt::MouseFocusReason));
+}
+
+void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
+{
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
+        event->accept();
+    else
+        event->ignore();
+}
+
+
+void DocumentScene::dropFile(QUrl url, QGraphicsSceneDragDropEvent *event){
+    DocBlock *block=new DocBlock(new TreeElement("file"),0,this);
+          block->setPos(event->scenePos());
+          block->addFile(url);
+}
+
+void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
+{
+    // can be picture(s) from file
+    if (event->mimeData()->hasUrls())
+    {
+        foreach (QUrl url, event->mimeData()->urls())
+        {
+            QFileInfo info(url.toLocalFile());
+            if (QImageReader::supportedImageFormats().contains(info.suffix().toLower().toLatin1())) {
+               QImage pom=  QImage(info.filePath());
+               if(!pom.isNull())
+                dropImage(pom, event);
+               else
+               dropFile(url,event);
+            }
+        }
+    }
+
+}
+void DocumentScene::addDocBlock(){
+
+    TreeElement *comment = new TreeElement("doc_comment",true,true);
+
+    Block *commentBl = new Block(comment,0,this);
+    commentBl->setPos(500,100);
+    DocBlock *block = new DocBlock(new TreeElement("doc_comment"),
+                                 commentBl);
+
+    //posuvanie komentov ked programujem v strede aby sa posuvali spravne nadol
+
+    block->textItem()->setFocus();
+    QTextCursor cursor(block->textItem()->document());
+    cursor.setPosition(0);
+
+}
+void DocumentScene::dropImage(const QImage &image, QGraphicsSceneDragDropEvent *event)
+{
+ TreeElement *comment = new TreeElement("image",true,true);
+ Block *commentBl = new Block(comment,0,this);
+ DocBlock *block=new DocBlock(new TreeElement("image"), commentBl);
+
+ commentBl->setPos(event->scenePos());
+         if (!image.isNull())
+             block->addImage(image);
+
 }

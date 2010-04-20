@@ -1,7 +1,7 @@
-int p;
+int p;/*dfrgdfg*/
 int main(int t) {
 	if (duck) {
-	quack();
+		quack();
 	barkBarkBark();
 }
 	while(true) {
@@ -10,4 +10,3 @@ int main(int t) {
 	}
 	return 0+2;
 }
-
