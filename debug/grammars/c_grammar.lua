@@ -195,9 +195,9 @@ other_statement =
 	TK"continue" * T";" +
 	TK"break" * T";" +
 	TK"return" * N'expression'^-1 * T";" +
-	N'expression'^-1 * T";",
+	NI'expression'^-1 * T";",
 
-block =  (N'declaration' + NI'statement' + N'preprocessor' + N'label')^1,
+block =  (NI'statement' + N'declaration' + N'preprocessor' + N'label')^1,
 
 label = NI'identifier_name' * T":",
 

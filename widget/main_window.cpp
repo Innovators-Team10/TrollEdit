@@ -155,10 +155,6 @@ void MainWindow::createActions()
     printableAreaAction = new QAction(tr("Printable area"), this);
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
-
-    // add Doc Blok
-    addDocBlockAction = new QAction(tr("AddDocumentation"), this);
-    connect(addDocBlockAction, SIGNAL(triggered()), this, SLOT(addDocBlock()));
 }
 
 void MainWindow::createMenus()
@@ -205,7 +201,6 @@ void MainWindow::createToolBars()
     formatToolBar->addAction(textUnderlineAction);
     formatToolBar->addAction(analyzeAction);
     formatToolBar->addAction(printableAreaAction);
-    formatToolBar->addAction(addDocBlockAction);
 }
 
 void MainWindow::newFile()
@@ -409,11 +404,6 @@ void MainWindow::about()
         "<p/>Team 5 - UFOPAK"
         "<p/>This is just a prototype of text editor"
         "which is being developed for Team project course."));
-}
-
-void MainWindow::addDocBlock()
-{
-    currentScene->addDocBlock();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

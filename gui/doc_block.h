@@ -17,7 +17,8 @@ class DocBlock : public Block
 {
     Q_OBJECT
 public:
-    DocBlock(TreeElement *element, Block *parentBlock, QGraphicsScene *parentScene = 0);
+    DocBlock(QString text, QPointF pos, Block *relatedBlock, QGraphicsScene *parentScene = 0);
+    ~DocBlock();
     void addImage(const QImage &image);
     void addFile(QUrl url);
     void addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene);

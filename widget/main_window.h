@@ -51,7 +51,6 @@ private slots:
 
     void printPdf();
     void showPrintableArea();
-    void addDocBlock();
 
 private:
     enum { MaxRecentFiles = 4 };
@@ -82,7 +81,6 @@ private:
     QAction *textItalicAction;
     QAction *textUnderlineAction;
 
-    QAction *addDocBlockAction;
     QAction *analyzeAction;
 
     QMenu *fileMenu;

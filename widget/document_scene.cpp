@@ -85,8 +85,7 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     if (event->button() == Qt::LeftButton) {
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
-//            mainBlock->updateBlock();
-            QGraphicsScene::update(QRect());
+            addDocBlock(event->scenePos());
         } else {
             if (mainBlock != 0) {
                 if (itemAt(event->scenePos()) == 0)
@@ -150,7 +149,7 @@ void DocumentScene::reanalyze()
 bool DocumentScene::reanalyze(Block *block)
 {
     if (block == 0) return false;
-//    int line = block->getLine();
+    //    int line = block->getLine();
     block->setSelected(false);
 
     TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
@@ -177,7 +176,7 @@ bool DocumentScene::reanalyze(Block *block)
     if (nextSib != 0) newBlock->stackBefore(nextSib);
 
     mainBlock->updateAll(false);
-//    mainBlock->lineStarts[]
+    //    mainBlock->lineStarts[]
     update();
 
     analysedBl->deleteLater();
@@ -262,55 +261,39 @@ void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 }
 
 
-void DocumentScene::dropFile(QUrl url, QGraphicsSceneDragDropEvent *event){
-    DocBlock *block=new DocBlock(new TreeElement("file"),0,this);
-          block->setPos(event->scenePos());
-          block->addFile(url);
+void DocumentScene::dropFile(QUrl url, QGraphicsSceneDragDropEvent *event)
+{
+    DocBlock *block = new DocBlock("file", event->scenePos(), mainBlock->getSelectedBlock(), this);
+    block->setPos(event->scenePos());
+    block->addFile(url);
 }
 
 void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     // can be picture(s) from file
-    if (event->mimeData()->hasUrls())
-    {
-        foreach (QUrl url, event->mimeData()->urls())
-        {
+    if (event->mimeData()->hasUrls()) {
+        foreach (QUrl url, event->mimeData()->urls()) {
             QFileInfo info(url.toLocalFile());
             if (QImageReader::supportedImageFormats().contains(info.suffix().toLower().toLatin1())) {
-               QImage pom=  QImage(info.filePath());
-               if(!pom.isNull())
-                dropImage(pom, event);
-               else
-               dropFile(url,event);
+                QImage pom=  QImage(info.filePath());
+                if(!pom.isNull())
+                    dropImage(pom, event);
+                else
+                    dropFile(url,event);
             }
         }
     }
-
 }
-void DocumentScene::addDocBlock(){
 
-    TreeElement *comment = new TreeElement("doc_comment",true,true);
-
-    Block *commentBl = new Block(comment,0,this);
-    commentBl->setPos(500,100);
-    DocBlock *block = new DocBlock(new TreeElement("doc_comment"),
-                                 commentBl);
-
-    //posuvanie komentov ked programujem v strede aby sa posuvali spravne nadol
-
-    block->textItem()->setFocus();
-    QTextCursor cursor(block->textItem()->document());
-    cursor.setPosition(0);
-
+void DocumentScene::addDocBlock(QPointF pos)
+{
+    DocBlock *block = new DocBlock("", pos, mainBlock->getSelectedBlock(), this);
+    block->textItem()->setTextCursorPosition(0);
 }
+
 void DocumentScene::dropImage(const QImage &image, QGraphicsSceneDragDropEvent *event)
 {
- TreeElement *comment = new TreeElement("image",true,true);
- Block *commentBl = new Block(comment,0,this);
- DocBlock *block=new DocBlock(new TreeElement("image"), commentBl);
-
- commentBl->setPos(event->scenePos());
-         if (!image.isNull())
-             block->addImage(image);
-
+    DocBlock *block = new DocBlock("image", event->scenePos(), mainBlock->getSelectedBlock(), this);
+    if (!image.isNull())
+        block->addImage(image);
 }

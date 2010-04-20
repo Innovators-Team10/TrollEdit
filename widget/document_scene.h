@@ -29,7 +29,7 @@ public:
     bool analyzeAll(QString text);
     void reanalyze();
     bool reanalyze(Block* block);
-    void addDocBlock();
+    void addDocBlock(QPointF pos);
 
     void setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning);
     QHash<QString, QPair<QFont, QColor> > getHighlightning() const;

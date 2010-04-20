@@ -134,6 +134,8 @@ void Block::createControls()
 
 Block::~Block()
 {
+    if (selectedBlock == this);
+    selectedBlock = 0;
     delete(element);
 }
 
@@ -198,6 +200,10 @@ void Block::setParentItem(QGraphicsItem *parentItem)
             }
             nextSib = 0;
         }
+        if (newParent->isTextBlock()) {
+            delete(newParent->myTextItem);
+            newParent->myTextItem = 0;
+        }
     }
 
     // remove from old parent block & append to new parent block
@@ -245,14 +251,21 @@ QList<Block*> Block::removeBlock()
     int remSpaces = 0;
     QList<Block*> toDelete;
     Block *block = this;
+    bool needSelecting = false;
     do {    // remove this block and all ancestors (that would became leafs) from hierarchy
         remSpaces += block->getSpaces();    // collect spaces from deleted blocks
+        needSelecting |= (selectedBlock == block);
         Block *oldParent = block->parent;
         block->setParentItem(0);
         toDelete << block;
         block = oldParent;
     } while (block != 0 && block->element->isLeaf());
-    if (block != 0) block->edited = true;
+    if (block != 0) {
+        block->edited = true;
+        if (needSelecting) block->setSelected();
+    } else {
+//        if (needSelecting) block->setSelected();
+    }
     toDelete.removeOne(this);
     element->setSpaces(remSpaces);
     return toDelete;
@@ -489,6 +502,7 @@ void Block::textChanged()
         if (!(element->isLineBreaking() && getPrev()->line != line) || element->isFloating()) {
             // don't delete if block is single newline in this line OR floating
 
+
             Block *next = getNext();
             QList<Block*> toDelete = removeBlock();
 
@@ -606,9 +620,10 @@ void Block::eraseChar(int key) {
                     target = target->parent;
                 target->element->setLineBreaking(false);
                 //                target->updateAfter();
-                updateAll();
                 if (target->isTextBlock())
                     target->textChanged();
+                else
+                    updateAll();
             } else if (target->line > line) {   // jumped to the end of file
                 return;
             } else {                            // on same line
@@ -629,8 +644,10 @@ void Block::eraseChar(int key) {
                     target = target->parent;
                 target->element->setLineBreaking(false);
                 //                target->updateAfter();
-                updateAll();
-                if (target->isTextBlock()) target->textChanged();
+                if (target->isTextBlock())
+                    target->textChanged();
+                else
+                    updateAll();
             } else if (target->line < line) {   // jumped to the beginning of file
                 return;
             } else {                            // on same line
@@ -728,10 +745,12 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
         myTextItem->setTextCursorPosition(qMax(0, pos));
         QGraphicsRectItem::mousePressEvent(event);
     } else {
-        if (element->isSelectable() && selectedBlock != this)
+        if (element->isSelectable() && selectedBlock != this) {
+            getFirstLeaf()->myTextItem->setTextCursorPosition(0);
             setSelected();
-        else
+        } else {
             QGraphicsRectItem::mousePressEvent(event);
+        }
     }
     if (!element->isSelectable()){
         event->ignore();

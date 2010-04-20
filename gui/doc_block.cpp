@@ -1,43 +1,55 @@
 #include "doc_block.h"
 
 
-DocBlock::DocBlock(TreeElement *element, Block *parentBlock, QGraphicsScene *parentScene)
-    : Block(element, parentBlock, parentScene)
+DocBlock::DocBlock(QString text, QPointF pos, Block *relatedBlock, QGraphicsScene *parentScene)
+    : Block(new TreeElement(text), 0, parentScene)
 {
-    parentBlock->getElement()->setFloating(true);
+    Block *commentBl = new Block(new TreeElement("doc_comment", true, true),
+                                 0, parentScene);
+    element->setFloating(false);
+    setParentItem(commentBl);
+    commentBl->getElement()->setFloating(true);
+    if (relatedBlock != 0) {
+//        relatedBlock->element->appendChild(commentBl->element);
+        addArrow(this, relatedBlock, parentScene);
+    }
 
-
-    addArrow(this, selectedBlock, parentScene);
-
-    if (myTextItem != 0)
-        delete(myTextItem);
-    myTextItem = new TextItem("", this, element->allowsParagraphs());
-    myTextItem->setPos(-myTextItem->margin, 0);
-
-    if (selectedBlock != 0)
-        parentBlock->setPos(parentBlock->pos().x(), selectedBlock->scenePos().y());
-
+    commentBl->setPos(pos);
 }
-void DocBlock::addImage(const QImage &image){
 
+DocBlock::~DocBlock()
+{
+    if (arrow != 0) {
+        arrow->setVisible(false);
+        docScene->update();
+
+        arrow->deleteLater();
+    }
+}
+
+void DocBlock::addImage(const QImage &image){
     QTextCursor cursor = myTextItem->textCursor();
-    this->image=image;
+    this->image = image;
     if (!image.isNull())
         cursor.insertImage(image);
     myTextItem->setTextCursor(cursor);
-    this->textItem()->setTextInteractionFlags(Qt::NoTextInteraction);
 }
+
 void DocBlock::addFile(QUrl url){
     //todo: pridanie linkov na subory ktore sa dragnu na scenu do dokumentacnych blokov
     //file = new QTextBrowser();
+    textItem()->setTextInteractionFlags(Qt::NoTextInteraction);
 }
+
 void DocBlock::addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene){
-    this->arrow = new Arrow(start, end, end, parentScene);
+    arrow = new Arrow(start, end, end, parentScene);
     if(this->getElement()->getType() == "image")
         arrow->setColor(Qt::yellow);
     else
         arrow->setColor(Qt::magenta);
 }
+
+
 
 void DocBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
