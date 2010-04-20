@@ -140,6 +140,7 @@ protected:
     void createControls();//todo
     void removeLinks();
     void setShowing(bool newState, Block* stopAt=0);
+    void assignHighlighting(TreeElement* elm);
 
     Block *futureParent;
     Block *futureSibling;   // used for block insertion

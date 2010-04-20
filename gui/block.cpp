@@ -55,40 +55,16 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
 
     if (element->isLeaf()){
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs());
-        myTextItem->setPos(-myTextItem->margin, 0);
-
-        if(element->getParent()) {
-            QPair<QFont, QColor> highlightFormat;
-            QString parentType = element->getParent()->getType();
-            if (docScene->getHighlightning().contains(parentType) && !element->getParent()->getType().startsWith("funct_")) {
-                highlightFormat = docScene->getHighlightning().value(parentType);
-            } else {
-                highlightFormat = docScene->getHighlightning().value("text_style");
-            }
-            highlight(highlightFormat);
-        }
+        myTextItem->setPos(-myTextItem->margin, 0);        
     } else {
         myTextItem = 0;
         setToolTip(element->getType());
         foreach (TreeElement *childEl, element->getChildren()) {
             new Block(childEl, this);
-        }
-
-        if (docScene->getHighlightning().contains(element->getType())) {
-            QPair<QFont, QColor> highlightFormat = docScene->getHighlightning().value(element->getType());
-            if (!element->getType().compare("funct_call")) {
-                getFirstLeaf()->highlight(highlightFormat);
-            } else if (!element->getType().compare("funct_definition")) {
-                QList<Block*> blocks = childBlocks();
-                foreach(Block* block, blocks) {
-                    if (!block->element->getType().compare("declarator")) {
-                        block->getFirstLeaf()->highlight(highlightFormat);
-                        break;
-                    }
-                }
-            }
-        }
+        }        
     }
+
+    assignHighlighting(element);
 
     if (docScene->getBlockFormatting().contains(element->getType()))
         format = docScene->getBlockFormatting().value(element->getType());
@@ -116,6 +92,37 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     setRect(computeRect());
 
     createControls();
+}
+
+void Block::assignHighlighting(TreeElement *elm)
+{
+    if (elm->isLeaf()) {
+        if(elm->getParent()) {
+            QPair<QFont, QColor> highlightFormat;
+            QString parentType = elm->getParent()->getType();
+            if (docScene->getHighlightning().contains(parentType) && !elm->getParent()->getType().startsWith("funct_")) {
+                highlightFormat = docScene->getHighlightning().value(parentType);
+            } else {
+                highlightFormat = docScene->getHighlightning().value("text_style");
+            }
+            highlight(highlightFormat);
+        }
+    } else {
+        if (docScene->getHighlightning().contains(elm->getType())) {
+            QPair<QFont, QColor> highlightFormat = docScene->getHighlightning().value(elm->getType());
+            if (!elm->getType().compare("funct_call")) {
+                getFirstLeaf()->highlight(highlightFormat);
+            } else if (!elm->getType().compare("funct_definition")) {
+                QList<Block*> blocks = childBlocks();
+                foreach(Block* block, blocks) {
+                    if (!block->element->getType().compare("declarator")) {
+                        block->getFirstLeaf()->highlight(highlightFormat);
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 void Block::createControls()

@@ -161,7 +161,7 @@ void MainWindow::createMenus()
 {
     // file menu
     fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(newAction);
+   // fileMenu->addAction(newAction);
     fileMenu->addAction(openAction);
     fileMenu->addAction(closeAction);
     fileMenu->addSeparator();
@@ -175,30 +175,30 @@ void MainWindow::createMenus()
     fileMenu->addAction(exitAction);
 
     // edit menu
-    editMenu = menuBar()->addMenu(tr("&Edit"));
+   /* editMenu = menuBar()->addMenu(tr("&Edit"));
     editMenu->addAction(cutAction);
     editMenu->addAction(copyAction);
     editMenu->addAction(pasteAction);
-    editMenu->addAction(deleteAction);
+    editMenu->addAction(deleteAction);*/
 
     // options menu
-    optionsMenu = menuBar()->addMenu(tr("&Options"));
-    optionsMenu->addAction(stylesAction);
+   /* optionsMenu = menuBar()->addMenu(tr("&Options"));
+    optionsMenu->addAction(stylesAction);*/
 
     // help menu
-    helpMenu = menuBar()->addMenu(tr("&Help"));
+   /* helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(helpAction);
     helpMenu->addAction(aboutAction);
-    helpMenu->addAction(aboutQtAction);
+    helpMenu->addAction(aboutQtAction);*/
 }
 
 void MainWindow::createToolBars()
 {
     // format toolbar
     formatToolBar = addToolBar(tr("Format"));
-    formatToolBar->addAction(textBoldAction);
+   /* formatToolBar->addAction(textBoldAction);
     formatToolBar->addAction(textItalicAction);
-    formatToolBar->addAction(textUnderlineAction);
+    formatToolBar->addAction(textUnderlineAction);*/
     formatToolBar->addAction(analyzeAction);
     formatToolBar->addAction(printableAreaAction);
 }

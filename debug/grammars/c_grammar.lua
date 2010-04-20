@@ -17,7 +17,7 @@ other_grammars = {
 paired = {"{", "}", "(", ")", "[", "]", }
 selectable = {
 	"preprocessor", "funct_definition", "declaration", 
-	"initializer", "block", "funct_call", "funct_param", "expression",  
+	"initializer", "block", "funct_param", "expression",  
 	"comment", "program",
 	"unknown", "if_statement", "while_statement", 
 	"for_statement", "switch_statement", "other_statement"
@@ -190,7 +190,7 @@ for_statement =
 	TK"for" * T"(" * N'expression'^-1 * T";" * N'expression'^-1 * T";" * N'expression'^-1 * T")" * NI'statement',
 	
 other_statement =
-	NI'funct_call' * T";" +
+	N'funct_call' * T";" +
 	TK"goto" * N'identifier' * T";" +
 	TK"continue" * T";" +
 	TK"break" * T";" +
