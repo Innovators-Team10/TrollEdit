@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
 
 #include <QMainWindow>
 #include <QtGui>
@@ -47,8 +47,6 @@ private slots:
     void settings();
     bool closeTab();
 
-    void reanalyze();
-
     void printPdf();
     void showPrintableArea();
 
@@ -80,8 +78,6 @@ private:
     QAction *textBoldAction;
     QAction *textItalicAction;
     QAction *textUnderlineAction;
-
-    QAction *analyzeAction;
 
     QMenu *fileMenu;
     QMenu *editMenu;
@@ -122,4 +118,4 @@ private:
     //void readSettings();
 };
 
-#endif // MAINWINDOW_H
+#endif // MAIN_WINDOW_H

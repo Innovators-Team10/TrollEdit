@@ -10,13 +10,17 @@ class TextItem : public QGraphicsTextItem
         Q_OBJECT
 
 public:
-    TextItem(const QString &text, Block *parent = 0, bool multiText = false);
+    TextItem(const QString &text, Block *parentBlock, bool multiText = false);
     void setTextCursorPosition(int i);
     bool removeCharAt(int i);   // returns false if text is empty after removal
+
+    void setPos(const QPointF &pos);
     void setFont(const QFont &font);
+
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
-    qreal margin;
+
+    qreal MARGIN;
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -26,11 +30,12 @@ protected:
 signals:
     void focusChanged(QFocusEvent *event);
     void keyPressed(QKeyEvent *event);
-    void moveCursorLR(int key);
-    void moveCursorUD(int key, int from);
-    void enterPressed(int cursorPos);
-    void erasePressed(int key);
+    void moveCursor(Block *, int key, int cursorPos = 0);
+    void enterPressed(Block *, int cursorPos);
+    void erasePressed(Block *, int key);
+
 private:
+    Block *myBlock;
     bool multiText;
 };
 

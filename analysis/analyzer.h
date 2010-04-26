@@ -23,6 +23,7 @@ public:
     TreeElement *getAnalysableAncestor(TreeElement *element);
     QString getExtension() const;
     QList<QPair<QString, QHash<QString, QString> > > readConfig(QString fileName);
+    static const QString TAB;
 
 private:
     static const char *EXTENSION_FIELD;
@@ -32,7 +33,6 @@ private:
     static const char *SELECTABLE_TOKENS_FIELD;
     static const char *MULTI_TEXT_TOKENS_FIELD;
     static const char *CONFIG_KEYS_FIELD;
-    static const QString TAB;
 
     lua_State *L;           // the Lua interpreter
     QString extension;      // type of files to be analyzed

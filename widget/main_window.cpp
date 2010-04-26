@@ -147,10 +147,6 @@ void MainWindow::createActions()
 //    connect(textUnderlineAction, SIGNAL(triggered()), this, SLOT(handleFontChange()));
     textUnderlineAction->setCheckable(true);
 
-    // analyze text
-    analyzeAction = new QAction(tr("Analyze"), this);
-    connect(analyzeAction, SIGNAL(triggered()), this, SLOT(reanalyze()));
-
     // show printable area
     printableAreaAction = new QAction(tr("Printable area"), this);
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
@@ -199,24 +195,27 @@ void MainWindow::createToolBars()
    /* formatToolBar->addAction(textBoldAction);
     formatToolBar->addAction(textItalicAction);
     formatToolBar->addAction(textUnderlineAction);*/
-    formatToolBar->addAction(analyzeAction);
     formatToolBar->addAction(printableAreaAction);
 }
 
 void MainWindow::newFile()
 {
-    DocumentScene *scene = new DocumentScene(langManager->getAnalyzerFor("*")); // default grammar
+    QGraphicsView *view = new QGraphicsView();
+    DocumentScene *scene = new DocumentScene(view);
+    view->setScene(scene);
     scene->setHighlightning(*highlightFormats);
     scene->setBlockFormatting(*blockFormats);
     connect(documentTabs, SIGNAL(adjustScenes(QRectF)), scene, SLOT(adjustSceneRect(QRectF)));
     connect(scene, SIGNAL(requestSize()), documentTabs, SLOT(provideSize()));
-    QGraphicsView *view = new QGraphicsView(scene);
+
+
+
     documentTabs->addTab(view, tr("Untitled %1").arg(DocumentTabs::documentNumber)); // nejde nieco ako pri title bare, ze indikujeme hviezdickou neulozene zmeny?
     documentTabs->setCurrentIndex(documentTabs->count() - 1);
     view->setFocus(Qt::MouseFocusReason);// focus on view and then focus on mainBlock is working
     DocumentTabs::documentNumber++;
-    //connect(this, SIGNAL(apply(QBrush*,QPen*)), scene, SLOT(applyChanges(QBrush*,QPen*)));
-    //applyChanges();
+
+    scene->newGroup(langManager->getAnalyzerFor("*"));
 }
 
 void MainWindow::open()
@@ -231,7 +230,7 @@ void MainWindow::open(QString fileName)
     if (!fileName.isEmpty() && QFile::exists(fileName)) {
         DocumentScene *scene = currentScene;
 
-        if (!scene || scene->modified) {
+        if (!scene || scene->isModified()) {
             newFile();
             DocumentTabs::documentNumber--;
         }
@@ -247,8 +246,8 @@ void MainWindow::load(QString fileName)
     view->setObjectName(fileName);
     documentTabs->setTabText(documentTabs->currentIndex(), strippedName(fileName));
     setCurrentFile(documentTabs->currentIndex());
-    scene->analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
-    scene->loadFile(fileName);
+    Analyzer *analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
+    scene->loadGroup(fileName, analyzer);
 }
 
 bool MainWindow::save()
@@ -260,7 +259,7 @@ bool MainWindow::save()
     if (currentFile.isEmpty())
       return saveAs();
     else
-      scene->saveFile(currentFile);
+      scene->saveGroup(currentFile);
     return true;
 }
 
@@ -272,7 +271,7 @@ bool MainWindow::saveAs()
 
     if (scene && !fileName.isEmpty())
     {
-        scene->saveFile(fileName);
+        scene->saveGroup(fileName);
         return true;
     } else
         return false;
@@ -388,7 +387,7 @@ void MainWindow::openRecentFile()
     if (action) {
         DocumentScene *scene = currentScene;
 
-        if (scene->modified) {
+        if (scene->isModified()) {
             newFile();
             DocumentTabs::documentNumber--;
         }
@@ -426,11 +425,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
     } else {
         event->ignore();
     }
-}
-
-void MainWindow::reanalyze()
-{
-    currentScene->reanalyze();
 }
 
 void MainWindow::updateRecentFileActions()

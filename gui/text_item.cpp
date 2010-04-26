@@ -1,31 +1,41 @@
 #include "text_item.h"
 #include "block.h"
+#include "block_group.h"
 
-TextItem::TextItem(const QString &text, Block *parent, bool multiText)
-    : QGraphicsTextItem(text, parent)
+TextItem::TextItem(const QString &text, Block *parentBlock, bool multiText)
+    : QGraphicsTextItem(text, parentBlock)
 {
-    QFontMetricsF *fm = new QFontMetricsF(font());
-    margin = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
-
-    connect(this, SIGNAL(focusChanged(QFocusEvent*)), parent, SLOT(textFocusChanged(QFocusEvent*)));
-    connect(document(), SIGNAL(contentsChanged()), parent, SLOT(textChanged()));
-    connect(this, SIGNAL(keyPressed(QKeyEvent*)), parent, SLOT(keyPressed(QKeyEvent*)));
-    connect(this, SIGNAL(enterPressed(int)), parent, SLOT(splitLine(int)));
-    connect(this, SIGNAL(erasePressed(int)), parent, SLOT(eraseChar(int)));
-    connect(this, SIGNAL(moveCursorLR(int)), parent, SLOT(moveCursorLR(int)));
-    connect(this, SIGNAL(moveCursorUD(int, int)), parent, SLOT(moveCursorUD(int, int)));
+    myBlock = parentBlock;
 
     this->multiText = multiText;
     setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
     setAcceptedMouseButtons(Qt::NoButton);
+
+    QFontMetricsF *fm = new QFontMetricsF(font());
+    MARGIN = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
+
+    connect(this, SIGNAL(focusChanged(QFocusEvent*)), myBlock, SLOT(textFocusChanged(QFocusEvent*)));
+    connect(document(), SIGNAL(contentsChanged()), myBlock, SLOT(textChanged()));
+    
+    connect(this, SIGNAL(keyPressed(QKeyEvent*)), myBlock->blockGroup(), SLOT(keyPressed(QKeyEvent*)));
+    connect(this, SIGNAL(enterPressed(Block*, int)), myBlock->blockGroup(), SLOT(splitLine(Block*, int)));
+    connect(this, SIGNAL(erasePressed(Block*, int)), myBlock->blockGroup(), SLOT(eraseChar(Block*, int)));
+    connect(this, SIGNAL(moveCursor(Block*, int, int)), myBlock->blockGroup(),
+            SLOT(moveFrom(Block*, int, int)));
+
+    setPos(QPointF());
 }
 
 void TextItem::setFont(const QFont &font)
 {
     QGraphicsTextItem::setFont(font);
     QFontMetricsF *fm = new QFontMetricsF(font);
-    margin = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
-    // NOTE: margin == 4;
+    MARGIN = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
+}
+
+void TextItem::setPos(const QPointF &pos)
+{
+    QGraphicsTextItem::setPos(pos - QPointF(MARGIN, 0));
 }
 
 void TextItem::setTextCursorPosition(int i) 
@@ -59,7 +69,7 @@ bool TextItem::removeCharAt(int i)
 QRectF TextItem::boundingRect() const
 {
     QRectF rect = QGraphicsTextItem::boundingRect();
-    rect.adjust(margin, 0, -margin+1, 0);
+    rect.adjust(MARGIN, 0, -MARGIN+1, 0);
     // NOTE: +1 pixel is needed to draw cursor at the end of item
     return rect;
 }
@@ -80,7 +90,9 @@ void TextItem::keyPressEvent(QKeyEvent *event)
     QString text = toPlainText();
 
     if (event->key() == Qt::Key_Return && !multiText) {
-        emit enterPressed(cursorPos);
+        if (cursorPos == text.length())
+            cursorPos = -1;
+        emit enterPressed(myBlock, cursorPos);
         return;
     }
     QGraphicsTextItem::keyPressEvent(event);
@@ -90,34 +102,34 @@ void TextItem::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Up :
         index = text.indexOf("\n");
         if (cursorPos <= index || index < 0) {
-            emit moveCursorUD(event->key(), cursorPos);
+            emit moveCursor(myBlock, event->key(), cursorPos);
         }
         break;
     case Qt::Key_Down :
         index = text.lastIndexOf("\n");
         if (cursorPos > index) {
             if (index < 0) index = 0;
-            emit moveCursorUD(event->key(), cursorPos-index);
+            emit moveCursor(myBlock, event->key(), cursorPos - index);
         }
         break;
     case Qt::Key_Left :
         if (cursorPos == 0) {
-            emit moveCursorLR(Qt::Key_Left);
+            emit moveCursor(myBlock, Qt::Key_Left);
         }
         break;
     case Qt::Key_Right :
         if (cursorPos == text.length()) {
-            emit moveCursorLR(Qt::Key_Right);
+            emit moveCursor(myBlock, Qt::Key_Right);
         }
         break;
     case Qt::Key_Backspace :
         if (cursorPos == 0) {
-            emit erasePressed(Qt::Key_Backspace);
+            emit erasePressed(myBlock, Qt::Key_Backspace);
         }
         break;
     case Qt::Key_Delete :
         if (cursorPos == text.length()) {
-            emit erasePressed(Qt::Key_Delete);
+            emit erasePressed(myBlock, Qt::Key_Delete);
         }
         break;
     }

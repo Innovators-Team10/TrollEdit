@@ -17,12 +17,12 @@ other_grammars = {
 paired = {"{", "}", "(", ")", "[", "]", }
 selectable = {
 	"preprocessor", "funct_definition", "declaration", 
-	"initializer", "block", "funct_param", "expression",  
-	"comment", "program",
+	"initializer", "block", "funct_parameter", "expression",  
+	"comment", "program", "header_file",
 	"unknown", "if_statement", "while_statement", 
-	"for_statement", "switch_statement", "other_statement"
+	"for_statement", "switch_statement", "simple_statement"
 	}	
-multi_text = {"multi_comment", "doc_comment",}
+multi_text = {"multiline_comment", "doc_comment",}
 
 require 'lpeg'
 
@@ -170,13 +170,13 @@ abstract_declarator =
 	T"(" * N'parameter_type_list'^-1 * T")"
 	)^1,
 	
-statement = NI"simple_statement" + T"{" * (N'block'^-1 + N'unknown'^1) * T"}",
-simple_statement =
+statement = 
 	N'if_statement' +
 	N'switch_statement' +
 	N'while_statement' +
 	N'for_statement' +
-	N'other_statement',
+	N'simple_statement' +
+	T"{" * N'block'^-1 * T"}",
 	
 if_statement = TK"if" * T"(" * N'expression' * T")" * NI'statement' * (TK"else" * NI'statement')^-1,
 
@@ -189,7 +189,7 @@ while_statement =
 for_statement = 
 	TK"for" * T"(" * N'expression'^-1 * T";" * N'expression'^-1 * T";" * N'expression'^-1 * T")" * NI'statement',
 	
-other_statement =
+simple_statement =
 	N'funct_call' * T";" +
 	TK"goto" * N'identifier' * T";" +
 	TK"continue" * T";" +
@@ -202,7 +202,7 @@ block =  (NI'statement' + N'declaration' + N'preprocessor' + N'label')^1,
 label = NI'identifier_name' * T":",
 
 case_statement = 
-	(N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":" * NI'statement'^0,
+	(N'identifier' + TK"case" * N'constant_expression' + TK"default") * T":" * N'block'^-1,
 
 expression =
 	NI'assignment_expression' * (T"," * NI'assignment_expression')^0,
@@ -246,9 +246,9 @@ postfix_expression =
 	
 postfix_operator = T"++" + T"--",
 
-funct_call = N'identifier' * T"(" * (N'funct_param' * (T"," * N'funct_param')^0)^-1 * T")",
+funct_call = N'identifier' * T"(" * (N'funct_parameter' * (T"," * N'funct_parameter')^0)^-1 * T")",
 
-funct_param = NI'assignment_expression',
+funct_parameter = NI'assignment_expression',
 
 constant =
 	N'number_constant' +
@@ -257,7 +257,7 @@ constant =
 	-- N'enumeration_constant'
 	,
 
-comment = N'whites'^-1 * (N'doc_comment' + N'multi_comment' + N'line_comment'),
+comment = N'whites'^-1 * (N'doc_comment' + N'multiline_comment' + N'line_comment'),
 
 -- TERMINALS
 number_constant = NI'number_literal',
@@ -268,7 +268,7 @@ identifier = NI'identifier_name',
 typedef_name = NI'identifier_name',
 
 doc_comment = TP(P"/**" * (1 - P"*/")^0 * P"*/"),
-multi_comment = TP(P"/*" * (1 - P"*/")^0 * P"*/"),
+multiline_comment = TP(P"/*" * (1 - P"*/")^0 * P"*/"),
 line_comment = TP(P"//" * (1 - S"\r\n")^0),
 
 -- LITERALS

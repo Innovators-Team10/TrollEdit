@@ -39,13 +39,13 @@ public:
      int getSpaces() const;
      void adjustSpaces(int offset);
 
-     bool setLineBreaking(bool flag);
+     bool setLineBreaking(bool flag = true);
      bool isLineBreaking() const;
      bool allowsParagraphs() const;
      bool isSelectable() const;
      bool isPaired() const;
      bool isFloating() const;
-     void setFloating(bool floating);
+     void setFloating(bool floating = true);
 
      TreeElement *operator<<(TreeElement *child);
      TreeElement *operator<<(QList<TreeElement *> children);

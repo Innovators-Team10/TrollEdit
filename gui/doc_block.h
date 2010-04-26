@@ -2,14 +2,10 @@
 #define DOC_BLOCK_H
 
 #include "block.h"
-#include "arrow.h"
-#include "text_item.h"
-#include "../analysis/tree_element.h"
-#include "../widget/document_scene.h"
-#include <QTextBrowser>
+
 class TreeElement;
 class DocumentScene;
-class HideBlockButton;
+class FoldButton;
 class TextItem;
 class Arrow;
 
@@ -17,7 +13,7 @@ class DocBlock : public Block
 {
     Q_OBJECT
 public:
-    DocBlock(QString text, QPointF pos, Block *relatedBlock, QGraphicsScene *parentScene = 0);
+    DocBlock(QString text, QPointF pos, Block *relatedBlock,  BlockGroup *parentgroup = 0);
     ~DocBlock();
     void addImage(const QImage &image);
     void addFile(QUrl url);
@@ -25,7 +21,7 @@ public:
     QImage image;
     Arrow *arrow;
 
-    enum { Type = UserType + 2 };
+    enum { Type = UserType + 3 };
 protected:
     QTextBrowser file;
 

@@ -23,6 +23,7 @@ Analyzer::Analyzer(QString script_name)
     } catch (QString exMsg) {
         msgBox->critical(0, "Script error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
     }
+    lua_close(L);
 }
 
 void Analyzer::setupConstants()
@@ -77,7 +78,6 @@ void Analyzer::setupConstants()
 
 Analyzer::~Analyzer()
 {
-    lua_close(L);               // cleanup Lua
 }
 
 QString Analyzer::getExtension() const
@@ -86,6 +86,8 @@ QString Analyzer::getExtension() const
 }
 QList<QPair<QString, QHash<QString, QString> > > Analyzer::readConfig(QString fileName)
 {
+    L = lua_open();
+    luaL_openlibs(L);
     QList<QPair<QString, QHash<QString, QString> > > tables;
     try {
         if (luaL_loadfile(L, qPrintable(fileName))
@@ -115,9 +117,11 @@ QList<QPair<QString, QHash<QString, QString> > > Analyzer::readConfig(QString fi
             }
             tables << QPair<QString, QHash<QString, QString> >(key, pairs);
         }
+        lua_close(L);
         return tables;
     } catch (QString exMsg) {
         msgBox->critical(0, "Config file error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
+        lua_close(L);
         return tables;
     }
 }
@@ -125,6 +129,9 @@ QList<QPair<QString, QHash<QString, QString> > > Analyzer::readConfig(QString fi
 // analyze string by provided grammar
 TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 {
+    L = lua_open();
+    luaL_openlibs(L);
+
     luaL_dofile(L, qPrintable(script_name));  // load the script
     lua_getglobal (L, "lpeg");        // table to be indexed
     lua_getfield(L, -1, "match");                     // function to be called: 'lpeg.match'
@@ -138,10 +145,11 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 
     TreeElement *root = 0;
     if(lua_istable(L, -1)) {
-        root = createTreeFromLuaStack();                    // print result
+        root = createTreeFromLuaStack();
     }
-    processWhites(root);
+    lua_close(L);
 
+    processWhites(root);
     return root;
 }
 
@@ -149,7 +157,9 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 TreeElement* Analyzer::analyzeFull(QString input)
 {
     try {
-        return analyzeString(mainGrammar, input);
+        TreeElement *root = analyzeString(mainGrammar, input);
+        root->setFloating();
+        return root;
     } catch(QString exMsg) {
         msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
         return 0;
@@ -268,7 +278,7 @@ void Analyzer::processWhites(TreeElement* root)
             index = parent->indexOfChild(el) - 1;   // -1 because el will be removed before checking
             bool isLast = !(*el)[0]->hasNext();
             parent->removeChild(el);   // remove & destroy newline element
-            delete(el);
+            delete el;
             if (isLast) continue;     // ignore newlines at the end of file
 
             while(index == parent->childCount()-1) {// el was the last child
@@ -306,7 +316,7 @@ void Analyzer::processWhites(TreeElement* root)
             index = parent->indexOfChild(el);
             int spaces = (*el)[0]->getType().length();
             parent->removeChild(el);        // remove & destroy
-            delete(el);
+            delete el;
 
             while (index == 0) {       // el was the first child
                 index = parent->index();

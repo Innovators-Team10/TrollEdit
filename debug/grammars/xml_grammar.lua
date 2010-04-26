@@ -13,7 +13,7 @@ full_grammar = "document"
 other_grammars = {
 	markup_element="in_markup_element", 
 }
-paired = {"<", ">", "el_start", "el_end"}
+paired = {"<", ">", "start_element", "end_element"}
 selectable = {"xml_header", "markup_element", "unknown"}
 multi_text = {"unknown"}
 
@@ -74,11 +74,11 @@ in_markup_element =
 xml_header = T"<?xml" * T"version=" * N'version_number' * T"?>",
 version_number = T"\"" * NI'number' * T'.' * NI'number' * T"\"",
 markup_element = 
-	N'el_empty' +
-	N'el_start' * (N'word'^1 + N'markup_element'^0) * N'el_end',
-el_start = T"<" * N'markup_tag' * N'attribute'^0 * T">",
-el_end = T"</" * N'markup_tag' * T">",
-el_empty = T"<" * N'markup_tag' * T"/>",
+	N'empty_element' +
+	N'start_element' * (N'word'^1 + N'markup_element'^0) * N'end_element',
+start_element = T"<" * N'markup_tag' * N'attribute'^0 * T">",
+end_element = T"</" * N'markup_tag' * T">",
+empty_element = T"<" * N'markup_tag' * T"/>",
 attribute = N'attribute_key' * N'attribute_value',
 	
 -- TERMINALS

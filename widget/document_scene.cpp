@@ -1,28 +1,82 @@
 #include "document_scene.h"
+#include "../gui/block_group.h"
 #include "../analysis/analyzer.h"
-#include "../analysis/tree_element.h"
 #include "../gui/block.h"
-#include "../gui/doc_block.h"
+#include "../analysis/tree_element.h"
+#include <QtGui>
 
+QGraphicsTextItem *textArea;
 
-DocumentScene::DocumentScene(Analyzer *analyzer, QObject *parent)
+DocumentScene::DocumentScene(QWidget *parent)
     : QGraphicsScene(parent)
 {
-    this->analyzer = analyzer;
-    mainBlock = 0;
+    currentGroup = 0;
+    modified = false;
+//    textArea = new QGraphicsTextItem(0, this);
+//    textArea->setPos(200, 0);
+    textArea = 0;
+}
 
-    insertLine = new QGraphicsLineItem(0, this);
-    insertLine->setVisible(false);
-    insertLine->setPen(QPen(QBrush(Qt::red), 2));
-    insertLine->setZValue(1);
+void DocumentScene::newGroup(Analyzer *defaultAnalyzer)
+{
+//    groups << new BlockGroup(QString(" /n"), defaultAnalyzer, this);
+//    currentGroup = groups.last();
+}
+
+void DocumentScene::loadGroup(const QString &fileName, Analyzer *analyzer)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(new QWidget, tr("TrollEdit"),
+                             tr("Cannot read file %1:\n%2.").arg(file.fileName()).arg(file.errorString()));
+        return;
+    }
+    QTextStream in(&file);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QString content = in.readAll();
+
+    if (currentGroup != 0) delete currentGroup;
+    groups << new BlockGroup(content, analyzer, this);
+    currentGroup = groups.last();
+
+    QApplication::restoreOverrideCursor();
 
     modified = false;
 }
 
+void DocumentScene::saveGroup(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(new QWidget, tr("TrollEdit"),
+                             tr("Cannot write file %1:\n%2.").arg(file.fileName()).arg(file.errorString()));
+        return;
+    }
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QTextStream out(&file);
+    if (currentGroup != 0)
+        out << currentGroup->toText();
+    QApplication::restoreOverrideCursor();
+
+    modified = false;
+}
+
+void DocumentScene::closeGroup()
+{
+    if (currentGroup != 0) {
+        groups.removeOne(currentGroup);
+        delete(currentGroup);
+        if (!groups.isEmpty())
+            currentGroup = groups.last();
+        else
+            currentGroup = 0;
+    }
+}
+
 void DocumentScene::adjustSceneRect(QRectF rect)
 {
-    if (mainBlock) {
-        QRectF blockRect = mainBlock->sceneBoundingRect();
+    if (currentGroup != 0) {    // todo - other groups
+        QRectF blockRect = currentGroup->sceneBoundingRect();
         if (blockRect.right() > rect.right())
             rect.setRight(blockRect.right());
         if (blockRect.bottom() > rect.bottom())
@@ -31,183 +85,56 @@ void DocumentScene::adjustSceneRect(QRectF rect)
     setSceneRect(rect);
 }
 
-void DocumentScene::loadFile(const QString &fileName)
-{
-    QFile file(fileName);
-
-    if (!file.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(new QWidget, tr("TrollEdit"),
-                             tr("Cannot read file %1:\n%2.").arg(file.fileName()).arg(file.errorString()));
-        return;
-    }
-
-    QTextStream in(&file);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    QString content = in.readAll();
-
-    analyzeAll(content);
-    QApplication::restoreOverrideCursor();
-}
-
-void DocumentScene::saveFile(const QString &fileName)
-{
-    QFile file(fileName);
-
-    if (!file.open(QIODevice::WriteOnly)) {
-        QMessageBox::warning(new QWidget, tr("TrollEdit"),
-                             tr("Cannot write file %1:\n%2.").arg(file.fileName()).arg(file.errorString()));
-        return;
-    }
-
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    QTextStream out(&file);
-
-    if (mainBlock != 0)
-        out << mainBlock->getElement()->getRoot()->getText();
-
-    QApplication::restoreOverrideCursor();
-
-    modified = false;
-}
-
-void DocumentScene::showInsertLine(QLineF line) {
-    insertLine->setLine(line);
-    insertLine->setVisible(true);
-}
-
-void DocumentScene::hideInsertLine() {
-    insertLine->setVisible(false);
-}
-
 void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (event->button() == Qt::MidButton) { // create new block
+    if (itemAt(event->scenePos()) != 0) {
+//        event->ignore();
+        QGraphicsScene::mousePressEvent(event);
+        return;
     }
+    
     if (event->button() == Qt::LeftButton) {
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
-            addDocBlock(event->scenePos());
+//            addDocBlock(event->scenePos());
             return;
         } else {
-            if (mainBlock != 0) {
-                if (itemAt(event->scenePos()) == 0)
-                    mainBlock->setSelected(false);
-            }
+            currentGroup->deselect();
         }
     }
+
     if (event->button() == Qt::RightButton) { // AST testing
         QString str = "";
-        TreeElement *root = mainBlock->getElement()->getRoot();
+        TreeElement *rootEl = currentGroup->root->getElement()->getRoot();
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
-            QMapIterator<int, Block*> i(Block::lineStarts);
-            while (i.hasNext()) {
-                i.next();
-                str.append(QString("%1").arg(i.key())).append(" - "+i.value()->getElement()->getType()+"\n");
+            for (int i = 0; i <= currentGroup->lastLine; i++) {
+                str.append(QString("%1").arg(i)).
+                        append(" - "+currentGroup->lineStarts[i]->getElement()->getType()+": ").
+                        append(currentGroup->lineStarts[i]->getFirstLeaf()->getElement()->getType()+"\n");
             }
-            str.append(QString("Last line: %1").arg(Block::getLastLine()));
+            str.append(QString("Last line: %1").arg(currentGroup->lastLine));
+
         } else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) {
-            QList<TreeElement*> list = root->getDescendants();
+            QList<TreeElement*> list = rootEl->getDescendants();
             foreach (TreeElement *el, list) {
+                if (el->getBlock() != 0) {
+                    str.append(QString("%1 ").arg(el->getBlock()->getLine()));
+                } else {
+                    str.append("- ");
+                }
                 str.append(QString("%1").arg(el->getSpaces()));
                 str.append("  "+el->getType());
                 if (el->isLineBreaking()) str.append("*");
                 str.append("\n");
             }
         } else {
-            str = root->getText();
+            str = rootEl->getText();
         }
         QGraphicsItem *text = addText(str);
         text->setPos(event->scenePos());
         text->setZValue(-1);
     }
+
     QGraphicsScene::mousePressEvent(event);
-}
-
-void DocumentScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    QGraphicsScene::mouseReleaseEvent(event);
-}
-
-void DocumentScene::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
-{
-    //
-}
-
-void DocumentScene::animationFinished()
-{
-    update();
-}
-
-void DocumentScene::reanalyze()
-{
-    if (mainBlock == 0) {
-        update();
-        return;
-    }
-    if (!reanalyze(Block::getSelectedBlock(), QPoint(0, 0)))
-        analyzeAll(mainBlock->getElement()->getRoot()->getText());
-}
-
-bool DocumentScene::reanalyze(Block *block, QPoint cursorPos)
-{
-    if (block == 0) return false;
-
-    TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
-
-    if (analysedEl == 0) {
-        return false;
-    }
-    TreeElement *newEl = analyzer->analyzeElement(analysedEl);
-
-    Block *analysedBl;
-    do {
-        analysedBl = analysedEl->getBlock();
-        analysedEl = (*analysedEl)[0];
-    } while (analysedBl == 0);
-
-    bool lineBreaking = analysedBl->getElement()->isLineBreaking();
-    Block *parentBl = analysedBl->parentBlock();
-    Block *nextSib = analysedBl->getNextSibling();
-
-    analysedBl->setParentItem(0);
-
-    Block *newBlock = new Block(newEl, parentBl, this);
-    newBlock->getElement()->setLineBreaking(lineBreaking);
-    if (nextSib != 0) newBlock->stackBefore(nextSib);
-
-    mainBlock->updateAll(false);
-
-    Block *lineBl = mainBlock->lineStarts[cursorPos.y()]->getFirstLeaf();
-    lineBl->textItem()->setTextCursorPosition(0);
-    lineBl->setSelected();
-
-    update();
-    analysedBl->deleteLater();
-    return true;
-}
-
-bool DocumentScene::analyzeAll(QString text)
-{
-    if (text.isEmpty())
-        return false;
-    if (mainBlock != 0)
-        delete(mainBlock);
-
-    mainBlock = new Block(analyzer->analyzeFull(text), 0, this);
-    mainBlock->setPos(40, 20); //temp
-    mainBlock->updateAll(false);//updateBlock();
-    update();
-    return true;
-}
-
-Block* DocumentScene::blockAt(QPointF pos) const
-{
-    QGraphicsItem *item = itemAt(pos);
-    if (item == 0)
-        return 0;
-    QGraphicsTextItem *textItem;    // leaf item would be covered by its QGraphicsTextItem child
-    if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
-        item = textItem->parentItem();
-    return qgraphicsitem_cast<Block*>(item);
 }
 
 void DocumentScene::update(const QRectF &rect)
@@ -236,66 +163,70 @@ QHash<QString, QHash<QString, QColor> > DocumentScene::getBlockFormatting() cons
     return blockFormats;
 }
 
-void DocumentScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
+void DocumentScene::print(QString text) const
 {
-    focusInEvent(new QFocusEvent(QEvent::FocusIn, Qt::MouseFocusReason));
-
-
-    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
-        event->accept();
-    else
-        event->ignore();
+//    text.prepend(textArea->toPlainText());
+//    textArea->setPlainText(text);
 }
 
-void DocumentScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
-{
-    Q_UNUSED(event);
-
-    focusOutEvent(new QFocusEvent(QEvent::FocusOut, Qt::MouseFocusReason));
-}
-
-void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
-{
-    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
-        event->accept();
-    else
-        event->ignore();
-}
-
-
-void DocumentScene::dropFile(QUrl url, QGraphicsSceneDragDropEvent *event)
-{
-    DocBlock *block = new DocBlock("file", event->scenePos(), mainBlock->getSelectedBlock(), this);
-    block->setPos(event->scenePos());
-    block->addFile(url);
-}
-
-void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
-{
-    // can be picture(s) from file
-    if (event->mimeData()->hasUrls()) {
-        foreach (QUrl url, event->mimeData()->urls()) {
-            QFileInfo info(url.toLocalFile());
-            if (QImageReader::supportedImageFormats().contains(info.suffix().toLower().toLatin1())) {
-                QImage pom=  QImage(info.filePath());
-                if(!pom.isNull())
-                    dropImage(pom, event);
-                else
-                    dropFile(url,event);
-            }
-        }
-    }
-}
-
-void DocumentScene::addDocBlock(QPointF pos)
-{
-    DocBlock *block = new DocBlock("", pos, mainBlock->getSelectedBlock(), this);
-    block->textItem()->setTextCursorPosition(0);
-}
-
-void DocumentScene::dropImage(const QImage &image, QGraphicsSceneDragDropEvent *event)
-{
-    DocBlock *block = new DocBlock("image", event->scenePos(), mainBlock->getSelectedBlock(), this);
-    if (!image.isNull())
-        block->addImage(image);
-}
+//void DocumentScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
+//{
+//    focusInEvent(new QFocusEvent(QEvent::FocusIn, Qt::MouseFocusReason));
+//    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
+//        event->accept();
+//    else
+//        event->ignore();
+//}
+//
+//void DocumentScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
+//{
+//    Q_UNUSED(event);
+//
+//    focusOutEvent(new QFocusEvent(QEvent::FocusOut, Qt::MouseFocusReason));
+//}
+//
+//void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
+//{
+//    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
+//        event->accept();
+//    else
+//        event->ignore();
+//}
+//
+//
+//void DocumentScene::dropFile(QUrl url, QGraphicsSceneDragDropEvent *event)
+//{
+//    DocBlock *block = new DocBlock("file", event->scenePos(), mainBlock->getSelectedBlock(), this);
+//    block->setPos(event->scenePos());
+//    block->addFile(url);
+//}
+//
+//void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
+//{
+//    // can be picture(s) from file
+//    if (event->mimeData()->hasUrls()) {
+//        foreach (QUrl url, event->mimeData()->urls()) {
+//            QFileInfo info(url.toLocalFile());
+//            if (QImageReader::supportedImageFormats().contains(info.suffix().toLower().toLatin1())) {
+//                QImage pom = QImage(info.filePath());
+//                if(!pom.isNull())
+//                    dropImage(pom, event);
+//                else
+//                    dropFile(url,event);
+//            }
+//        }
+//    }
+//}
+//
+//void DocumentScene::addDocBlock(QPointF pos)
+//{
+//    DocBlock *block = new DocBlock("", pos, mainBlock->getSelectedBlock(), this);
+//    block->textItem()->setTextCursorPosition(0);
+//}
+//
+//void DocumentScene::dropImage(const QImage &image, QGraphicsSceneDragDropEvent *event)
+//{
+//    DocBlock *block = new DocBlock("image", event->scenePos(), mainBlock->getSelectedBlock(), this);
+//    if (!image.isNull())
+//        block->addImage(image);
+//}

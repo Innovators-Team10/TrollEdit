@@ -1,20 +1,23 @@
 #include "doc_block.h"
+#include "arrow.h"
+#include "text_item.h"
+#include "../analysis/tree_element.h"
+#include "../widget/document_scene.h"
+#include <QTextBrowser>
+#include "block_group.h"
 
-
-DocBlock::DocBlock(QString text, QPointF pos, Block *relatedBlock, QGraphicsScene *parentScene)
-    : Block(new TreeElement("", false, true), 0, parentScene)
+DocBlock::DocBlock(QString text, QPointF pos, Block *relatedBlock, BlockGroup *parentgroup)
+    : Block(new TreeElement("", false, true), 0, parentgroup)
 {
     Block *commentBl = new Block(new TreeElement("doc_comment", true, true),
-                                 0, parentScene);
-    element->setFloating(false);
+                                 0, parentgroup);
     element->setType(text);
-
-    setParentItem(commentBl);
+    setParentBlock(commentBl);
 
     arrow = 0;
     if (relatedBlock != 0) {
 //        relatedBlock->element->appendChild(commentBl->element);
-        addArrow(this, relatedBlock, parentScene);
+        addArrow(this, relatedBlock, parentgroup->docScene);
     }
 
     commentBl->getElement()->setFloating(true);
@@ -30,7 +33,7 @@ DocBlock::~DocBlock()
 {
     if (arrow != 0) {
         arrow->setVisible(false);
-        docScene->update();
+        group->update();
         arrow->deleteLater();
     }
 }
@@ -62,21 +65,5 @@ void DocBlock::addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene)
 
 void DocBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-
-    QRectF rect = boundingRect();
-    painter->fillRect(rect, Qt::white);
-
-    qreal width;
-    Qt::PenStyle style;
-    QColor color;
-
-    width = 2; style = Qt::SolidLine; color = format["selected"];
-
-    painter->setPen(QPen(QBrush(color), width, style));
-    rect.adjust(-width/2-2, -width/2, width/2+2, width/2);
-    painter->drawRect(rect);
-
-//    Block::paint(painter, option, widget);
+    Block::paint(painter, option, widget);
 }

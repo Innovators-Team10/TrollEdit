@@ -30,7 +30,7 @@ TreeElement::~TreeElement()
         removeAllChildren();
     if (parent != 0) {
         if (!parent->isImportant())
-            delete(parent);
+            delete parent;
         else
             parent->removeChild(this);
     }
@@ -115,7 +115,7 @@ bool TreeElement::isLeaf() const
 }
 bool TreeElement::isImportant() const
 {
-    return childCount() != 1 || selectable;
+    return childCount() != 1 || selectable || floating;
 }
 bool TreeElement::isNewline() const
 {
@@ -186,28 +186,17 @@ bool TreeElement::isLineBreaking() const
 
 bool TreeElement::isFloating() const
 {
-    return this->floating;
+    return floating;
 }
 
 void TreeElement::setFloating(bool floating)
 {
-    this->floating=floating;
+    this->floating = floating;
 }
 
 bool TreeElement::isSelectable() const
 {
-    if (selectable) {
-        if (childCount() == 1) {
-            TreeElement *child = children[0];
-            while (!child->isImportant()) {
-                child = (*child)[0];
-            }
-            if (child->isSelectable())
-                return false;
-        }
-        return true;
-    }
-    return false;
+    return selectable;
 }
 
 bool TreeElement::allowsParagraphs() const
