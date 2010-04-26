@@ -53,9 +53,9 @@ void DocBlock::addFile(QUrl url){
 void DocBlock::addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene){
     arrow = new Arrow(start, end, end, parentScene);
     if(this->getElement()->getType() == "image")
-        arrow->setColor(Qt::yellow);
+        arrow->setColor(Qt::darkYellow);
     else
-        arrow->setColor(Qt::magenta);
+        arrow->setColor(Qt::blue);
 }
 
 

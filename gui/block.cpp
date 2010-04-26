@@ -64,12 +64,7 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
         }        
     }
 
-    assignHighlighting(element);
-
-    if (docScene->getBlockFormatting().contains(element->getType()))
-        format = docScene->getBlockFormatting().value(element->getType());
-    else
-        format = docScene->getBlockFormatting().value("block_style");
+    assignHighlighting(element);    
     
     setFlag(QGraphicsItem::ItemIsMovable);
     folded = false;
@@ -82,7 +77,7 @@ Block::Block(TreeElement *element, Block *parentBlock, QGraphicsScene *parentSce
     futureParent = 0;
     futureSibling = 0;
 
-//    setAcceptHoverEvents(true);
+    setAcceptHoverEvents(true);
     setPos(computePos());
     setRect(computeRect());
 
@@ -118,6 +113,11 @@ void Block::assignHighlighting(TreeElement *el)
             }
         }
     }
+    
+    if (docScene->getBlockFormatting().contains(el->getType()))
+        format = docScene->getBlockFormatting().value(el->getType());
+    else
+        format = docScene->getBlockFormatting().value("block_style");
 }
 
 void Block::createControls()
@@ -483,8 +483,14 @@ void Block::textFocusChanged(QFocusEvent* event)
         if (element->isPaired()) {
             TreeElement *pair = element->getPair();
             if (pair != 0 && pair->getBlock()->isTextBlock() && isTextBlock()) {//temp
-                pair->getBlock()->textItem()->setDefaultTextColor(Qt::blue);
-                myTextItem->setDefaultTextColor(Qt::blue);
+                pair->getBlock()->textItem()->setDefaultTextColor(Qt::red);
+                QFont font = pair->getBlock()->textItem()->font();
+                font.setBold(true);
+                pair->getBlock()->textItem()->setFont(font);
+                myTextItem->setDefaultTextColor(Qt::red);
+                font = myTextItem->font();
+                font.setBold(true);
+                myTextItem->setFont(font);
             } else if (isTextBlock()) {
                 myTextItem->setDefaultTextColor(Qt::red);
             }
@@ -493,8 +499,14 @@ void Block::textFocusChanged(QFocusEvent* event)
         if (element->isPaired()) {
             TreeElement *pair = element->getPair();
             if (pair != 0 && pair->getBlock()->isTextBlock() && isTextBlock()) {// temp
+                QFont font = pair->getBlock()->textItem()->font();
+                font.setBold(false);
+                pair->getBlock()->textItem()->setFont(font);
                 pair->getBlock()->textItem()->setDefaultTextColor(Qt::black);
                 myTextItem->setDefaultTextColor(Qt::black);
+                font = myTextItem->font();
+                font.setBold(false);
+                myTextItem->setFont(font);
             } else if (isTextBlock()) {
                 myTextItem->setDefaultTextColor(Qt::black);
             }
