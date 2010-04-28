@@ -6,62 +6,68 @@
 #include <QTextBrowser>
 #include "block_group.h"
 
-DocBlock::DocBlock(QString text, QPointF pos, Block *relatedBlock, BlockGroup *parentgroup)
-    : Block(new TreeElement("", false, true), 0, parentgroup)
+DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)
+    : Block(new TreeElement("", true, true), 0, parentgroup)
 {
-    Block *commentBl = new Block(new TreeElement("doc_comment", true, true),
-                                 0, parentgroup);
-    element->setType(text);
-    setParentBlock(commentBl);
+    setParentItem(0);
+    element->setType("doc_comment");
+    element->setFloating(true);
+    myTextItem->adaptToFloating();  // disconnect all harmful signals
+    setFlag(QGraphicsItem::ItemIsMovable);
+    setAcceptDrops(false);
+
+    setPos(pos);
+    updateBlock(false);
 
     arrow = 0;
-    if (relatedBlock != 0) {
+    if (group->selectedBlock() != 0) {
 //        relatedBlock->element->appendChild(commentBl->element);
-        addArrow(this, relatedBlock, parentgroup->docScene);
+        addArrow(this, group->selectedBlock(), group->docScene);
     }
-
-    commentBl->getElement()->setFloating(true);
-    commentBl->setPos(pos);
-
-//    if (docScene->getHighlightning().contains("multi_comment")) {
-//        myTextItem->setFont(docScene->getHighlightning().value("multi_comment").first);
-//    }
-
 }
 
 DocBlock::~DocBlock()
 {
-    if (arrow != 0) {
-        arrow->setVisible(false);
-        group->update();
-        arrow->deleteLater();
-    }
 }
 
+void DocBlock::updateBlock(bool doAnimation)
+{
+    // update line
+    line = -1;
+    // update pos
+    updatePos(!doAnimation);
+    // update size
+    updateSize(!doAnimation);
+    // update fold button
+    foldButton = 0;
+    // animate
+    if (doAnimation)
+        animate();
+}
+
+
 void DocBlock::addImage(const QImage &image){
-    QTextCursor cursor = myTextItem->textCursor();
-    this->image = image;
-    if (!image.isNull())
-        cursor.insertImage(image);
-    myTextItem->setTextCursor(cursor);
     myTextItem->setTextInteractionFlags(Qt::NoTextInteraction);
+    QTextCursor cursor = QTextCursor(myTextItem->document());
+    cursor.insertImage(image);
 }
 
 void DocBlock::addFile(QUrl url){
-    //todo: pridanie linkov na subory ktore sa dragnu na scenu do dokumentacnych blokov
-    //file = new QTextBrowser();
     myTextItem->setTextInteractionFlags(Qt::NoTextInteraction);
+    myTextItem->setPlainText(url.toString());
+}
+
+void DocBlock::addText(QString text){
+    myTextItem->setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
+    myTextItem->setPlainText(text);
+    group->selectBlock(this);
+    myTextItem->setTextCursorPosition(0);
 }
 
 void DocBlock::addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene){
     arrow = new Arrow(start, end, end, parentScene);
-    if(this->getElement()->getType() == "image")
-        arrow->setColor(Qt::darkYellow);
-    else
-        arrow->setColor(Qt::blue);
+    arrow->setColor(Qt::blue);
 }
-
-
 
 void DocBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {

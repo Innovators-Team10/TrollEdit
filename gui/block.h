@@ -28,6 +28,7 @@ public:
     // methods to change hierarchy (blocks + AST)
     void setParentBlock (QGraphicsItem *parent);
     void stackBeforeBlock (const QGraphicsItem *sibling);
+    Block *removeBlock(bool deleteThis);
 
     // block management methods
     Block *getFirstLeaf() const;
@@ -44,6 +45,7 @@ public:
     int numberOfLines() const;
 
     void addBlockAt(Block *block, QPointF pos);
+    QPair<Block*, bool> findClosestBlock(QPointF pos);
 
     // main properties
     int type() const {return Type;}
@@ -61,6 +63,7 @@ public:
     // textItem properties
     bool isTextBlock() const {return myTextItem != 0;}
     TextItem *textItem() const {return myTextItem;}
+    Block *addTextCursorAt(QPointF pos);
 
     // geometry
     QPointF idealPos() const {return idealGeometry.topLeft();}
@@ -80,10 +83,8 @@ public:
     void offsetChildren(bool flag, QPointF pos = QPointF());
 
     void updateBlock(bool doAnimation = true);
-//    void updateAfter(bool updateThis = false);
-//    void updatePosAfter();
-//    void updateLineStarts();
-//    void updateXPosInLine(int lineNo);
+//    void updateBlockAfter(bool doAnimation = true);
+//    void updateGeometryAfter(bool doAnimation = true);
     void animate();
 
 public slots:

@@ -2,6 +2,7 @@
 #include "../gui/block_group.h"
 #include "../analysis/analyzer.h"
 #include "../gui/block.h"
+#include "../gui/doc_block.h"
 #include "../analysis/tree_element.h"
 #include <QtGui>
 
@@ -36,8 +37,10 @@ void DocumentScene::loadGroup(const QString &fileName, Analyzer *analyzer)
     QString content = in.readAll();
 
     if (currentGroup != 0) delete currentGroup;
+
     groups << new BlockGroup(content, analyzer, this);
     currentGroup = groups.last();
+//    currentGroup->setRect(sceneRect());
 
     QApplication::restoreOverrideCursor();
 
@@ -88,15 +91,14 @@ void DocumentScene::adjustSceneRect(QRectF rect)
 void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (itemAt(event->scenePos()) != 0) {
-//        event->ignore();
         QGraphicsScene::mousePressEvent(event);
         return;
     }
-    
+
     if (event->button() == Qt::LeftButton) {
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
-//            addDocBlock(event->scenePos());
-            return;
+            DocBlock *block = currentGroup->addDocBlock(event->scenePos());
+            block->addText("");
         } else {
             currentGroup->deselect();
         }
@@ -163,70 +165,71 @@ QHash<QString, QHash<QString, QColor> > DocumentScene::getBlockFormatting() cons
     return blockFormats;
 }
 
-void DocumentScene::print(QString text) const
+void DocumentScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-//    text.prepend(textArea->toPlainText());
-//    textArea->setPlainText(text);
+    if (itemAt(event->scenePos()) != 0) {
+        QGraphicsScene::dragEnterEvent(event);
+        return;
+    }
+    focusInEvent(new QFocusEvent(QEvent::FocusIn, Qt::MouseFocusReason));
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage()
+        || event->mimeData()->hasFormat("block_data"))
+        event->accept();
+    else
+        event->ignore();
 }
 
-//void DocumentScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
-//{
-//    focusInEvent(new QFocusEvent(QEvent::FocusIn, Qt::MouseFocusReason));
-//    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
-//        event->accept();
-//    else
-//        event->ignore();
-//}
-//
-//void DocumentScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
-//{
-//    Q_UNUSED(event);
-//
-//    focusOutEvent(new QFocusEvent(QEvent::FocusOut, Qt::MouseFocusReason));
-//}
-//
-//void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
-//{
-//    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
-//        event->accept();
-//    else
-//        event->ignore();
-//}
-//
-//
-//void DocumentScene::dropFile(QUrl url, QGraphicsSceneDragDropEvent *event)
-//{
-//    DocBlock *block = new DocBlock("file", event->scenePos(), mainBlock->getSelectedBlock(), this);
-//    block->setPos(event->scenePos());
-//    block->addFile(url);
-//}
-//
-//void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
-//{
-//    // can be picture(s) from file
-//    if (event->mimeData()->hasUrls()) {
-//        foreach (QUrl url, event->mimeData()->urls()) {
-//            QFileInfo info(url.toLocalFile());
-//            if (QImageReader::supportedImageFormats().contains(info.suffix().toLower().toLatin1())) {
-//                QImage pom = QImage(info.filePath());
-//                if(!pom.isNull())
-//                    dropImage(pom, event);
-//                else
-//                    dropFile(url,event);
-//            }
-//        }
-//    }
-//}
-//
-//void DocumentScene::addDocBlock(QPointF pos)
-//{
-//    DocBlock *block = new DocBlock("", pos, mainBlock->getSelectedBlock(), this);
-//    block->textItem()->setTextCursorPosition(0);
-//}
-//
-//void DocumentScene::dropImage(const QImage &image, QGraphicsSceneDragDropEvent *event)
-//{
-//    DocBlock *block = new DocBlock("image", event->scenePos(), mainBlock->getSelectedBlock(), this);
-//    if (!image.isNull())
-//        block->addImage(image);
-//}
+void DocumentScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
+{
+    if (itemAt(event->scenePos()) != 0) {
+        QGraphicsScene::dragLeaveEvent(event);
+        return;
+    }
+    Q_UNUSED(event);
+    focusOutEvent(new QFocusEvent(QEvent::FocusOut, Qt::MouseFocusReason));
+}
+
+void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
+{
+    if (itemAt(event->scenePos()) != 0) {
+        QGraphicsScene::dragMoveEvent(event);
+        return;
+    }
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage()
+        || event->mimeData()->hasFormat("block_data"))
+        event->accept();
+    else
+        event->ignore();
+}
+
+void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
+{
+    if (itemAt(event->scenePos()) != 0) {
+        QGraphicsScene::dropEvent(event);
+        return;
+    }
+    if (event->mimeData()->hasUrls()) {
+        foreach (QUrl url, event->mimeData()->urls()) {
+            QFileInfo info(url.toLocalFile());
+            if (QImageReader::supportedImageFormats().contains(info.suffix().toLower().toLatin1())) {
+                QImage image = QImage(info.filePath());
+                if(!image.isNull()) {
+                    DocBlock *block = currentGroup->addDocBlock(event->scenePos());
+                    block->addImage(image);
+                }
+                return;
+            }
+            DocBlock *block = currentGroup->addDocBlock(event->scenePos());
+            block->addFile(url);
+        }
+    } else if (event->mimeData()->hasFormat("block_data")) {
+        Block *selected = currentGroup->selectedBlock();
+        if (selected != 0) {
+            currentGroup->deselect();
+            selected->removeBlock(true);
+        }
+    } else if (event->mimeData()->hasText()) {
+        DocBlock *block = currentGroup->addDocBlock(event->scenePos());
+        block->addText(event->mimeData()->text());
+    }
+}

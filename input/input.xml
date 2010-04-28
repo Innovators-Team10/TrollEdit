@@ -9,6 +9,7 @@
   </event>
   <event>
     <type>reply</type>
+    <!-- comment -->
     <attachments/>
   </event>
 </message>

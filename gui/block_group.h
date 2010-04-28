@@ -5,6 +5,7 @@
 #include <QSet>
 
 class Block;
+class DocBlock;
 class DocumentScene;
 class Analyzer;
 class FoldButton;
@@ -23,7 +24,7 @@ public:
     // main properties
     int type() const { return Type; }
     Block *mainBlock() const {return root;}
-//    QList<Block*> docBlocks() const;
+    QList<DocBlock*> docBlockList() const {return docBlocks;}
     int getLastLine() const {return lastLine;}
 
     // block management
@@ -34,7 +35,6 @@ public:
 
     void selectBlock(Block *block);
     void deselect();
-    Block *removeBlock(Block *block, bool deleteThis);
     Block* selectedBlock() const {return selected;}
     Block* blockAt(QPointF scenePos) const;
 
@@ -44,7 +44,7 @@ public:
     void reanalyze();
     bool reanalyze(Block* block, QPoint cursorPos);
     QString toText() const;
-//    void addDocBlock(QPointF pos);
+    DocBlock *addDocBlock(QPointF pos);
 
     // visualization
     QRectF boundingRect() const;
@@ -84,7 +84,7 @@ private:
     QList<Block*> lineStarts;   // line starting blocks
     int lastLine;               // curent last line
     QSet<Block*> foldableBlocks;// foldable blocks, only 1 per line allowed
-
+    QList<DocBlock*> docBlocks;
     qreal lastXPos;
 
     friend class DocumentScene;

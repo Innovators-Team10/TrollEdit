@@ -20,6 +20,8 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
 
+    void adaptToFloating();
+
     qreal MARGIN;
 
 protected:

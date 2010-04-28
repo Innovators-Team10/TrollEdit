@@ -65,7 +65,6 @@ document =
 	
 in_markup_element =  
 	Ct(
-	N'whites'^-1 *
 	N'nl'^0 *
 	(N'markup_element')^0 *
 	N'unknown'^-1 *-1),
@@ -74,6 +73,7 @@ in_markup_element =
 xml_header = T"<?xml" * T"version=" * N'version_number' * T"?>",
 version_number = T"\"" * NI'number' * T'.' * NI'number' * T"\"",
 markup_element = 
+	N'comment' +
 	N'empty_element' +
 	N'start_element' * (N'word'^1 + N'markup_element'^0) * N'end_element',
 start_element = T"<" * N'markup_tag' * N'attribute'^0 * T">",
@@ -88,6 +88,7 @@ number = T(NI'digit'^1),
 attribute_key = NI'attribute_word',
 attribute_value = T'="' * NI'attribute_word'^1 * T'"',
 attribute_word = T((P(1) - S("=\"<>/"))^1),
+comment = T(P"<!--" * (1 - P"-->")^0 * P"-->"),
 	
 -- LITERALS
 unknown = TP(P(1)^1), -- anything

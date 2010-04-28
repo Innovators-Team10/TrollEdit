@@ -39,12 +39,10 @@ private slots:
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
-//    void dragEnterEvent(QGraphicsSceneDragDropEvent *event);
-//    void dropEvent(QGraphicsSceneDragDropEvent *event);
-//    void dragMoveEvent(QGraphicsSceneDragDropEvent *event);
-//    void dragLeaveEvent(QGraphicsSceneDragDropEvent *event);
-//    void dropImage(const QImage &image, QGraphicsSceneDragDropEvent *event);
-//    void dropFile(QUrl url, QGraphicsSceneDragDropEvent *event);
+    void dragEnterEvent(QGraphicsSceneDragDropEvent *event);
+    void dragMoveEvent(QGraphicsSceneDragDropEvent *event);
+    void dragLeaveEvent(QGraphicsSceneDragDropEvent *event);
+    void dropEvent(QGraphicsSceneDragDropEvent *event);
 
 private:
     bool modified;

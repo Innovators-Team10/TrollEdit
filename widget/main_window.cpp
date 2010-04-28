@@ -208,8 +208,6 @@ void MainWindow::newFile()
     connect(documentTabs, SIGNAL(adjustScenes(QRectF)), scene, SLOT(adjustSceneRect(QRectF)));
     connect(scene, SIGNAL(requestSize()), documentTabs, SLOT(provideSize()));
 
-
-
     documentTabs->addTab(view, tr("Untitled %1").arg(DocumentTabs::documentNumber)); // nejde nieco ako pri title bare, ze indikujeme hviezdickou neulozene zmeny?
     documentTabs->setCurrentIndex(documentTabs->count() - 1);
     view->setFocus(Qt::MouseFocusReason);// focus on view and then focus on mainBlock is working

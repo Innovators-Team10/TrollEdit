@@ -13,20 +13,23 @@ class DocBlock : public Block
 {
     Q_OBJECT
 public:
-    DocBlock(QString text, QPointF pos, Block *relatedBlock,  BlockGroup *parentgroup = 0);
+    DocBlock(QPointF pos, BlockGroup *parentgroup = 0);
     ~DocBlock();
+
+    enum { Type = UserType + 3 };
+    void addText(QString text);
     void addImage(const QImage &image);
     void addFile(QUrl url);
+
+protected:
     void addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene);
+    void updateBlock(bool doAnimation = true);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
     QImage image;
     Arrow *arrow;
 
-    enum { Type = UserType + 3 };
-protected:
-    QTextBrowser file;
-
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
+    friend class BlockGroup;
 };
 
 #endif // DOC_BLOCK_H

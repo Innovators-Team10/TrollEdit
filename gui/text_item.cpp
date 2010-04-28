@@ -146,3 +146,8 @@ void TextItem::focusOutEvent(QFocusEvent *event)
     QGraphicsTextItem::focusOutEvent(event);
     emit focusChanged(event);
 }
+
+void TextItem::adaptToFloating()
+{
+    disconnect(this, 0, myBlock->blockGroup(), 0);
+}

@@ -16,6 +16,7 @@ Block::Block(TreeElement *element, Block *parentBlock, BlockGroup *blockGroup)
         prevSib = 0;
     } else {
         parent = parentBlock;
+        // destroy text item if needed
         if (parent->isTextBlock()) {
             delete parent->myTextItem;
             parent->myTextItem = 0;
@@ -157,6 +158,20 @@ void Block::setParentBlock(QGraphicsItem *parentItem)
         oldParentEl->removeChild(branch);
         // remove spaces
         element->setSpaces(0);
+        // resolve line breaks
+        Block *ancestor = getAncestorWhereLast();
+        if (nextSib == 0) {
+            if(ancestor->element->isLineBreaking()) {
+                element->setLineBreaking(true);
+                if (prevSib != 0 && prevSib->element->isLineBreaking())
+                    prevSib->element->setLineBreaking(false);
+            } else {
+                if (prevSib != 0 && prevSib->element->isLineBreaking()) {
+                    ancestor->element->setLineBreaking(true);
+                    prevSib->element->setLineBreaking(false);
+                }
+            }
+        }
         // remove links
         removeLinks();
     } else {
@@ -174,8 +189,8 @@ void Block::setParentBlock(QGraphicsItem *parentItem)
             if (siblings.size() > 0) {      // this block is not in siblings yet!
                 prevSib = siblings.at(siblings.size() - 1);
                 prevSib->nextSib = this;
-                if (prevSib->element->isLineBreaking()) {
-                    prevSib->element->setLineBreaking(false);
+                if (getAncestorWhereLast()->element->isLineBreaking()) {
+                    getAncestorWhereLast()->element->setLineBreaking(false);
                     element->setLineBreaking(true);
                 }
             } else {
@@ -184,6 +199,16 @@ void Block::setParentBlock(QGraphicsItem *parentItem)
             }
             nextSib = 0;
         }
+        // resolve line breaks
+        Block *ancestor = getAncestorWhereLast();
+        if (prevSib != 0 && ancestor->element->isLineBreaking()) {
+            prevSib->element->setLineBreaking(true);
+        }
+        if(element->isLineBreaking()) {
+            element->setLineBreaking(false);
+            ancestor->element->setLineBreaking(true);
+        }
+        // destroy text item if needed
         if (newParent->isTextBlock()) {
             delete newParent->myTextItem;
             newParent->myTextItem = 0;
@@ -213,16 +238,19 @@ void Block::stackBeforeBlock(const QGraphicsItem *sibling)
             index = parentEl->indexOfBranch(nextSibling->element);
             // insert branch at new position
             parentEl->insertChild(index, branch);
+            // resolve line breaks
+            Block *ancestor = getAncestorWhereLast();
+            if (nextSib == 0 && ancestor->element->isLineBreaking()) {
+                element->setLineBreaking(true);
+                if (prevSib->element->isLineBreaking())
+                    prevSib->element->setLineBreaking(false);
+            }
             // update links
             removeLinks();
             if (!element->isFloating()) {
                 prevSib = nextSibling->prevSib;
                 if (prevSib != 0) {
                     prevSib->nextSib = this;
-                    if (prevSib->element->isLineBreaking()) {
-                        prevSib->element->setLineBreaking(false);
-                        element->setLineBreaking(true);
-                    }
                 } else {
                     parent->firstChild = this;
                 }
@@ -234,22 +262,60 @@ void Block::stackBeforeBlock(const QGraphicsItem *sibling)
     QGraphicsRectItem::stackBefore(sibling);
 }
 
+Block *Block::removeBlock(bool deleteThis)
+{
+//    int remSpaces = 0;
+    QList<Block*> toDelete;
+    Block *toRemove = this;
+    Block *next = getNext();
+    bool changeSelected = false;
+    Block *selected = group->selectedBlock();
+
+    do {    // remove block and all ancestors (that would became leafs) from hierarchy
+//        remSpaces += toRemove->element->getSpaces();    // collect spaces from deleted blocks
+        Block *oldParent = toRemove->parent;
+        toRemove->setParentBlock(0);                         // remove from hierarchy
+        if (toRemove == selected) changeSelected = true;     // set flag is selected
+        toDelete << toRemove;
+        toRemove = oldParent;
+    } while (toRemove != 0 && toRemove->element->isLeaf());
+
+    if (!deleteThis) {
+        toDelete.removeOne(this);                   // input block is not destroyed
+//        element->setSpaces(remSpaces);   // add collected spaces
+    }
+
+    if (!toDelete.contains(next)) {
+        if (changeSelected && toRemove != 0)    // reselect if needed
+            group->selectBlock(toRemove);
+        else
+            group->updateAll(false);
+    } else {
+        next = 0;
+        group->deselect();
+    }
+
+    foreach (Block* bl, toDelete) {  // destroy collected blocks
+        group->removeFoldable(bl);
+        if (bl->isTextBlock())
+        bl->deleteLater();
+    }
+
+    return next;
+}
+
 void Block::removeLinks()
 {
     if (nextSib != 0) {
         nextSib->prevSib = prevSib;
-        if (prevSib == 0 && nextSib->element->getSpaces() > 0)
+        if (prevSib == 0)
             nextSib->element->setSpaces(0);
     }
     if (prevSib != 0) {
         prevSib->nextSib = nextSib;
-        if (nextSib == 0 && prevSib->element->isLineBreaking()) {
-            prevSib->element->setLineBreaking(false);
-            if (parent != 0)
-                parent->element->setLineBreaking(true);
-        }
     }
-    if (parent != 0 && parent->firstChild == this) parent->firstChild = nextSib;
+    if (parent != 0 && parent->firstChild == this)
+        parent->firstChild = nextSib;
 }
 
 
@@ -347,40 +413,81 @@ bool Block::hasMoreLines() const
 
 void Block::addBlockAt(Block *block, QPointF pos)
 {
+    QPair<Block*, bool> targetRight = findClosestBlock(pos);
+    Block *target = targetRight.first;
+    if (target == 0 || target->isTextBlock()) {
+        if (!targetRight.second)
+            target = target->nextSib;
+        block->setParentBlock(this);
+        block->stackBeforeBlock(target);
+    } else {
+        target->addBlockAt(block, target->mapFromParent(pos));
+    }
+}
+
+Block *Block::addTextCursorAt(QPointF pos)
+{
+    if (isTextBlock()) {
+        int cursorPos = myTextItem->document()->documentLayout()->
+                        hitTest(myTextItem->mapFromParent(pos), Qt::FuzzyHit);
+        myTextItem->setTextCursorPosition(qMax(0, cursorPos));
+        return this;
+    }
+
+    QPair<Block*, bool> targetRight = findClosestBlock(pos);
+    Block *target = targetRight.first;
+
+    if (target == 0 || target->isTextBlock()) {
+        if (target == 0) {
+            target = getLastLeaf();
+            target->textItem()->setTextCursorPosition(-1);
+        } else {
+            int cursorPos = target->textItem()->document()->documentLayout()
+                            ->hitTest(target->textItem()->
+                                      mapFromParent(target->mapFromParent(pos)), Qt::FuzzyHit);
+            if (cursorPos >= 0) {
+                target->textItem()->setTextCursorPosition(cursorPos);
+            } else {
+                if (targetRight.second)
+                    target->textItem()->setTextCursorPosition(0);
+                else
+                    target->textItem()->setTextCursorPosition(-1);
+            }
+        }
+        return target;
+    } else {
+        return target->addTextCursorAt(target->mapFromParent(pos));
+    }
+}
+
+QPair<Block*, bool> Block::findClosestBlock(QPointF pos) {
     Block *sibling = 0;
-    QLineF distance = QLineF(QPointF(), pos);
-    qreal maxYdist = group->CHAR_HEIGHT * 0.6;
-    qreal minDist = 1000;
+    qreal minDistX = 1000, minDistY = 1000;
     bool siblingIsRight = true;
 
     // test distance from block hotspots
     Block *child = firstChild;
     while (child != 0) {
-        distance.setP1(child->idealPos() + QPointF(0, child->idealSize().height()/2));
-        // first hotspot is in the middle of left side of the bounding rectangle
-        if (qAbs(distance.dy()) < maxYdist && qAbs(distance.dx()) < minDist) {
-            minDist = qAbs(distance.dx());
-            sibling = child;
-            siblingIsRight = true;
-        }
-        distance.setP1(child->idealPos() +
-                   QPointF(child->idealSize().width(), child->idealSize().height()/2));
-        // second hotspot is in the middle of right side of the bounding rectangle
-        if (qAbs(distance.dy()) < maxYdist && qAbs(distance.dx()) < minDist) {
-            minDist = qAbs(distance.dx());
-            sibling = child;
-            siblingIsRight = false;
+        QRectF rect = child->idealGeometry;
+        if (pos.y() >= rect.top() && pos.y() < rect.bottom()) {
+            if (qAbs(pos.x() - rect.left()) < minDistX ||
+                qAbs(pos.y() - rect.center().y()) < minDistY) {
+                minDistX = qAbs(pos.x() - rect.left());
+                minDistY = qAbs(pos.y() - rect.center().y());
+                sibling = child;
+                siblingIsRight = true;
+            }
+            if (qAbs(pos.x() - rect.right()) < minDistX ||
+                qAbs(pos.y() - rect.center().y()) < minDistY) {
+                minDistX = qAbs(pos.x() - rect.right());
+                minDistY = qAbs(pos.y() - rect.center().y());
+                sibling = child;
+                siblingIsRight = false;
+            }
         }
         child = child->nextSib;
     }
-    if (sibling == 0 || sibling->isTextBlock()) {
-        if (!siblingIsRight)
-            sibling = sibling->nextSib;
-        block->setParentBlock(this);
-        block->stackBeforeBlock(sibling);
-    } else {
-        sibling->addBlockAt(block, sibling->mapFromParent(pos));
-    }
+    return QPair<Block*, bool>(sibling, siblingIsRight);
 }
 
 void Block::textFocusChanged(QFocusEvent* event)
@@ -414,10 +521,11 @@ void Block::textChanged()
     QString text = myTextItem->toPlainText();
     myTextItem->document()->blockSignals(true);
     if (text.isEmpty()) {   // delete block
-        if (!(element->isLineBreaking() && getPrev(true)->line != line) || false) { // todo
+        if (!(element->isLineBreaking() && getPrev(true)->line != line)
+            && !element->isFloating()) {
             // don't delete if block is single newline in this line OR floating
 
-            Block *next = group->removeBlock(this, true);
+            Block *next = removeBlock(true);
 
             if (next != 0) {
                 if (next->line > line) { // jumped to next line
@@ -437,8 +545,7 @@ void Block::textChanged()
             }
             return;
         }
-    }
-    if (text.at(0).isSpace()) {         // remove leading spaces and tabs
+    } else if (text.at(0).isSpace()) {         // remove leading spaces and tabs
         Block *ancestor = getAncestorWhereFirst();
         int count = 1;
         if (text.at(0) == '\t') count = group->TAB_LENGTH;
@@ -469,19 +576,9 @@ QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
 
 void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (isTextBlock()) {
-        QPointF clickPos = event->scenePos();
-        clickPos = myTextItem->mapFromScene(clickPos);
-        int pos = myTextItem->document()->documentLayout()->hitTest(clickPos, Qt::FuzzyHit);
-        myTextItem->setTextCursorPosition(qMax(0, pos));
-        group->selectBlock(this);
-    }
     if (element->isSelectable()) {
-        event->accept();
-        if (group->selectedBlock() != this) {
-            getFirstLeaf()->myTextItem->setTextCursorPosition(0);
-            group->selectBlock(this);
-        }
+        group->selectBlock(this);
+        addTextCursorAt(event->pos());
         if (!element->isFloating()) {
             QDrag *drag = new QDrag(event->widget());
             QMimeData *mimeData = new QMimeData();
@@ -514,8 +611,8 @@ void Block::dropEvent(QGraphicsSceneDragDropEvent *event)
         Block *selected = group->selectedBlock();
         if (selected != 0) {
             if (selected != this && !this->element->getAncestors().contains(selected->element)) {
-                group->deselect();
-                group->removeBlock(selected, false);
+                selected->group->deselect();
+                selected->removeBlock(false);
                 selected->setPos(event->pos());
                 selected->updatePos();
 
@@ -577,7 +674,8 @@ void Block::offsetChildren(bool flag, QPointF pos)
 {
     Block* child = firstChild;
     while (child != 0) {
-        if (flag && qAbs(child->idealPos().y() - pos.y()) < group->CHAR_HEIGHT)
+        QRectF rect = child->idealGeometry;
+        if (flag && pos.y() >= rect.top() && pos.y() < rect.bottom())
             child->moreSpace = true;
         else
             child->moreSpace = false;
@@ -654,168 +752,25 @@ void Block::updateBlock(bool doAnimation) // parent to child updater
         animate();
 }
 
+//void Block::updateGeometryAfter(bool doAnimation) {
+//    Block *sibling = this;
+//    // update siblings, start with this
+//    while (sibling != 0) {
+//        sibling->updateGeometry(!doAnimation);
+//        if (doAnimation) sibling->animate();
+//        sibling = sibling->nextSib;
+//    }
+//    // this block and it's siblings are updated, repeat with parent
+//    if (parent != 0)
+//        parent->updateGeometryAfter(doAnimation);
+//}
+
 void Block::animate()
 {
     animation->setStartValue(geometry());
     animation->setEndValue(idealGeometry);
     animation->start();
 }
-
-/*void Block::updateAfter(bool updateThis) // child to parent updater
-        // used to update everything after this block, after its parent etc.,
-        // updates line numbers
-        // used after blocks moving or typing newlines
-{
-    if (parent == 0) {
-        setRect(computeRect());
-        return;
-    }
-    int lineNo;
-    QPointF nextPos;
-    Block *sibling;
-    bool newLineComming = false;
-
-    if (updateThis) {   // start with this block
-        sibling = prevSib;
-    } else {            // start with next block
-        if (nextSib == 0) {// no more siblings, update after parent
-            parent->updateAfter();
-            return;
-        }
-        sibling = this;
-    }
-    // initialize lineNo and nextPos
-    if (sibling != 0) {
-        lineNo = sibling->computeNextSiblingLine();
-        nextPos = sibling->computeNextSiblingPos();
-        if (sibling->element->isLineBreaking())
-            newLineComming = true;
-        sibling = sibling->nextSib;
-    } else {
-        lineNo = parent->line;
-        nextPos = QPointF();//parent->getOffset();
-        if (getPrev(true)->line != lineNo)
-            newLineComming = true;
-        sibling = this;
-    }
-    // update siblings
-    while (sibling != 0) {
-        nextPos.rx() +=  sibling->getSpaces() * SPACE_WIDTH;
-        nextPos += sibling->getOffset();
-
-        sibling->setLine(lineNo);
-        sibling->setPos(nextPos);
-        if (newLineComming) {
-            lineStarts[lineNo] = sibling;
-            newLineComming = false;
-        }
-        lastLine = lineNo;
-        if (sibling->hasMoreLines())
-            sibling->updateLineStarts();
-
-        lineNo = sibling->computeNextSiblingLine();
-        nextPos = sibling->computeNextSiblingPos();
-        if (sibling->element->isLineBreaking())
-            newLineComming = true;
-        sibling->setRect(sibling->computeRect());
-        sibling = sibling->nextSib;
-    }
-    // this block and its siblings are updated, repeat with parent
-    updateThis = parent->firstChild == this && updateThis;
-
-    setRect(computeRect());
-    parent->updateAfter(updateThis);
-}
-
-void Block::updatePosAfter() // child to parent updater
-        // used to update everything after this block, after ins parent etc.,
-        // updates positions only
-        // used
-{
-    if (parent == 0) {
-        setRect(computeRect());
-        return;
-    }
-
-    QPointF nextPos;
-    Block *sibling = this;
-
-    // initialize nextPos
-    if (prevSib != 0) {
-        nextPos = prevSib->computeNextSiblingPos();
-    } else {
-        nextPos = QPointF();
-    }
-
-    QParallelAnimationGroup *group = new QParallelAnimationGroup();
-    // update siblings, start with this
-    while (sibling != 0) {
-         QPropertyAnimation *animation = new QPropertyAnimation(sibling, "pos");
-
-        nextPos.rx() +=  sibling->getSpaces() * SPACE_WIDTH;
-        nextPos += sibling->getOffset();
-
-        QPointF abcd = sibling->pos();
-        animation->setStartValue(abcd);
-        animation->setEndValue(nextPos);
-
-
-        sibling->setPos(nextPos);
-        nextPos = sibling->computeNextSiblingPos();
-
-        sibling->setRect(sibling->computeRect());
-//        sibling->setPos(abcd);
-        group->addAnimation(animation);
-
-        sibling = sibling->nextSib;
-    }
-    // this block and its siblings are updated, repeat with parent
-    parent->updatePosAfter();
-    group->start();
-}
-
-void Block::updateLineStarts()
-{
-    Block *child = firstChild;
-    bool newLineComming  = false;
-    while (child != 0) {
-        if (newLineComming) {
-            lineStarts[child->line] = child;
-            lastLine = child->line;
-            newLineComming = false;
-        }
-        if (child->hasMoreLines())
-            child->updateLineStarts();
-        if (child->element->isLineBreaking())
-            newLineComming = true;
-        child = child->nextSib;
-    }
-}
-
-void Block::updateXPosInLine(int lineNo) // child to parent updater
-        // used to update everything from changed child down, updates only this line
-        // doesn't update this block's position!
-        // used after user's typing (without newlines)
-{    
-   if (parent == 0) return;
-    setRect(computeRect());
-
-    qreal nextX = computeNextSiblingPos().x();
-    Block *sibling = nextSib;
-    while (sibling != 0) { // start with next block
-        nextX += sibling->getSpaces() * SPACE_WIDTH;
-        nextX += sibling->getOffset().x();
-
-        sibling->setX(nextX);
-        nextX = sibling->computeNextSiblingPos().x();
-
-        sibling->setRect(sibling->computeRect());
-        sibling = sibling->nextSib;
-    }
-    // this block and its siblings are updated, repeat with parent
-    //    if (parent->line == line)
-    parent->updateXPosInLine(lineNo);
-}*/
 
 void Block::updateGeometry(bool updateReal)
 {
@@ -825,9 +780,12 @@ void Block::updateGeometry(bool updateReal)
 
 void Block::updatePos(bool updateReal)
 {
+    if (isTextBlock()) {
+        myTextItem->setPos(getOffset(OffsetIn));
+    }
+
     if (element->isFloating()) {
         idealGeometry.moveTo(pos());
-        if (foldButton != 0) foldButton->updatePos();
         return;
     }
 
@@ -838,7 +796,7 @@ void Block::updatePos(bool updateReal)
             if (prevSib->hasMoreLines()) {
                 Block *block = prevSib->getLastLeaf();
                 pos = block->mapIdealToAncestor(prevSib->parent, block->idealRect().topRight());
-                if (prevSib->showing) {
+                if (prevSib->showing || block->moreSpace) {
                     pos.rx() = prevSib->idealPos().x() + prevSib->idealSize().width();
                     offs = prevSib->getOffset(OffsetOut);
                 } else {
@@ -874,10 +832,6 @@ void Block::updatePos(bool updateReal)
     pos.rx() += element->getSpaces() * group->CHAR_WIDTH;
     idealGeometry.moveTo(pos);
 
-    if (isTextBlock()) {
-        myTextItem->setPos(getOffset(OffsetIn));
-    }
-
     if (updateReal) {
         setPos(pos);
         if (foldButton != 0) foldButton->updatePos();
@@ -906,9 +860,9 @@ void Block::updateSize(bool updateReal)
         size = rect.size();
     }
     QPointF offs = getOffset(OffsetIn);
+
     size.rwidth() += offs.x() * 2;
     size.rheight() += offs.y() * 2;
-
     idealGeometry.setSize(size);
     if (updateReal)
         setRect(QRectF(QPointF(), size));
@@ -980,14 +934,7 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     QPen myPen = pen();
     if (myPen.color() != Qt::white) {
         painter->setPen(myPen);
-//        if (folded && !showing) {
-//            QVector<QPointF> lines;
-//            lines << QPointF(0,0) << QPointF(0,rect.height())
-//                  << QPointF(rect.width(),0) << QPointF(rect.width(),rect.height());
-//            painter->drawLines(lines);
-//        } else {
         painter->drawRect(rect);
-//        }
     }
 }
 
@@ -1008,7 +955,7 @@ void Block::updatePen()
 //        color = Qt::blue;
     } else {
         color = Qt::lightGray;
-//        color = Qt::white;
+        color = Qt::white;
 //        width = 0;
     }
     if (element->isUnknown()) {

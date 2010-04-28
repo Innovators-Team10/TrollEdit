@@ -13,6 +13,7 @@ Arrow::Arrow(DocBlock *startItem, Block *endItem, Block *parent, QGraphicsScene 
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     myColor = Qt::black;
     setPen(QPen(myColor, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    setZValue(10);
 }
 
 QRectF Arrow::boundingRect() const
