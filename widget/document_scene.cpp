@@ -2,6 +2,7 @@
 #include "../gui/block_group.h"
 #include "../analysis/analyzer.h"
 #include "../gui/block.h"
+#include "../gui/text_item.h"
 #include "../gui/doc_block.h"
 #include "../analysis/tree_element.h"
 #include <QtGui>
@@ -101,6 +102,8 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
             block->addText("");
         } else {
             currentGroup->deselect();
+            currentGroup->updateAll();
+            update(QRect());
         }
     }
 
@@ -225,8 +228,10 @@ void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
     } else if (event->mimeData()->hasFormat("block_data")) {
         Block *selected = currentGroup->selectedBlock();
         if (selected != 0) {
-            currentGroup->deselect();
+//            currentGroup->deselect();
             selected->removeBlock(true);
+            selected = currentGroup->selectedBlock();
+            selected->getFirstLeaf()->textItem()->setTextCursorPosition(0);
         }
     } else if (event->mimeData()->hasText()) {
         DocBlock *block = currentGroup->addDocBlock(event->scenePos());

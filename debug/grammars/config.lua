@@ -21,7 +21,7 @@ markup_tag = {target="text", base_t="text_style", color="brown"}
 attribute_key = {target="text", base_t="text_style", color="red"}
 attribute_value = {target="text", base_t="text_style", color="blue"}
 
-block_style = {target="block", hovered="white", hovered_border="lightgreen", selected="green", showing="darkgreen"}
+block_style = {target="block", hovered="white", hovered_border="lightblue", selected="blue", showing="blue"}
 
 if_statement = {target="block", base_b="block_style", hovered="yellow", hovered_border="red"}
 unknown = {target="block", base_b="block_style", selected="red", showing="red", hovered="red", hovered_border="red"}

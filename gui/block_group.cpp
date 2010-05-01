@@ -6,8 +6,10 @@
 #include "../analysis/analyzer.h"
 #include "../widget/document_scene.h"
 
-const QPointF BlockGroup::OFFSET_IN = QPointF(5, 5);
-const QPointF BlockGroup::OFFSET_OUT = QPointF(8, 0);
+const QPointF BlockGroup::OFFSET_IN_TL = QPointF(0, 0);//6, 6);
+const QPointF BlockGroup::OFFSET_IN_BR = QPointF(6, 0);//6, 6);
+const QPointF BlockGroup::OFFSET_OUT = QPointF(0, 0);
+const QPointF BlockGroup::OFFSET_INSERT = QPointF(10, 0);
 const QPointF BlockGroup::NO_OFFSET = QPointF(0, 0);
 
 BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
@@ -23,6 +25,7 @@ BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
     lastXPos = -1;
     foldableBlocks.clear();
     computeTextSize();
+    setFlag(QGraphicsItem::ItemClipsToShape);
 //    setFlag(QGraphicsItem::ItemIsMovable);
 
     analyzeAll(text);
@@ -107,27 +110,14 @@ Block *BlockGroup::blockAt(QPointF scenePos) const
 
 void BlockGroup::selectBlock(Block *block)
 {
-    if (block == 0) {
-        deselect();
-        return;
-    }
     if (!block->getElement()->isSelectable()) {
         selectBlock(block->parentBlock());
         return;
     }
-    Block *commonAncestor = qgraphicsitem_cast<Block*>(block->commonAncestorItem(selected));
-
-    if (selected != 0) {
-        selected->setShowing(false, commonAncestor);
-        Block * oldSelected = selected;
-        selected = 0;
-        oldSelected->updatePen();
-    }
-
+    deselect();
     selected = block;
     selected->setShowing(true);
     selected->updatePen();
-    updateAll();
 }
 
 void BlockGroup::deselect()
@@ -137,8 +127,13 @@ void BlockGroup::deselect()
         Block * oldSelected = selected;
         selected = 0;
         oldSelected->updatePen();
-        updateAll();
+        oldSelected->updateGeometryAfter();
     }
+}
+
+Block *BlockGroup::addTextCursorAt(QPointF scenePos)
+{
+    return root->addTextCursorAt(root->mapFromScene(scenePos));
 }
 
 /* **** slots called by signals form TextItem **** */
@@ -172,10 +167,7 @@ void BlockGroup::splitLine(Block *block, int cursorPos)
     bool alreadyBreaking = !block->getElement()->setLineBreaking(true);
     if (cursorPos >= 0) {   // leave some text in original block
         text = block->textItem()->toPlainText();
-//        if (cursorPos == 0)
-//            block->textItem()->document()->clear();
-//        else
-            block->textItem()->setPlainText(text.left(cursorPos));
+        block->textItem()->setPlainText(text.left(cursorPos));
         text.remove(0,cursorPos);
     }
     Block *next = block->getNext();
@@ -190,6 +182,7 @@ void BlockGroup::splitLine(Block *block, int cursorPos)
         newBlock->updatePos(true);
         block->getElement()->setLineBreaking(true);
         newBlock->textItem()->setTextCursorPosition(0);
+        newBlock->edited = true;
     } else {
         next->getElement()->setSpaces(0);
         next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
@@ -204,7 +197,8 @@ void BlockGroup::eraseChar(Block *block, int key)
         target = block->getAncestorWhereFirst();
         if (target->getElement()->getSpaces() > 0) {
             target->getElement()->addSpaces(-1);
-            updateAll(false);//updateAfter(true);
+            target->updateGeometryAfter(false);//updateAfter(true);
+            target->edited = true;
         } else {
             target = block->getPrev(true);
             if (target->getLine() < block->getLine()) {          // jumped to previous line
@@ -224,7 +218,8 @@ void BlockGroup::eraseChar(Block *block, int key)
         target = block->getNext();
         if (target->getElement()->getSpaces() > 0) {
             target->getElement()->addSpaces(-1);
-            updateAll(false);//updateAfter(true);
+            target->updateGeometryAfter(false);//updateAfter(true);
+            target->edited = true;
         } else {
             target = block->getNext(true);
             if (target->getLine() > block->getLine()) {          // jumped to next line
@@ -282,6 +277,7 @@ void BlockGroup::moveCursorLeftRight(Block *start, bool moveLeft)
     target->textItem()->setTextCursorPosition(position);
     lastXPos = -1;
     selectBlock(target);
+    target->updateGeometryAfter();
 }
 
 void BlockGroup:: moveCursorUpDown(Block *start, bool moveUp, int from)
@@ -300,21 +296,29 @@ void BlockGroup:: moveCursorUpDown(Block *start, bool moveUp, int from)
             y = line + 1;
     }
 
-    QPointF pos(0,0);
+    QPointF scenePos(0,0);
     Block *firstInY = getBlockIn(y)->getFirstLeaf();
 
-    pos.setY(firstInY->textItem()->scenePos().y() + CHAR_HEIGHT/2);
+    scenePos.setY(firstInY->textItem()->scenePos().y() + CHAR_HEIGHT/2);
 
     if (lastXPos < 0) {
-        pos.setX(start->textItem()->scenePos().x() + from * CHAR_WIDTH);
-        lastXPos = pos.x();
+        scenePos.setX(start->textItem()->scenePos().x()
+                      + start->textItem()->MARGIN
+                      + from * CHAR_WIDTH);
+        lastXPos = scenePos.x();
     } else {
-        pos.setX(lastXPos);
+        scenePos.setX(lastXPos);
     }
 
-    Block *target = blockAt(pos);
-    target->addTextCursorAt(target->mapFromScene(pos));
+    if (selected != 0 && selected->isEdited()) {
+        reanalyze(selected, scenePos);
+        return;
+    }
+
+    Block *target = blockAt(scenePos);
+    target = target->addTextCursorAt(target->mapFromScene(scenePos));
     selectBlock(target);
+    target->updateGeometryAfter();
 }
 
 QRectF BlockGroup::boundingRect() const
@@ -333,16 +337,22 @@ void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsRectItem::mousePressEvent(event);
 }
 
-void BlockGroup::reanalyze()
+void BlockGroup::reanalyze(Block *block, QPointF cursorPos)
 {
     if (root == 0) {
         return;
     }
-    if (selected != 0 && !reanalyze(selected, QPoint(0, selected->getLine())))
+
+    if (selected == 0 || !reanalyzeBlock(selected)) {
         analyzeAll(root->getElement()->getText());
+    }
+
+    Block *target = addTextCursorAt(cursorPos);
+    selectBlock(target);
+    target->updateGeometryAfter();
 }
 
-bool BlockGroup::reanalyze(Block *block, QPoint cursorPos)
+bool BlockGroup::reanalyzeBlock(Block *block)
 {
     if (block == 0) return false;
 
@@ -359,11 +369,15 @@ bool BlockGroup::reanalyze(Block *block, QPoint cursorPos)
         analysedEl = (*analysedEl)[0];
     } while (analysedBl == 0);
 
+    bool isPrevLB = false;
+    if (analysedBl->prevSib != 0)
+        isPrevLB = analysedBl->prevSib->getElement()->isLineBreaking();
     bool lineBreaking = analysedBl->getElement()->isLineBreaking();
     Block *parentBl = analysedBl->parentBlock();
     Block *nextSib = analysedBl->getNextSibling();
 
     analysedBl->setParentBlock(0);
+    analysedBl->setVisible(false);
     analysedBl->deleteLater();
 
     Block *newBlock = new Block(newEl, parentBl);
@@ -371,12 +385,11 @@ bool BlockGroup::reanalyze(Block *block, QPoint cursorPos)
     if (nextSib != 0)
         newBlock->stackBeforeBlock(nextSib);
 
+    if (newBlock->prevSib != 0)
+        newBlock->prevSib->getElement()->setLineBreaking(isPrevLB);
+
     foldableBlocks.clear();
     updateAll(false);
-
-    Block *lineBl = getBlockIn(cursorPos.y())->getFirstLeaf();
-    lineBl->textItem()->setTextCursorPosition(0);
-    selectBlock(lineBl);
     return true;
 }
 
@@ -387,12 +400,13 @@ bool BlockGroup::analyzeAll(QString text)
     if (root != 0)
         delete root;
     foldableBlocks.clear();
+    selected = false;
 
     root = new Block(analyzer->analyzeFull(text), 0, this);
     root->setPos(30, 20);
-    foldableBlocks.clear();
-    updateAll(false);
     selectBlock(root);
+    root->getFirstLeaf()->textItem()->setTextCursorPosition(0);
+    root->updateBlock(false);
 
     docScene->update();
     return true;
@@ -429,6 +443,16 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
         switch (event->key()) {
         case Qt::Key_M :
             reanalyze();
+            break;
+        case Qt::Key_Delete :
+            if (selected != 0) {
+                Block *next = selected->removeBlock(true);
+                selectBlock(next);
+                next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
+                next->updateGeometryAfter();
+            }
+            break;
+        case Qt::Key_Home :
             break;
         }
     }

@@ -23,15 +23,13 @@ public:
     { return Type; }
     QRectF boundingRect() const;
     QPainterPath shape() const;
-    void setColor(const QColor &color)
-    { myColor = color; }
-    DocBlock *startItem() const
-    { return myStartItem; }
-    Block *endItem() const
-    { return myEndItem; }
+    void setColor(const QColor &color) { myColor = color; }
+    DocBlock *startItem() const { return myStartItem; }
+    Block *endItem() const { return myEndItem; }
 
 public slots:
     void updatePosition();
+    void updateVisibility(bool flag);
 
 protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,

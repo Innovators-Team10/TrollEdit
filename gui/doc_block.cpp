@@ -19,6 +19,8 @@ DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)
     setPos(pos);
     updateBlock(false);
 
+    setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
+
     arrow = 0;
     if (group->selectedBlock() != 0) {
 //        relatedBlock->element->appendChild(commentBl->element);
@@ -45,6 +47,11 @@ void DocBlock::updateBlock(bool doAnimation)
         animate();
 }
 
+void DocBlock::focusOutEvent(QFocusEvent *event)
+{
+    if (myTextItem->toPlainText().isEmpty())
+        removeBlock(true);
+}
 
 void DocBlock::addImage(const QImage &image){
     myTextItem->setTextInteractionFlags(Qt::NoTextInteraction);
@@ -64,7 +71,7 @@ void DocBlock::addText(QString text){
     myTextItem->setTextCursorPosition(0);
 }
 
-void DocBlock::addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene){
+void DocBlock::addArrow(DocBlock *start, Block *end, QGraphicsScene *parentScene){
     arrow = new Arrow(start, end, end, parentScene);
     arrow->setColor(Qt::blue);
 }

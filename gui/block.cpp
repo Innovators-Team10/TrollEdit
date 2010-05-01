@@ -79,6 +79,7 @@ Block::Block(TreeElement *element, Block *parentBlock, BlockGroup *blockGroup)
 
     // set geometry
     updateGeometry(true);
+    updateFoldButton();
     updatePen();
 }
 
@@ -288,19 +289,17 @@ Block *Block::removeBlock(bool deleteThis)
     if (!toDelete.contains(next)) {
         if (changeSelected && toRemove != 0)    // reselect if needed
             group->selectBlock(toRemove);
-        else
-            group->updateAll(false);
+        next->edited = true;
     } else {
         next = 0;
         group->deselect();
     }
-
     foreach (Block* bl, toDelete) {  // destroy collected blocks
         group->removeFoldable(bl);
-        if (bl->isTextBlock())
         bl->deleteLater();
     }
 
+    group->updateAll();
     return next;
 }
 
@@ -555,21 +554,35 @@ void Block::textChanged()
         } while(text.at(0).isSpace());
         element->setType(text);
         myTextItem->setPlainText(text);
-        group->updateAll(false);//ancestor->updateAfter(true);
+        updateGeometryAfter(false);
     } else {
         if (element->getType() != text) {
             edited = true;
             element->setType(text);
-            group->updateAll(false);//updateXPosInLine(line);
+            updateGeometryAfter(false);
         }
     }   
     myTextItem->document()->blockSignals(false);
+}
+
+bool Block::isEdited() const
+{
+    if (edited)
+        return true;
+    Block *child = firstChild;
+    while (child != 0) {
+        if (child->isEdited())
+            return true;
+        child = child->nextSib;
+    }
+    return false;
 }
 
 QVariant Block::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == QGraphicsItem::ItemVisibleHasChanged) {
         updateFoldButton();
+        emit visibilityChanged(value.toBool());
     }
     return QGraphicsItem::itemChange(change, value);
 }
@@ -578,6 +591,7 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (element->isSelectable()) {
         group->selectBlock(this);
+        updateGeometryAfter();
         addTextCursorAt(event->pos());
         if (!element->isFloating()) {
             QDrag *drag = new QDrag(event->widget());
@@ -613,12 +627,12 @@ void Block::dropEvent(QGraphicsSceneDragDropEvent *event)
             if (selected != this && !this->element->getAncestors().contains(selected->element)) {
                 selected->group->deselect();
                 selected->removeBlock(false);
-                selected->setPos(event->pos());
-                selected->updatePos();
-
+                selected->setPos(selected->mapToScene(selected->idealPos()));
+                selected->updatePos(true);
                 addBlockAt(selected, event->pos());
                 offsetChildren(false);
-                group->selectBlock(this);
+
+                group->reanalyze(selected, event->scenePos());
             }
         }
         event->accept();
@@ -637,7 +651,8 @@ void Block::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
     if (event->mimeData()->hasFormat("block_data")) {
         event->acceptProposedAction();
         offsetChildren(true, event->pos());
-        group->updateAll(); // better updater!! complete update not necessary at every move
+//        updateGeometryAfter(); // better updater!! complete update not necessary at every move
+        group->updateAll();
     } else {
         event->ignore();
     }
@@ -653,6 +668,7 @@ void Block::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
     if (event->mimeData()->hasFormat("block_data")) {
         event->acceptProposedAction();
         offsetChildren(true, event->pos());
+//        updateGeometryAfter();
         group->updateAll();
     } else {
         event->ignore();
@@ -667,6 +683,7 @@ void Block::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
         return;
     }
     offsetChildren(false);
+//    updateGeometryAfter();
     group->updateAll();
 }
 
@@ -675,12 +692,13 @@ void Block::offsetChildren(bool flag, QPointF pos)
     Block* child = firstChild;
     while (child != 0) {
         QRectF rect = child->idealGeometry;
-        if (flag && pos.y() >= rect.top() && pos.y() < rect.bottom())
+        if (flag && pos.y() >= rect.top() && pos.y() < rect.bottom()) {
             child->moreSpace = true;
-        else
+        } else {
             child->moreSpace = false;
+        }
         if (!child->element->isSelectable())
-            child->offsetChildren(flag, pos);
+            child->offsetChildren(flag, child->mapFromParent(pos));
         child = child->nextSib;
     }
 }
@@ -726,10 +744,9 @@ void Block::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     QMenu menu; // todo
 }
 
-void Block::updateBlock(bool doAnimation) // parent to child updater
+void Block::updateBlock(bool doAnimation)
         // used to update everything from root up
-        // updates line numbers
-        // used when new root is created
+        // updates line numbers, geometry and foldbutton
 {
     // update line
     updateLine();
@@ -752,18 +769,39 @@ void Block::updateBlock(bool doAnimation) // parent to child updater
         animate();
 }
 
-//void Block::updateGeometryAfter(bool doAnimation) {
-//    Block *sibling = this;
-//    // update siblings, start with this
-//    while (sibling != 0) {
-//        sibling->updateGeometry(!doAnimation);
-//        if (doAnimation) sibling->animate();
-//        sibling = sibling->nextSib;
+void Block::updateBlockAfter(bool doAnimation) {
+    // used to update everything after this block
+    // updates line numbers, geometry and foldbutton
+//    Block *child = firstChild;
+//    // update children's positions
+//    while (child != 0) {
+//        child->updatePos(!doAnimation);
+//        if (doAnimation) child->animate();
+//        child = child->nextSib;
 //    }
-//    // this block and it's siblings are updated, repeat with parent
+//    // update my size
+//    updateSize(!doAnimation);
+//    // let parent update siblings' and my position togethr with its size
 //    if (parent != 0)
-//        parent->updateGeometryAfter(doAnimation);
-//}
+//        parent->updateBlockAfter(doAnimation);
+}
+
+void Block::updateGeometryAfter(bool doAnimation) {
+    // used to update everything after this block
+    // updates only geometry
+    Block *child = firstChild;
+    // update children's positions
+    while (child != 0) {
+        child->updatePos(!doAnimation);
+        if (doAnimation) child->animate();
+        child = child->nextSib;
+    }
+    // update my size
+    updateSize(!doAnimation);
+    // let parent update siblings' and my position togethr with its size
+    if (parent != 0)
+        parent->updateGeometryAfter(doAnimation);
+}
 
 void Block::animate()
 {
@@ -781,33 +819,32 @@ void Block::updateGeometry(bool updateReal)
 void Block::updatePos(bool updateReal)
 {
     if (isTextBlock()) {
-        myTextItem->setPos(getOffset(OffsetIn));
+        myTextItem->setPos(getOffset(InnnerTopLeft));
     }
-
     if (element->isFloating()) {
         idealGeometry.moveTo(pos());
         return;
     }
-
     QPointF pos = QPointF();
     if (prevSib != 0) {
         if (!prevSib->element->isLineBreaking() || parent == 0) {
             QPointF offs;
             if (prevSib->hasMoreLines()) {
-                Block *block = prevSib->getLastLeaf();
-                pos = block->mapIdealToAncestor(prevSib->parent, block->idealRect().topRight());
-                if (prevSib->showing || block->moreSpace) {
+                Block *lastLeaf = prevSib->getLastLeaf();
+                pos = lastLeaf->mapIdealToAncestor(prevSib->parent, lastLeaf->idealRect().topRight());
+                if (prevSib->showing || lastLeaf->moreSpace) {
                     pos.rx() = prevSib->idealPos().x() + prevSib->idealSize().width();
-                    offs = prevSib->getOffset(OffsetOut);
+
+                    offs = prevSib->getOffset(Outer);
                 } else {
-                    offs = block->getOffset(OffsetOut);
+                    offs = lastLeaf->getOffset(Outer);
                 }
             } else {
-                offs = prevSib->getOffset(OffsetOut);
+                offs = prevSib->getOffset(Outer);
                 pos = prevSib->idealPos();
                 pos.rx() += prevSib->idealSize().width();
             }
-            pos.rx() += getOffset(OffsetOut).x() + offs.x();
+            pos.rx() += getOffset(Outer).x() + offs.x();
         } else {
             qreal maxY = 0;
             qreal offsY = 0;
@@ -815,16 +852,16 @@ void Block::updatePos(bool updateReal)
                 int y = child->idealPos().y() + child->idealSize().height();
                 if (y > maxY) {
                     maxY = y;
-                    offsY = child->getOffset(OffsetOut).y();
+                    offsY = child->getOffset(Outer).y();
                 }
                 if (child == prevSib) break;
             }
-            pos.rx() = parent->getOffset(OffsetIn).x();
-            pos.ry() += maxY + getOffset(OffsetOut).y() + offsY;
+            pos.rx() = parent->getOffset(InnnerTopLeft).x();
+            pos.ry() += maxY + getOffset(Outer).y() + offsY;
         }
     } else {
         if (parent != 0)
-            pos = parent->getOffset(OffsetIn);
+            pos = parent->getOffset(InnnerTopLeft);
         else
             pos = this->pos();
     }
@@ -851,18 +888,19 @@ void Block::updateSize(bool updateReal)
             QRectF childRect = child->idealGeometry;
 
             if (child->isTextBlock() && // not very elegant trick, think about it
-                child->getAncestorWhereLast()->element->isLineBreaking())
-                childRect.adjust(0, 0, child->getOffset(OffsetOut).x()*2, 0);
-
+                child->getAncestorWhereLast()->element->isLineBreaking()) {
+                childRect.setBottomRight(childRect.bottomRight() +
+                                         child->getOffset(Outer));
+            }
             rect = rect.united(childRect);
             child = child->nextSib;
         }
         size = rect.size();
     }
-    QPointF offs = getOffset(OffsetIn);
+    QPointF offs = getOffset(InnnerTopLeft) + getOffset(InnerBottomRight);
 
-    size.rwidth() += offs.x() * 2;
-    size.rheight() += offs.y() * 2;
+    size.rwidth() += offs.x();
+    size.rheight() += offs.y();
     idealGeometry.setSize(size);
     if (updateReal)
         setRect(QRectF(QPointF(), size));
@@ -881,20 +919,28 @@ void Block::updateLine()
 
 QPointF Block::getOffset(OffsetType type) const
 {
-    if (type == OffsetIn) {
+    switch (type) {
+    case InnnerTopLeft :
         if (showing)
-            return group->OFFSET_IN;
-        else if (moreSpace)
-            return group->NO_OFFSET;
+            return group->OFFSET_IN_TL;
         else
             return group->NO_OFFSET;
-    } else {
+    case InnerBottomRight :
+        if (showing)
+            return group->OFFSET_IN_BR;
+        else
+            return group->NO_OFFSET;
+    case Outer :
         if (showing)
             return group->OFFSET_OUT;
         else if (moreSpace)
-            return QPoint(group->OFFSET_OUT.x(), 0);
+            return group->OFFSET_INSERT;
         else
             return group->NO_OFFSET;
+//    case Drop :
+//        return group->OFFSET_INSERT;
+    default:
+        return group->NO_OFFSET;
     }
 }
 
@@ -920,22 +966,34 @@ QPainterPath Block::shape() const
     return path;
 }
 
+int level = 0;
+
 void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
     QRectF rect = boundingRect();
-    //    painter->fillRect(rect, Qt::white);
+    if (element->isFloating()) {
+        painter->fillRect(rect, Qt::white);
+    }
 
-    if (pointed) {
-        painter->fillRect(rect, format["hovered"]);
+    if (showing) {
+        painter->fillRect(rect, Qt::white);
+        QColor color(Qt::blue);
+        color.setAlpha(level*15);
+        painter->fillRect(rect, color);//format["hovered"]);
     }
     QPen myPen = pen();
     if (myPen.color() != Qt::white) {
         painter->setPen(myPen);
-        painter->drawRect(rect);
+
+        QPainterPath line(rect.topRight());
+        line.lineTo(rect.bottomRight());
+//        line.lineTo(rect.bottomLeft());
+        painter->drawPath(line);
     }
+//    painter->drawRect(rect);
 }
 
 void Block::updatePen()
@@ -945,37 +1003,49 @@ void Block::updatePen()
     QColor color = Qt::black;
     if (showing) {
         if (group->selectedBlock() == this) {
-            width = 4; color = format["selected"];
+            width = 4;
+            color = format["selected"];
         } else {
-            width = 2; style = Qt::DotLine; color = format["showing"];
+            width = 2;
+//            style = Qt::DotLine;
+            color = format["showing"];
         }
     } else if (pointed) {
         width = 2; color = format["hovered_border"];
 //    } else if (folded) {
 //        color = Qt::blue;
     } else {
-        color = Qt::lightGray;
+//        color = Qt::lightGray;
         color = Qt::white;
 //        width = 0;
     }
     if (element->isUnknown()) {
         color = Qt::red;
     }
-    setPen(QPen(QBrush(color), width, style, Qt::SquareCap, Qt::MiterJoin));
+    setPen(QPen(QBrush(color), width, style, Qt::FlatCap, Qt::MiterJoin));
 }
 
-void Block::setShowing(bool newState, Block *stopAt) {
-    if (this == stopAt) return;
-    if (element->isSelectable()) {
-        if (newState == showing) {
-            return;
+void Block::setShowing(bool newState) {
+    if (!newState) {
+        showing = false;
+        level = 0;
+        if (parent != 0)
+            parent->setShowing(false);
+    } else {
+        Block *block = this;
+        QList<Block *> ancestors;
+        while (block != 0 && ancestors.size() < 7) {
+            if (block->element->isSelectable())
+                ancestors << block;
+            block = block->parent;
         }
-        showing = newState;
-        updatePen();
+        for (int i = 0; i < ancestors.size()-1; i++) {
+            Block *bl = ancestors.at(i);
+            bl->level = ancestors.size() - i;
+            bl->showing = true;
+        }
     }
-    if (parent != 0)
-        parent->setShowing(newState, stopAt);
-    return;
+    updatePen();
 }
 
 QRectF Block::geometry() const
@@ -1060,10 +1130,9 @@ void Block::setFolded(bool fold)
             || group->selectedBlock() == this)) {
         group->selectBlock(this);
         myTextItem->setTextCursorPosition(0);
-    } else {
-        group->updateAll();
     }
     updatePen();
+    group->updateAll();
 }
 
 bool Block::isFoldable() const
@@ -1084,6 +1153,7 @@ void Block::updateFoldButton()
         } else {
             bool able = group->addFoldable(this);
             foldButton->setVisible(able);
+            foldButton->updatePos();
         }
     } else {
         if (foldButton != 0) {

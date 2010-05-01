@@ -6,14 +6,15 @@
 const qreal Pi = 3.14;
 
 Arrow::Arrow(DocBlock *startItem, Block *endItem, Block *parent, QGraphicsScene *scene)
-    : QGraphicsLineItem(parent, scene)
+    : QGraphicsLineItem(0, scene)
 {
     myStartItem = startItem;
     myEndItem = endItem;
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     myColor = Qt::black;
-    setPen(QPen(myColor, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    setPen(QPen(myColor, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     setZValue(10);
+    connect(myEndItem, SIGNAL(visibilityChanged(bool)), this, SLOT(updateVisibility(bool)));
 }
 
 QRectF Arrow::boundingRect() const
@@ -33,27 +34,30 @@ QPainterPath Arrow::shape() const
     return path;
 }
 
+void Arrow::updateVisibility(bool flag)
+{
+    setVisible(flag);
+    myStartItem->setVisible(flag);
+}
+
 void Arrow::updatePosition()
 {
-    QLineF line(mapFromItem(myStartItem, 0, 0), mapFromItem(myEndItem, 0, 0));
+    QLineF line(mapFromItem(myStartItem, -5, myStartItem->idealSize().height()/2),
+                mapFromItem(myEndItem, myEndItem->idealSize().width(),
+                            myEndItem->idealSize().height()/2));
     setLine(line);
 }
 
 void Arrow::paint(QPainter *painter, const QStyleOptionGraphicsItem *,
                   QWidget *)
 {
-    if (myStartItem->collidesWithItem(myEndItem))
-        return;
-
     QPen myPen = pen();
     myPen.setColor(myColor);
-    qreal arrowSize = 20;
+    qreal arrowSize = 10;
     painter->setPen(myPen);
     painter->setBrush(myColor);
 
-    QLineF centerLine(myStartItem->scenePos(), myEndItem->scenePos());
-    QPointF intersectPoint1=QPointF(myEndItem->rect().width(),0);//posun oproti pozicii end blocku
-    setLine(QLineF(intersectPoint1,myStartItem->scenePos()-myEndItem->scenePos()));
+    updatePosition();
 
     double angle = ::acos(line().dx() / line().length());
     if (line().dy() >= 0)

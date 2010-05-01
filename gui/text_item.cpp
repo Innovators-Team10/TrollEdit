@@ -87,6 +87,8 @@ void TextItem::keyPressEvent(QKeyEvent *event)
 {
     emit keyPressed(event);
     int cursorPos = textCursor().position();
+
+//    QPointF cursorPoint = cursor().;
     QString text = toPlainText();
 
     if (event->key() == Qt::Key_Return && !multiText) {
@@ -131,7 +133,10 @@ void TextItem::keyPressEvent(QKeyEvent *event)
         if (cursorPos == text.length()) {
             emit erasePressed(myBlock, Qt::Key_Delete);
         }
+        event->ignore();
         break;
+    default :
+        event->ignore();
     }
 }
 

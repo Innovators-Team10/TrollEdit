@@ -22,6 +22,7 @@ public:
     void addFile(QUrl url);
 
 protected:
+    void focusOutEvent(QFocusEvent *event);
     void addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene);
     void updateBlock(bool doAnimation = true);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

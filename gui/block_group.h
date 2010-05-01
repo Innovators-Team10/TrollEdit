@@ -37,12 +37,13 @@ public:
     void deselect();
     Block* selectedBlock() const {return selected;}
     Block* blockAt(QPointF scenePos) const;
+    Block *addTextCursorAt(QPointF scenePos);
 
     // analysis
     void setAnalyzer(Analyzer *analyzer) {this->analyzer = analyzer;}
     bool analyzeAll(QString text);
-    void reanalyze();
-    bool reanalyze(Block* block, QPoint cursorPos);
+    void reanalyze(Block* block = 0, QPointF cursorPos = QPointF());
+    bool reanalyzeBlock(Block* block);
     QString toText() const;
     DocBlock *addDocBlock(QPointF pos);
 
@@ -53,7 +54,8 @@ public:
     // helpers
     static QList<Block*> blocklist_cast(QList<QGraphicsItem*> list);
 
-    static const QPointF OFFSET_IN, OFFSET_OUT, NO_OFFSET;
+    static const QPointF OFFSET_IN_TL, OFFSET_IN_BR, OFFSET_OUT,
+        OFFSET_INSERT, NO_OFFSET;
     int TAB_LENGTH;
     qreal CHAR_HEIGHT, CHAR_WIDTH;
     DocumentScene *docScene;    // my scene

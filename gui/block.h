@@ -22,7 +22,7 @@ public:
 
     enum { Type = UserType + 1 };
     enum OffsetType {
-        OffsetIn = 0, OffsetOut = 1
+        InnnerTopLeft = 0, InnerBottomRight = 1, Outer = 2, Drop = 3,
     };
 
     // methods to change hierarchy (blocks + AST)
@@ -58,6 +58,7 @@ public:
     bool isFoldable() const;
     void setFolded(bool folded);
     bool isFolded() const {return folded;}
+    bool isEdited() const;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
     // textItem properties
@@ -79,17 +80,19 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void updatePen();
     void highlight(QPair<QFont, QColor> format);
-    void setShowing(bool newState, Block* stopAt = 0);
+    void setShowing(bool newState);
     void offsetChildren(bool flag, QPointF pos = QPointF());
 
     void updateBlock(bool doAnimation = true);
-//    void updateBlockAfter(bool doAnimation = true);
-//    void updateGeometryAfter(bool doAnimation = true);
+    void updateBlockAfter(bool doAnimation = true);
+    void updateGeometryAfter(bool doAnimation = true);
     void animate();
 
 public slots:
     void textFocusChanged(QFocusEvent* event);
     void textChanged();
+signals:
+    void visibilityChanged(bool flag);
 
 protected:
     void updatePos(bool updateReal = false);
@@ -121,6 +124,7 @@ protected:
     bool moreSpace;  // true when dropping to this block's parent, block has outer offset
     bool hovered;    // true after hoverEnterEvent
     bool pointed;    // true if it is last hovered block
+    int level;
 
     TreeElement *element;       // my AST element
     Block *parent;              // my parent
