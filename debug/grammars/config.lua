@@ -1,12 +1,12 @@
-cfg_keys = {"text_style", "comment_style", "keyword", "line_comment", "multi_comment", "string_constant", "character_constant", "number_constant", "label", "header_file", "funct_call", "assignment_operator", "binary_operator", "prefix_operator", "postfix_operator", "markup_tag", "attribute_key", "attribute_value", "block_style", "if_statement", "unknown", "preprocessor", "while_statement", "for_statement", "switch_statement", "funct_param", "block", "funct_definition"}
+cfg_keys = {"text_style", "comment_style", "keyword", "line_comment", "multiline_comment", "doc_comment", "string_constant", "character_constant", "number_constant", "label", "header_file", "funct_call", "assignment_operator", "binary_operator", "prefix_operator", "postfix_operator", "markup_tag", "attribute_key", "attribute_value", "block_style", "if_statement", "unknown", "preprocessor", "while_statement", "for_statement", "switch_statement", "funct_param", "block", "funct_definition"}
 
 text_style = {target="text", family="courier", size="12", color="black", bold="false", italic="false", underline="false"}
-comment_style = {target="text", base_t="text_style", family="verdana", italic="true"}
+comment_style = {target="text", base_t="text_style", family="verdana", italic="true", color="gray"}
 
 keyword = {target="text", base_t="text_style", color="blue"}
-line_comment = {target="text", base_t="comment_style", color="gray"}
-multi_comment = {target="text", base_t="comment_style", color="gray"}
-doc_comment = {target="text", base_t="comment_style", color="gray"}
+line_comment = {target="text", base_t="comment_style"}
+multiline_comment = {target="text", base_t="comment_style"}
+doc_comment = {target="text", base_t="comment_style"}
 string_constant = {target="text", base_t="text_style", color="darkmagenta"}
 character_constant = {target="text", base_t="text_style", color="darkmagenta"}
 number_constant = {target="text", base_t="text_style", color="orangered"}

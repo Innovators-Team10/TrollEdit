@@ -103,7 +103,11 @@ void Block::assignHighlighting(TreeElement *el)
                 highlightFormat = group->docScene->getHighlightning().value(parentType);
                 f = true;
             }
+        } else if (group->docScene->getHighlightning().contains(el->getType())) {
+            highlightFormat = group->docScene->getHighlightning().value(el->getType());
+            f = true;
         }
+
         if (!f)
             highlightFormat = group->docScene->getHighlightning().value("text_style");
         highlight(highlightFormat);
@@ -123,6 +127,7 @@ void Block::assignHighlighting(TreeElement *el)
             }
         }
     }
+
     if (group->docScene->getBlockFormatting().contains(element->getType()))
         format = group->docScene->getBlockFormatting().value(element->getType());
     else
@@ -519,6 +524,13 @@ void Block::textChanged()
 {
     QString text = myTextItem->toPlainText();
     myTextItem->document()->blockSignals(true);
+
+    // remove highlighting for non doc_blocks if text changed
+    if (!element->isFloating()) {
+        highlight(group->docScene->getHighlightning().value("text_style"));
+        format = group->docScene->getBlockFormatting().value("block_style");
+    }
+
     if (text.isEmpty()) {   // delete block
         if (!(element->isLineBreaking() && getPrev(true)->line != line)
             && !element->isFloating()) {

@@ -7,10 +7,9 @@
 #include "block_group.h"
 
 DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)
-    : Block(new TreeElement("", true, true), 0, parentgroup)
+    : Block(new TreeElement("doc_comment", true, true), 0, parentgroup)
 {
     setParentItem(0);
-    element->setType("doc_comment");
     element->setFloating(true);
     myTextItem->adaptToFloating();  // disconnect all harmful signals
     setFlag(QGraphicsItem::ItemIsMovable);
