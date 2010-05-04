@@ -93,7 +93,7 @@ void BlockGroup::removeFoldable(Block *block)
 DocBlock *BlockGroup::addDocBlock(QPointF pos)
 {
     DocBlock *block = new DocBlock(pos, this);
-    docBlocks << block;
+//    docBlocks << block;
     return block;
 }
 
@@ -111,7 +111,8 @@ Block *BlockGroup::blockAt(QPointF scenePos) const
 void BlockGroup::selectBlock(Block *block)
 {
     if (!block->getElement()->isSelectable()) {
-        selectBlock(block->parentBlock());
+        if (block->parentBlock() != 0)
+            selectBlock(block->parentBlock());
         return;
     }
     deselect();
@@ -310,12 +311,13 @@ void BlockGroup:: moveCursorUpDown(Block *start, bool moveUp, int from)
         scenePos.setX(lastXPos);
     }
 
-    if (selected != 0 && selected->isEdited()) {
-        reanalyze(selected, scenePos);
-        return;
-    }
+//    if (selected != 0 && selected->isEdited()) {
+//        reanalyze(selected, scenePos);
+//        return;
+//    }
 
     Block *target = blockAt(scenePos);
+    if (target == 0) target = root;
     target = target->addTextCursorAt(target->mapFromScene(scenePos));
     selectBlock(target);
     target->updateGeometryAfter();
@@ -389,7 +391,13 @@ bool BlockGroup::reanalyzeBlock(Block *block)
         newBlock->prevSib->getElement()->setLineBreaking(isPrevLB);
 
     foldableBlocks.clear();
-    updateAll(false);
+    root->updateBlock(false);
+
+    foreach (DocBlock *block, tempDocBlocks)
+        block->updateBlock(false);
+    tempDocBlocks.clear();
+
+    docScene->update();
     return true;
 }
 
@@ -408,6 +416,9 @@ bool BlockGroup::analyzeAll(QString text)
     root->getFirstLeaf()->textItem()->setTextCursorPosition(0);
     root->updateBlock(false);
 
+    foreach (DocBlock *block, tempDocBlocks)
+        block->updateBlock(false);
+    tempDocBlocks.clear();
     docScene->update();
     return true;
 }
@@ -432,9 +443,6 @@ QList<Block*> BlockGroup::blocklist_cast(QList<QGraphicsItem*> list)
 void BlockGroup::updateAll(bool animate) // remove this method when another updater is finished
 {
     root->updateBlock(animate);
-    foreach (DocBlock *block, docBlocks)
-        block->updateBlock(animate);
-//    docScene->update();
 }
 
 void BlockGroup::keyPressEvent(QKeyEvent *event)
@@ -442,7 +450,7 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
     if (event->modifiers() == Qt::ControlModifier) {
         switch (event->key()) {
         case Qt::Key_M :
-            reanalyze();
+//            reanalyze();
             break;
         case Qt::Key_Delete :
             if (selected != 0) {

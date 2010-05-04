@@ -14,8 +14,9 @@ other_grammars = {
 	markup_element="in_markup_element", 
 }
 paired = {"<", ">", "start_element", "end_element"}
-selectable = {"xml_header", "markup_element", "unknown"}
+selectable = {"document", "xml_header", "markup_element", "unknown"}
 multi_text = {"unknown"}
+floating = {}
 
 require 'lpeg'
 
@@ -61,13 +62,15 @@ document =
 	Cc("document") *
 	N'nl'^0 *
 	N'xml_header'^-1 * N'markup_element' *
-	N'unknown'^-1 *-1),
+	N'unknown'^-1 *
+	N'whites'^-1 * -1),
 	
 in_markup_element =  
 	Ct(
 	N'nl'^0 *
 	(N'markup_element')^0 *
-	N'unknown'^-1 *-1),
+	N'unknown'^-1 *
+	N'whites'^-1 * -1),
 	
 -- NONTERMINALS
 xml_header = T"<?xml" * T"version=" * N'version_number' * T"?>",

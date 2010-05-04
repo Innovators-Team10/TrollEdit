@@ -7,6 +7,7 @@ const char *Analyzer::SUB_GRAMMARS_FIELD = "other_grammars";
 const char *Analyzer::PAIRED_TOKENS_FIELD = "paired";
 const char *Analyzer::SELECTABLE_TOKENS_FIELD = "selectable";
 const char *Analyzer::MULTI_TEXT_TOKENS_FIELD = "multi_text";
+const char *Analyzer::FLOATING_TOKENS_FIELDS = "floating";
 const char *Analyzer::CONFIG_KEYS_FIELD = "cfg_keys";
 const QString Analyzer::TAB = "    ";
 
@@ -67,11 +68,20 @@ void Analyzer::setupConstants()
         selectableTokens.append(QString(lua_tostring(L, -1)));
         lua_pop(L, 1);
     }
+
     // get multi-text tokens (can contain more lines of text)
     lua_getglobal (L, MULTI_TEXT_TOKENS_FIELD);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
         multiTextTokens.append(QString(lua_tostring(L, -1)));
+        lua_pop(L, 1);
+    }
+
+    // get floating tokens
+    lua_getglobal (L, FLOATING_TOKENS_FIELDS);
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        floatingTokens.append(QString(lua_tostring(L, -1)));
         lua_pop(L, 1);
     }
 }
@@ -222,7 +232,8 @@ TreeElement *Analyzer::createTreeFromLuaStack()
                                    selectableTokens.contains(nodeName),
                                    multiTextTokens.contains(nodeName),
                                    false, paired);
-
+            if (floatingTokens.contains(nodeName))
+                root->setFloating(true);
         }
         lua_pop(L, 1); // removes 'value'; keeps 'key' for next iteration
     }
@@ -324,10 +335,12 @@ void Analyzer::processWhites(TreeElement* root)
                     break;
                 parent = parent->getParent();
             }
-            if (index >= 0)
+            if (index >= 0) {
+                if (parent->childCount() <= index) continue;
                 el = (*parent)[index];
-            else
+            } else {
                 el = parent;
+            }
             while (!el->isImportant())
                 el = (*el)[0];
             el->setSpaces(spaces);

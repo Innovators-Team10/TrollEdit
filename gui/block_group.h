@@ -24,7 +24,6 @@ public:
     // main properties
     int type() const { return Type; }
     Block *mainBlock() const {return root;}
-    QList<DocBlock*> docBlockList() const {return docBlocks;}
     int getLastLine() const {return lastLine;}
 
     // block management
@@ -61,6 +60,8 @@ public:
     DocumentScene *docScene;    // my scene
     void updateAll(bool animate = true);
 
+    QList<DocBlock*> tempDocBlocks;
+
 public slots:
     void keyPressed(QKeyEvent* event);
     void splitLine(Block *block, int cursorPos);
@@ -86,7 +87,6 @@ private:
     QList<Block*> lineStarts;   // line starting blocks
     int lastLine;               // curent last line
     QSet<Block*> foldableBlocks;// foldable blocks, only 1 per line allowed
-    QList<DocBlock*> docBlocks;
     qreal lastXPos;
 
     friend class DocumentScene;

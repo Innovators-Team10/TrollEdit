@@ -83,7 +83,7 @@ public:
     void setShowing(bool newState);
     void offsetChildren(bool flag, QPointF pos = QPointF());
 
-    void updateBlock(bool doAnimation = true);
+    virtual void updateBlock(bool doAnimation = true);
     void updateBlockAfter(bool doAnimation = true);
     void updateGeometryAfter(bool doAnimation = true);
     void animate();

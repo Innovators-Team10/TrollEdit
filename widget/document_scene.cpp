@@ -100,6 +100,8 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
             DocBlock *block = currentGroup->addDocBlock(event->scenePos());
             block->addText("");
+            currentGroup->selectBlock(block);
+            block->textItem()->setTextCursorPosition(0);
         } else {
             currentGroup->deselect();
             currentGroup->updateAll();

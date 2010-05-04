@@ -32,6 +32,7 @@ private:
     static const char *PAIRED_TOKENS_FIELD;
     static const char *SELECTABLE_TOKENS_FIELD;
     static const char *MULTI_TEXT_TOKENS_FIELD;
+    static const char *FLOATING_TOKENS_FIELDS;
     static const char *CONFIG_KEYS_FIELD;
 
     lua_State *L;           // the Lua interpreter
@@ -40,8 +41,9 @@ private:
     QString mainGrammar;    // name of complete gramar
     QHash<QString, QString> subGrammars; // names of partial grammars
     QStringList pairedTokens;   // list, example: "{", "}", "begin", "end"...
-    QStringList selectableTokens;   // list of tokens which can contain line-breaking children
+    QStringList selectableTokens;  // list of tokens which can contain line-breaking children
     QStringList multiTextTokens;   // list of tokens which can contain more lines of text
+    QStringList floatingTokens;    // list of tokenskj
 
     void setupConstants();
     TreeElement* analyzeString(QString grammar, QString input);

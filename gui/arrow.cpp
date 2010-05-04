@@ -5,16 +5,22 @@
 
 const qreal Pi = 3.14;
 
-Arrow::Arrow(DocBlock *startItem, Block *endItem, Block *parent, QGraphicsScene *scene)
+Arrow::Arrow(DocBlock *startItem, Block *endItem, QGraphicsScene *scene)
     : QGraphicsLineItem(0, scene)
 {
     myStartItem = startItem;
     myEndItem = endItem;
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     myColor = Qt::black;
-    setPen(QPen(myColor, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    setPen(QPen(myColor, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     setZValue(10);
     connect(myEndItem, SIGNAL(visibilityChanged(bool)), this, SLOT(updateVisibility(bool)));
+}
+
+Arrow::~Arrow()
+{
+    myStartItem = 0;
+    myEndItem = 0;
 }
 
 QRectF Arrow::boundingRect() const

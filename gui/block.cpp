@@ -1,6 +1,7 @@
 #include "block.h"
 #include "fold_button.h"
 #include "block_group.h"
+#include "doc_block.h"
 #include "text_item.h"
 #include "../analysis/tree_element.h"
 #include "../widget/document_scene.h"
@@ -54,7 +55,18 @@ Block::Block(TreeElement *element, Block *parentBlock, BlockGroup *blockGroup)
         myTextItem = 0;
         setToolTip(element->getType().replace("_", " "));
         foreach (TreeElement *childEl, element->getChildren()) {
-            new Block(childEl, this);
+            if (!childEl->isFloating()) {
+                new Block(childEl, this);
+            } else {
+                QString text = childEl->getText();
+                if (text.endsWith('\n')) {
+                    text.chop(1);
+                    childEl->setLineBreaking(true);
+                }
+                childEl->removeAllChildren();
+                DocBlock *bl = new DocBlock(childEl, this);
+                bl->addText(text);
+            }
         }        
     }
 
@@ -77,7 +89,7 @@ Block::Block(TreeElement *element, Block *parentBlock, BlockGroup *blockGroup)
 
     createControls();
 
-    // set geometry
+    // set size
     updateGeometry(true);
     updateFoldButton();
     updatePen();
@@ -103,7 +115,8 @@ void Block::assignHighlighting(TreeElement *el)
                 highlightFormat = group->docScene->getHighlightning().value(parentType);
                 f = true;
             }
-        } else if (group->docScene->getHighlightning().contains(el->getType())) {
+        }
+        if (group->docScene->getHighlightning().contains(el->getType())) {
             highlightFormat = group->docScene->getHighlightning().value(el->getType());
             f = true;
         }
@@ -522,18 +535,22 @@ void Block::textFocusChanged(QFocusEvent* event)
 
 void Block::textChanged()
 {
+    if (element->isFloating()) {
+        element->setType(myTextItem->toPlainText());
+        if (pos().x() >= 0)
+            updateBlock(false);
+        return;
+    }
+
     QString text = myTextItem->toPlainText();
     myTextItem->document()->blockSignals(true);
 
-    // remove highlighting for non doc_blocks if text changed
-    if (!element->isFloating()) {
-        highlight(group->docScene->getHighlightning().value("text_style"));
-        format = group->docScene->getBlockFormatting().value("block_style");
-    }
+    // remove highlighting if text changed
+    highlight(group->docScene->getHighlightning().value("text_style"));
+    format = group->docScene->getBlockFormatting().value("block_style");
 
     if (text.isEmpty()) {   // delete block
-        if (!(element->isLineBreaking() && getPrev(true)->line != line)
-            && !element->isFloating()) {
+        if (!(element->isLineBreaking() && getPrev(true)->line != line)) {
             // don't delete if block is single newline in this line OR floating
 
             Block *next = removeBlock(true);
@@ -644,7 +661,8 @@ void Block::dropEvent(QGraphicsSceneDragDropEvent *event)
                 addBlockAt(selected, event->pos());
                 offsetChildren(false);
 
-                group->reanalyze(selected, event->scenePos());
+                //group->reanalyze(selected, event->scenePos());
+                group->updateAll();
             }
         }
         event->accept();
@@ -1005,7 +1023,6 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 //        line.lineTo(rect.bottomLeft());
         painter->drawPath(line);
     }
-//    painter->drawRect(rect);
 }
 
 void Block::updatePen()

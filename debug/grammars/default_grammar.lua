@@ -7,8 +7,9 @@ extension = ""			-- language file extension, e.g. "lua"
 full_grammar = "grammar"	-- name of complete grammars
 other_grammars = {}		-- names of available partial grammars
 paired = {}				-- list of paired elements (terminal or nonterminal) e.g. {"begin", "end", "(", ")" } 
-selectable = {"line", "word", "unknown"}	-- list of nonterminal elements that could be selected and moved by user
+selectable = {"general_text", "line", "word", "unknown"}	-- list of nonterminal elements that could be selected and moved by user
 multi_text = {"unknown"}	-- list of nonterminal elements able/allowed to contain more lines of text (in their child terminals)
+floating = {}
 
 require 'lpeg'
 
@@ -33,8 +34,8 @@ return
 end
 
 -- ***  GRAMMAR  ****
-grammar = P{"text",
-text = Ct(Cc("text") *
+grammar = P{"general_text",
+general_text = Ct(Cc("general_text") *
 	N'nl'^0 *
 	N'line'^0 *
 	N'unknown'^-1),

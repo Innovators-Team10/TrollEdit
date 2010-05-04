@@ -18,11 +18,12 @@ paired = {"{", "}", "(", ")", "[", "]", }
 selectable = {
 	"preprocessor", "funct_definition", "declaration", 
 	"initializer", "block", "funct_parameter", "expression",  
-	"comment", "program", "header_file",
+	"program", "header_file",
 	"unknown", "if_statement", "while_statement", 
 	"for_statement", "switch_statement", "simple_statement"
 	}	
 multi_text = {"multiline_comment", "doc_comment",}
+floating = {"doc_comment", "multiline_comment", "line_comment"}
 
 require 'lpeg'
 
@@ -50,7 +51,7 @@ function T(arg)
 return
 	N'whites'^-1 *
 	TP(arg) *
-	(N'nl'^1 + N'comment')^0
+	(NI'comment' + N'nl'^1)^0
 end
 
 -- terminal, keyword text node
@@ -73,19 +74,22 @@ local grammar = {"S",
 -- ENTRY POINTS
 program =  
 	Ct(Cc("program") *
-	(N'nl'^1 + N'comment')^0 *
+	(NI'comment' + N'nl'^1)^0 *
 	N'translation_unit'^0 *
-	N'unknown'^0 *-1),
+	N'unknown'^0 *
+	N'whites'^-1 * -1),
 top_element =  
 	Ct(
-	(N'nl'^1 + N'comment')^0 *
+	(NI'comment' + N'nl'^1)^0 *
 	N'translation_unit'^0 *
-	N'unknown'^0 *-1),
+	N'unknown'^0 *
+	N'whites'^-1 * -1),
 in_block = 
 	Ct (
-	(N'nl'^1 + N'comment')^0 *
+	(NI'comment' + N'nl'^1)^0 *
 	N'block'^-1 *
-	N'unknown'^0),
+	N'unknown'^0 *
+	N'whites'^-1 ),
 
 -- NONTERMINALS
 translation_unit = N'preprocessor' + N'funct_definition' + N'declaration',
@@ -257,7 +261,7 @@ constant =
 	-- N'enumeration_constant'
 	,
 
-comment = N'whites'^-1 * (N'doc_comment' + N'multiline_comment' + N'line_comment'),
+comment = S(" \t")^0 * (N'doc_comment' + N'multiline_comment' + N'line_comment'),
 
 -- TERMINALS
 number_constant = NI'number_literal',

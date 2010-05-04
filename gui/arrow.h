@@ -16,8 +16,8 @@ class Arrow : public QObject, public QGraphicsLineItem
 public:
     enum { Type = UserType + 4 };
 
-    Arrow(DocBlock *startItem, Block *endItem,
-          Block *parent = 0, QGraphicsScene *scene = 0);
+    Arrow(DocBlock *startItem, Block *endItem, QGraphicsScene *scene);
+    ~Arrow();
 
     int type() const
     { return Type; }

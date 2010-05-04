@@ -65,7 +65,6 @@ void TreeElement::appendChild(TreeElement *child)
 {
     children.append(child);
     child->parent = this;
-    child->paragraphsAllowed = paragraphsAllowed;
 }
 void TreeElement::appendChildren(QList<TreeElement*> children)
 {
@@ -196,7 +195,7 @@ void TreeElement::setFloating(bool floating)
 
 bool TreeElement::isSelectable() const
 {
-    return selectable;
+    return selectable || floating;
 }
 
 bool TreeElement::allowsParagraphs() const

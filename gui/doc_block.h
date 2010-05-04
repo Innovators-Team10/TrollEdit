@@ -14,6 +14,7 @@ class DocBlock : public Block
     Q_OBJECT
 public:
     DocBlock(QPointF pos, BlockGroup *parentgroup = 0);
+    DocBlock(TreeElement *element, Block* parentBlock = 0, BlockGroup *parentgroup = 0);
     ~DocBlock();
 
     enum { Type = UserType + 3 };
@@ -22,13 +23,13 @@ public:
     void addFile(QUrl url);
 
 protected:
-    void focusOutEvent(QFocusEvent *event);
-    void addArrow(DocBlock *start,Block *end, QGraphicsScene *parentScene);
+    void addArrowTo(Block *end);
     void updateBlock(bool doAnimation = true);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     QImage image;
     Arrow *arrow;
+    QString type;
 
     friend class BlockGroup;
 };

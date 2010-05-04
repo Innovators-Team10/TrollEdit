@@ -6,7 +6,8 @@ int main(int t) {
         ducks   <<   true;
         doSomethingUsefull(now);
     }
-    while(a >= 4) {
+    while(a >= 4) {   
+	    //toto je zly cyklus
         j++;
         i++;
     }
