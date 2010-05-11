@@ -1,0 +1,28 @@
+PROJECT(TrollEdit)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0)
+
+# Find dependencies
+FIND_PACKAGE(Qt4 REQUIRED)
+FIND_PACKAGE(Lua51 REQUIRED)
+
+# Setup environment
+INCLUDE(${QT_USE_FILE})
+INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR} ${QT_INCLUDE_DIR})
+
+# Collect sources, headers and resources
+FILE(GLOB_RECURSE TROLL_CPP src/*.cpp)
+FILE(GLOB_RECURSE TROLL_H src/*.h)
+FILE(GLOB_RECURSE TROLL_RC res/*.qrc)
+    
+# Process resources with Qt4 tools 
+QT4_ADD_RESOURCES(TROLL_RC ${TROLL_RC})
+QT4_WRAP_CPP(TROLL_MOC ${TROLL_H})
+
+# Build TrollEdit, include lpeg into it.
+ADD_EXECUTABLE(trolledit ${TROLL_CPP} ${TROLL_MOC} ${TROLL_RC} src/lpeg-0.9/lpeg.c)
+TARGET_LINK_LIBRARIES(trolledit ${QT_LIBRARIES} ${LUA_LIBRARIES})
+
+# Install
+INSTALL(TARGETS trolledit DESTINATION .)
+INSTALL(DIRECTORY data/ DESTINATION .)
+

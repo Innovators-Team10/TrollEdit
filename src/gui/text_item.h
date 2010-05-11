@@ -1,0 +1,44 @@
+#ifndef TEXT_ITEM_H
+#define TEXT_ITEM_H
+
+#include<QGraphicsTextItem>
+
+class Block;
+
+class TextItem : public QGraphicsTextItem
+{
+        Q_OBJECT
+
+public:
+    TextItem(const QString &text, Block *parentBlock, bool multiText = false);
+    void setTextCursorPosition(int i);
+    bool removeCharAt(int i);   // returns false if text is empty after removal
+
+    void setPos(const QPointF &pos);
+    void setFont(const QFont &font);
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    QRectF boundingRect() const;
+
+    void adaptToFloating();
+
+    qreal MARGIN;
+
+protected:
+    void keyPressEvent(QKeyEvent *event);
+    void focusInEvent(QFocusEvent *event);
+    void focusOutEvent(QFocusEvent *event);
+
+signals:
+    void focusChanged(QFocusEvent *event);
+    void keyPressed(QKeyEvent *event);
+    void moveCursor(Block *, int key, int cursorPos = 0);
+    void enterPressed(Block *, int cursorPos);
+    void erasePressed(Block *, int key);
+
+private:
+    Block *myBlock;
+    bool multiText;
+};
+
+#endif // TEXT_ITEM_H
