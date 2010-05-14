@@ -1,6 +1,13 @@
 PROJECT(TrollEdit)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0)
 
+# Point Windows to lua dir and install dll 
+IF(WIN32)
+	SET(LUA_LIBRARIES lua/lua5.1.dll)
+	SET(LUA_INCLUDE_DIR lua)
+	INSTALL(FILES ${LUA_LIBRARIES} DESTINATION .)
+ENDIF()
+
 # Find dependencies
 FIND_PACKAGE(Qt4 REQUIRED)
 
