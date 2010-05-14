@@ -2,8 +2,8 @@
 #include "ui_main_window.h"
 #include "document_tabs.h"
 #include "document_scene.h"
-#include "../analysis/language_manager.h"
-#include "../analysis/analyzer.h"
+#include "language_manager.h"
+#include "analyzer.h"
 
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {

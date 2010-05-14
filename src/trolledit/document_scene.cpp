@@ -1,11 +1,12 @@
-#include "document_scene.h"
-#include "../gui/block_group.h"
-#include "../analysis/analyzer.h"
-#include "../gui/block.h"
-#include "../gui/text_item.h"
-#include "../gui/doc_block.h"
-#include "../analysis/tree_element.h"
 #include <QtGui>
+
+#include "document_scene.h"
+#include "block_group.h"
+#include "analyzer.h"
+#include "block.h"
+#include "text_item.h"
+#include "doc_block.h"
+#include "tree_element.h"
 
 QGraphicsTextItem *textArea;
 

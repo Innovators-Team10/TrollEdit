@@ -1,5 +1,5 @@
 #include "tree_element.h"
-#include "../gui/block.h"
+#include "block.h"
 
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";

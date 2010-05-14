@@ -3,8 +3,8 @@
 #include "block_group.h"
 #include "doc_block.h"
 #include "text_item.h"
-#include "../analysis/tree_element.h"
-#include "../widget/document_scene.h"
+#include "tree_element.h"
+#include "document_scene.h"
 
 Block::Block(TreeElement *element, Block *parentBlock, BlockGroup *blockGroup)
     : QGraphicsRectItem(parentBlock)

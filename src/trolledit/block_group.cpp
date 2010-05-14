@@ -2,9 +2,9 @@
 #include "block.h"
 #include "doc_block.h"
 #include "text_item.h"
-#include "../analysis/tree_element.h"
-#include "../analysis/analyzer.h"
-#include "../widget/document_scene.h"
+#include "tree_element.h"
+#include "analyzer.h"
+#include "document_scene.h"
 
 const QPointF BlockGroup::OFFSET_IN_TL = QPointF(0, 0);//6, 6);
 const QPointF BlockGroup::OFFSET_IN_BR = QPointF(6, 0);//6, 6);

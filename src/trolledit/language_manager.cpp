@@ -1,8 +1,9 @@
-#include "language_manager.h"
-#include "analyzer.h"
 #include <QDir>
 #include <QErrorMessage>
 #include <QMessageBox>
+
+#include "language_manager.h"
+#include "analyzer.h"
 
 const QString LanguageManager::GRAMMAR_DIR = "/grammars";
 const QString LanguageManager::DEFAULT_GRAMMAR = "/grammars/default_grammar.lua";

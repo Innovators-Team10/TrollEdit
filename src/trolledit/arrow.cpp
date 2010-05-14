@@ -1,7 +1,6 @@
 #include <QtGui>
-
-#include "arrow.h"
 #include <math.h>
+#include "arrow.h"
 
 const qreal Pi = 3.14;
 

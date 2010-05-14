@@ -2,7 +2,7 @@
 #include "block.h"
 #include "block_group.h"
 #include "text_item.h"
-#include "../analysis/tree_element.h"
+#include "tree_element.h"
 
 FoldButton::FoldButton(Block *parentBlock, BlockGroup *parentGruoup)
     : QGraphicsPixmapItem(parentGruoup)

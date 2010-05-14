@@ -1,13 +1,6 @@
 PROJECT(TrollEdit)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0)
 
-# Point Windows to lua dir and install dll 
-IF(WIN32)
-	SET(LUA_LIBRARIES lua/lua5.1.dll)
-	SET(LUA_INCLUDE_DIR lua)
-	INSTALL(FILES ${LUA_LIBRARIES} DESTINATION .)
-ENDIF()
-
 # Find dependencies
 FIND_PACKAGE(Qt4 REQUIRED)
 
@@ -62,8 +55,8 @@ INCLUDE_DIRECTORIES ( src )
 ADD_LIBRARY(lpeg src/lpeg-0.9/lpeg.c)
 
 # Collect sources, headers and resources
-FILE(GLOB_RECURSE TROLL_CPP src/*.cpp)
-FILE(GLOB_RECURSE TROLL_H src/*.h)
+FILE(GLOB_RECURSE TROLL_CPP src/trolledit/*.cpp)
+FILE(GLOB_RECURSE TROLL_H src/trolledit/*.h)
 FILE(GLOB_RECURSE TROLL_RC res/*.qrc)
     
 # Process resources with Qt4 tools 

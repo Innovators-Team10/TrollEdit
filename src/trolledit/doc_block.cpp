@@ -1,9 +1,10 @@
+#include <QTextBrowser>
+
 #include "doc_block.h"
 #include "arrow.h"
 #include "text_item.h"
-#include "../analysis/tree_element.h"
-#include "../widget/document_scene.h"
-#include <QTextBrowser>
+#include "tree_element.h"
+#include "document_scene.h"
 #include "block_group.h"
 
 DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)
