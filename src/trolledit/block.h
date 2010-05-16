@@ -55,8 +55,8 @@ public:
     BlockGroup *blockGroup() const {return group;}
     int getLine() const {return line;}
     void setLine(int line) {this->line = line;}
-    bool isFoldable() const;
-    void setFolded(bool folded);
+    virtual bool isFoldable() const;
+    virtual void setFolded(bool folded);
     bool isFolded() const {return folded;}
     bool isEdited() const;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
@@ -80,17 +80,18 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void updatePen();
     void highlight(QPair<QFont, QColor> format);
-    void setShowing(bool newState);
+    void setShowing(bool newState, Block *until = 0);
     void offsetChildren(bool flag, QPointF pos = QPointF());
+    QColor getColor(QString key) const;
 
     virtual void updateBlock(bool doAnimation = true);
     void updateBlockAfter(bool doAnimation = true);
-    void updateGeometryAfter(bool doAnimation = true);
+    virtual void updateGeometryAfter(bool doAnimation = true);
     void animate();
 
 public slots:
     void textFocusChanged(QFocusEvent* event);
-    void textChanged();
+    virtual void textChanged();
 signals:
     void visibilityChanged(bool flag);
 
@@ -107,6 +108,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 
+    void startDrag(QWidget *widget);
     void dropEvent(QGraphicsSceneDragDropEvent *event);
     void dragEnterEvent(QGraphicsSceneDragDropEvent *event);
     void dragLeaveEvent(QGraphicsSceneDragDropEvent *event);
@@ -121,10 +123,10 @@ protected:
     bool moveStarted;// true while block is moving
     bool edited;     // edited after last AST analysis
     bool showing;    // true when block border is painted, block has inner and outer offset
+    int level;       // level of showing
     bool moreSpace;  // true when dropping to this block's parent, block has outer offset
     bool hovered;    // true after hoverEnterEvent
     bool pointed;    // true if it is last hovered block
-    int level;
 
     TreeElement *element;       // my AST element
     Block *parent;              // my parent

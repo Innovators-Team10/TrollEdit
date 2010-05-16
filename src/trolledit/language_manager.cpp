@@ -21,7 +21,9 @@ LanguageManager::LanguageManager(QString programPath)
         if (file != defaultGrammar && file != configFile) {
             try {
                 Analyzer *a = new Analyzer(file.absoluteFilePath());
-                analyzers.insert(a->getExtension(), a);
+                QStringList extensions = a->getExtensions();
+                foreach (QString ext, extensions)
+                    analyzers.insert(ext, a);
             } catch(...) {
                 // analyzer is not inserted, messages were already displayed in Analyzer class
             }

@@ -33,15 +33,15 @@ public:
     void removeFoldable(Block *block);
 
     void selectBlock(Block *block);
-    void deselect();
+    void deselect(Block *until = 0);
     Block* selectedBlock() const {return selected;}
     Block* blockAt(QPointF scenePos) const;
     Block *addTextCursorAt(QPointF scenePos);
 
     // analysis
     void setAnalyzer(Analyzer *analyzer) {this->analyzer = analyzer;}
+    Block *reanalyze(Block* block = 0, QPointF cursorPos = QPointF());
     bool analyzeAll(QString text);
-    void reanalyze(Block* block = 0, QPointF cursorPos = QPointF());
     bool reanalyzeBlock(Block* block);
     QString toText() const;
     DocBlock *addDocBlock(QPointF pos);
@@ -53,14 +53,16 @@ public:
     // helpers
     static QList<Block*> blocklist_cast(QList<QGraphicsItem*> list);
 
+    // constants
     static const QPointF OFFSET_IN_TL, OFFSET_IN_BR, OFFSET_OUT,
         OFFSET_INSERT, NO_OFFSET;
+    static const QString BLOCK_MIME;
     int TAB_LENGTH;
     qreal CHAR_HEIGHT, CHAR_WIDTH;
-    DocumentScene *docScene;    // my scene
-    void updateAll(bool animate = true);
 
-    QList<DocBlock*> tempDocBlocks;
+    DocumentScene *docScene;    // my scene
+
+    QList<DocBlock*> docBlocks;
 
 public slots:
     void keyPressed(QKeyEvent* event);

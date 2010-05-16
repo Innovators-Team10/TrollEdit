@@ -1,7 +1,7 @@
 #include "analyzer.h"
 #include "tree_element.h"
 
-const char *Analyzer::EXTENSION_FIELD = "extension";
+const char *Analyzer::EXTENSIONS_FIELD = "extensions";
 const char *Analyzer::MAIN_GRAMMAR_FIELD = "full_grammar";
 const char *Analyzer::SUB_GRAMMARS_FIELD = "other_grammars";
 const char *Analyzer::PAIRED_TOKENS_FIELD = "paired";
@@ -19,10 +19,9 @@ Analyzer::Analyzer(QString script_name)
     this->script_name = script_name;
     L = lua_open();             // initialize Lua
     luaL_openlibs(L);           // load Lua base libraries
-	// lpeg
+	// Load lpeg
 	lua_pushcfunction(L, luaopen_lpeg);
 	lua_call(L, 0, 0);
-    
     try {
         setupConstants();
     } catch (QString exMsg) {
@@ -38,10 +37,13 @@ void Analyzer::setupConstants()
         throw "Error loading script \"" + script_name + "\"";
     }
 
-    // get extension
-    lua_getglobal (L, EXTENSION_FIELD);
-    extension = QString(lua_tostring(L, -1));
-    lua_pop(L, 1);
+    // get extensions
+    lua_getglobal (L, EXTENSIONS_FIELD);
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        extensions.append(QString(lua_tostring(L, -1)));
+        lua_pop(L, 1);
+    }
 
     // get grammars
     lua_getglobal (L, MAIN_GRAMMAR_FIELD);
@@ -54,7 +56,6 @@ void Analyzer::setupConstants()
     lua_pushnil(L);
     while (lua_next(L, -2) != 0) {
         subGrammars[QString(lua_tostring(L, -2))] = QString(lua_tostring(L, -1));
-      
         lua_pop(L, 1);
     }
 
@@ -95,15 +96,15 @@ Analyzer::~Analyzer()
 {
 }
 
-QString Analyzer::getExtension() const
+QStringList Analyzer::getExtensions() const
 {
-    return extension;
+    return extensions;
 }
 QList<QPair<QString, QHash<QString, QString> > > Analyzer::readConfig(QString fileName)
 {
     L = lua_open();
     luaL_openlibs(L);
-	// lpeg
+	// Load lpeg
 	lua_pushcfunction(L, luaopen_lpeg);
 	lua_call(L, 0, 0);
 
@@ -150,7 +151,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 {
     L = lua_open();
     luaL_openlibs(L);
-	// lpeg
+	// Load lpeg
 	lua_pushcfunction(L, luaopen_lpeg);
 	lua_call(L, 0, 0);
 

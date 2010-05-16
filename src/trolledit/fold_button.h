@@ -27,6 +27,7 @@ protected:
 
 private:
     Block *myBlock;
+    Block *refBlock; // floating ancestor-or-self of myBlock
     QPixmap plus;
     QPixmap minus;
 };

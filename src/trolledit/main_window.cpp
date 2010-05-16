@@ -226,13 +226,12 @@ void MainWindow::open()
 void MainWindow::open(QString fileName)
 {
     if (!fileName.isEmpty() && QFile::exists(fileName)) {
-        DocumentScene *scene = currentScene;
+//        DocumentScene *scene = currentScene;
 
-        if (!scene || scene->isModified()) {
-            newFile();
-            DocumentTabs::documentNumber--;
-        }
-
+//        if (!scene || scene->isModified()) {
+//            newFile();
+//            DocumentTabs::documentNumber--;
+//        }
         load(fileName);
     }
 }

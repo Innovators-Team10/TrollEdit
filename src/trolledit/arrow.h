@@ -3,11 +3,9 @@
 
 #include <QGraphicsLineItem>
 
-#include "block.h"
-#include "text_item.h"
-#include "doc_block.h"
-
+class Block;
 class DocBlock;
+class BlockGroup;
 
 class Arrow : public QObject, public QGraphicsLineItem
 {
@@ -16,7 +14,7 @@ class Arrow : public QObject, public QGraphicsLineItem
 public:
     enum { Type = UserType + 4 };
 
-    Arrow(DocBlock *startItem, Block *endItem, QGraphicsScene *scene);
+    Arrow(DocBlock *startItem, Block *endItem, BlockGroup *parentGroup);
     ~Arrow();
 
     int type() const
@@ -28,18 +26,23 @@ public:
     Block *endItem() const { return myEndItem; }
 
 public slots:
-    void updatePosition();
     void updateVisibility(bool flag);
+    void deleteLater();
 
 protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                QWidget *widget = 0);
 
 private:
+    QPointF startPoint();
+    QPointF midPoint();
+    QPointF endPoint();
+
     DocBlock *myStartItem;
     Block *myEndItem;
     QColor myColor;
     QPolygonF arrowHead;
+    QLineF line1, line2;
 };
 
 #endif

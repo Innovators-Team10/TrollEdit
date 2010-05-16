@@ -39,14 +39,17 @@ void DocumentScene::loadGroup(const QString &fileName, Analyzer *analyzer)
     QString content = in.readAll();
 
     if (currentGroup != 0) delete currentGroup;
+    currentGroup = 0;
 
     groups << new BlockGroup(content, analyzer, this);
     currentGroup = groups.last();
 //    currentGroup->setRect(sceneRect());
+    currentGroup->setPos(0, 0);
 
     QApplication::restoreOverrideCursor();
 
     modified = false;
+    update();
 }
 
 void DocumentScene::saveGroup(const QString &fileName)
@@ -64,18 +67,20 @@ void DocumentScene::saveGroup(const QString &fileName)
     QApplication::restoreOverrideCursor();
 
     modified = false;
+    update();
 }
 
 void DocumentScene::closeGroup()
 {
     if (currentGroup != 0) {
         groups.removeOne(currentGroup);
-        delete(currentGroup);
+        delete currentGroup;
         if (!groups.isEmpty())
             currentGroup = groups.last();
         else
             currentGroup = 0;
     }
+    update();
 }
 
 void DocumentScene::adjustSceneRect(QRectF rect)
@@ -100,16 +105,16 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton) {
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
             DocBlock *block = currentGroup->addDocBlock(event->scenePos());
-            block->addText("");
+            block->addText();
             currentGroup->selectBlock(block);
-            block->textItem()->setTextCursorPosition(0);
+            block->textItem()->setTextCursorPos(0);
         } else {
             currentGroup->deselect();
-            currentGroup->updateAll();
-            update(QRect());
+            currentGroup->mainBlock()->updateBlock();
+            update();
         }
     }
-
+//*** DEBUGING & TESTING
     if (event->button() == Qt::RightButton) { // AST testing
         QString str = "";
         TreeElement *rootEl = currentGroup->root->getElement()->getRoot();
@@ -145,6 +150,31 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsScene::mousePressEvent(event);
 }
 
+void DocumentScene::wheelEvent(QGraphicsSceneWheelEvent *event)
+{
+    if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+        qreal delta = event->delta() / 100.0;
+        if (delta > 0)
+            currentGroup->setScale(currentGroup->scale() * delta);
+        if (delta < 0)
+            currentGroup->setScale(currentGroup->scale() / -delta);
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+
+void DocumentScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier
+        && event->button() == Qt::MidButton) {
+        currentGroup->setScale(1.0);
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+
 void DocumentScene::update(const QRectF &rect)
 {
     emit requestSize();
@@ -178,8 +208,8 @@ void DocumentScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
         return;
     }
     focusInEvent(new QFocusEvent(QEvent::FocusIn, Qt::MouseFocusReason));
-    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage()
-        || event->mimeData()->hasFormat("block_data"))
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
+//        || event->mimeData()->hasFormat(BlockGroup::BLOCK_MIME))
         event->accept();
     else
         event->ignore();
@@ -201,8 +231,8 @@ void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
         QGraphicsScene::dragMoveEvent(event);
         return;
     }
-    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage()
-        || event->mimeData()->hasFormat("block_data"))
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage())
+//        || event->mimeData()->hasFormat(BlockGroup::BLOCK_MIME))
         event->accept();
     else
         event->ignore();
@@ -226,16 +256,15 @@ void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
                 return;
             }
             DocBlock *block = currentGroup->addDocBlock(event->scenePos());
-            block->addFile(url);
+            block->addLink(url);
         }
-    } else if (event->mimeData()->hasFormat("block_data")) {
-        Block *selected = currentGroup->selectedBlock();
-        if (selected != 0) {
-//            currentGroup->deselect();
-            selected->removeBlock(true);
-            selected = currentGroup->selectedBlock();
-            selected->getFirstLeaf()->textItem()->setTextCursorPosition(0);
-        }
+//    } else if (event->mimeData()->hasFormat(BlockGroup::BLOCK_MIME)) {
+//        Block *selected = currentGroup->selectedBlock();
+//        if (selected != 0) {
+//            selected->removeBlock(true);
+//            selected = currentGroup->selectedBlock();
+//            selected->getFirstLeaf()->textItem()->setTextCursorPos(0);
+//        }
     } else if (event->mimeData()->hasText()) {
         DocBlock *block = currentGroup->addDocBlock(event->scenePos());
         block->addText(event->mimeData()->text());

@@ -8,10 +8,10 @@
 class TreeElement;
 
 extern "C" {
-	#include "lua.h"
-	#include "lualib.h"
-	#include "lauxlib.h"
-	int luaopen_lpeg (lua_State *L);
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+int luaopen_lpeg (lua_State *L);
 }
 
 class Analyzer
@@ -22,12 +22,12 @@ public:
     TreeElement *analyzeFull(QString input);
     TreeElement *analyzeElement(TreeElement *element);
     TreeElement *getAnalysableAncestor(TreeElement *element);
-    QString getExtension() const;
+    QStringList getExtensions() const;
     QList<QPair<QString, QHash<QString, QString> > > readConfig(QString fileName);
     static const QString TAB;
 
 private:
-    static const char *EXTENSION_FIELD;
+    static const char *EXTENSIONS_FIELD;
     static const char *MAIN_GRAMMAR_FIELD;
     static const char *SUB_GRAMMARS_FIELD;
     static const char *PAIRED_TOKENS_FIELD;
@@ -36,15 +36,15 @@ private:
     static const char *FLOATING_TOKENS_FIELDS;
     static const char *CONFIG_KEYS_FIELD;
 
-    lua_State *L;           // the Lua interpreter
-    QString extension;      // type of files to be analyzed
-    QString script_name;      // script name
-    QString mainGrammar;    // name of complete gramar
+    lua_State *L;               // the Lua interpreter
+    QStringList extensions;     // types of files to be analyzed
+    QString script_name;        // script name
+    QString mainGrammar;        // name of complete gramar
     QHash<QString, QString> subGrammars; // names of partial grammars
-    QStringList pairedTokens;   // list, example: "{", "}", "begin", "end"...
+    QStringList pairedTokens;      // list of paired tokens, example: "{", "}", "begin", "end"...
     QStringList selectableTokens;  // list of tokens which can contain line-breaking children
     QStringList multiTextTokens;   // list of tokens which can contain more lines of text
-    QStringList floatingTokens;    // list of tokenskj
+    QStringList floatingTokens;    // list of tokens allowed to say out of hierarchy
 
     void setupConstants();
     TreeElement* analyzeString(QString grammar, QString input);

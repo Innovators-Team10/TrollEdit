@@ -9,7 +9,9 @@ TextItem::TextItem(const QString &text, Block *parentBlock, bool multiText)
 
     this->multiText = multiText;
     setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
+    // forbid all mouse and drag-n-drop inteeractions
     setAcceptedMouseButtons(Qt::NoButton);
+    setAcceptDrops(false);
 
     QFontMetricsF *fm = new QFontMetricsF(font());
     MARGIN = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
@@ -38,17 +40,18 @@ void TextItem::setPos(const QPointF &pos)
     QGraphicsTextItem::setPos(pos - QPointF(MARGIN, 0));
 }
 
-void TextItem::setTextCursorPosition(int i) 
+bool TextItem::setTextCursorPos(int i)
 {
     setFocus();
     int length = toPlainText().length();
-    if (length == 0)
-        i = 0;
-    else if (i < 0)
+    if (i < 0)
         i = length + i + 1;
+    if (i < 0 || i > length)
+        return false;
     QTextCursor cursor = textCursor();
     cursor.setPosition(i);
     setTextCursor(cursor);  // important - textCursor() returns only copy!
+    return true;
 }
 
 bool TextItem::removeCharAt(int i)
@@ -94,9 +97,16 @@ void TextItem::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_Return && !multiText) {
         if (cursorPos == text.length())
             cursorPos = -1;
+        event->accept();
         emit enterPressed(myBlock, cursorPos);
         return;
     }
+//    if (event->key() == Qt::Key_Tab) {    // doesn't work - tab must be catched somewhere else
+//        text.insert(cursorPos,
+//                    QString().fill(' ',myBlock->blockGroup()->TAB_LENGTH));
+//        event->accept();
+//        return;
+//    }
     QGraphicsTextItem::keyPressEvent(event);
 
     int index;
@@ -134,6 +144,10 @@ void TextItem::keyPressEvent(QKeyEvent *event)
             emit erasePressed(myBlock, Qt::Key_Delete);
         }
         event->ignore();
+        break;
+    case Qt::Key_Home :
+    case Qt::Key_End :
+        emit moveCursor(myBlock, event->key());
         break;
     default :
         event->ignore();

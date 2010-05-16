@@ -23,6 +23,7 @@ public:
      bool removeChild(TreeElement *child);
      bool removeDescendant(TreeElement *child);
      bool removeAllChildren();
+     void deleteAllChildren();
      int childCount() const;
      int index() const;
      int indexOfChild(const TreeElement* child) const;
@@ -69,6 +70,8 @@ public:
 
      bool hasNext();
      TreeElement *next();
+
+     TreeElement *clone() const;
 
  protected:
      TreeElement *parent;

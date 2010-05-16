@@ -1,5 +1,6 @@
 #include "tree_element.h"
 #include "block.h"
+#include "doc_block.h"
 
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
@@ -66,28 +67,33 @@ void TreeElement::appendChild(TreeElement *child)
     children.append(child);
     child->parent = this;
 }
+
 void TreeElement::appendChildren(QList<TreeElement*> children)
 {
     foreach (TreeElement *child, children) {
         appendChild(child);
     }
 }
+
 void TreeElement::insertChild(int index, TreeElement *child)
 {
     children.insert(index,child);
     child->parent = this;
 }
+
 void TreeElement::insertChildren(int index, QList<TreeElement*> children)
 {
     for (int i = 0; i < children.size(); i++) {
         insertChild(index+i, children.at(i));
     }
 }
+
 bool TreeElement::removeChild(TreeElement *child)
 {
     child->parent = 0;
     return children.removeOne(child);
 }
+
 bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
     if (removeChild(desc)) {
         return true;
@@ -99,6 +105,7 @@ bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
     }
     return false;
 }
+
 bool TreeElement::removeAllChildren()
 {
     if (children.isEmpty())
@@ -106,6 +113,12 @@ bool TreeElement::removeAllChildren()
     foreach (TreeElement *child, children)
         removeChild(child);
     return true;
+}
+
+void TreeElement::deleteAllChildren()
+{
+    qDeleteAll(children);
+    children.clear();
 }
 
 bool TreeElement::isLeaf() const
@@ -126,7 +139,7 @@ bool TreeElement::isWhite() const
 }
 bool TreeElement::isUnknown() const
 {
-    return (parent != 0 && parent->getType() == UNKNOWN_EL);
+    return type == UNKNOWN_EL;
 }
 bool TreeElement::hasSiblings() const
 {
@@ -304,11 +317,20 @@ QString TreeElement::getType() const
 // returns all text in this element and it's descendants
 QString TreeElement::getText() const
 {
+    DocBlock *docBl = 0;
+    if (isFloating()) {
+        docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
+    }
+
     QString text;
     QString spacesStr = QString().fill(' ', spaces);
-    if (isLeaf())
+    if (isLeaf()) {
         text = type;                            // get my text
-    else {
+        if (docBl != 0)
+            text = docBl->convertToText();      // get text of docblock
+    } else {
+        if (docBl != 0)
+            text.append(docBl->convertToText());// get text of docblock
         foreach (TreeElement *e, children) {
             text.append(e->getText());          // get child texts
         }
@@ -365,4 +387,18 @@ TreeElement *TreeElement::operator[](int index)
 int TreeElement::operator[](TreeElement* child)
 {
     return indexOfChild(child);
+}
+
+TreeElement *TreeElement::clone() const
+{
+    TreeElement *el = new TreeElement(type, selectable, paragraphsAllowed,
+                                     lineBreaking, paired);
+    el->parent = 0;
+    el->spaces = spaces;
+    el->pair = pair;
+    el->floating = floating;
+    foreach(TreeElement *child, children) {
+        el->appendChild(child->clone());
+    }
+    return el;
 }

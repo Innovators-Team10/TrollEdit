@@ -6,11 +6,12 @@
 #include "analyzer.h"
 #include "document_scene.h"
 
-const QPointF BlockGroup::OFFSET_IN_TL = QPointF(0, 0);//6, 6);
-const QPointF BlockGroup::OFFSET_IN_BR = QPointF(6, 0);//6, 6);
-const QPointF BlockGroup::OFFSET_OUT = QPointF(0, 0);
-const QPointF BlockGroup::OFFSET_INSERT = QPointF(10, 0);
-const QPointF BlockGroup::NO_OFFSET = QPointF(0, 0);
+const QString BlockGroup::BLOCK_MIME = "block_data";
+const QPointF BlockGroup::OFFSET_IN_TL = QPointF(6, 0); // inner offset, left and top
+const QPointF BlockGroup::OFFSET_IN_BR = QPointF(6, 0); // inner offset, right and bottom
+const QPointF BlockGroup::OFFSET_OUT = QPointF(0, 0);   // outer offset
+const QPointF BlockGroup::OFFSET_INSERT = QPointF(10, 0);   // offset while draging
+const QPointF BlockGroup::NO_OFFSET = QPointF(0, 0);    // default offset
 
 BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
@@ -18,14 +19,14 @@ BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
     this->analyzer = analyzer;
     this->docScene = scene;
 
-    // set flag
+    // set flags
     root = 0;
     lastLine = -1;
     selected = 0;
     lastXPos = -1;
     foldableBlocks.clear();
     computeTextSize();
-    setFlag(QGraphicsItem::ItemClipsToShape);
+    //setFlag(QGraphicsItem::ItemClipsToShape);
 //    setFlag(QGraphicsItem::ItemIsMovable);
 
     analyzeAll(text);
@@ -33,6 +34,7 @@ BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
 
 BlockGroup::~BlockGroup()
 {
+    docBlocks.clear();
 }
 
 void BlockGroup::computeTextSize()
@@ -68,6 +70,11 @@ void BlockGroup::setBlockIn(Block *block, int line)
 
 bool BlockGroup::addFoldable(Block *block)
 {
+    if (block->getLine() < 0) { // for docblocks
+        foldableBlocks << block;
+        return true;
+    }
+
     bool able = true;
     foldableBlocks.remove(block);
     foreach (Block *bl, foldableBlocks) {
@@ -115,16 +122,18 @@ void BlockGroup::selectBlock(Block *block)
             selectBlock(block->parentBlock());
         return;
     }
-    deselect();
+    // NOTE: only block that won't be selected later are deselected
+    // otherwise the animations are twitching
+    deselect((Block*)block->commonAncestorItem(selected));
     selected = block;
     selected->setShowing(true);
     selected->updatePen();
 }
 
-void BlockGroup::deselect()
+void BlockGroup::deselect(Block *until)
 {
     if (selected != 0) {
-        selected->setShowing(false);
+        selected->setShowing(false, until);
         Block * oldSelected = selected;
         selected = 0;
         oldSelected->updatePen();
@@ -182,13 +191,13 @@ void BlockGroup::splitLine(Block *block, int cursorPos)
         block->getElement()->setLineBreaking(false);
         newBlock->updatePos(true);
         block->getElement()->setLineBreaking(true);
-        newBlock->textItem()->setTextCursorPosition(0);
+        newBlock->textItem()->setTextCursorPos(0);
         newBlock->edited = true;
     } else {
         next->getElement()->setSpaces(0);
-        next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
+        next->getFirstLeaf()->textItem()->setTextCursorPos(0);
     }
-    updateAll();//updateAfter(true);
+    root->updateBlock();//updateAfter(true);
 }
 
 void BlockGroup::eraseChar(Block *block, int key)
@@ -208,7 +217,7 @@ void BlockGroup::eraseChar(Block *block, int key)
                 }
                 target->getElement()->setLineBreaking(false);
                 //                target->updateAfter();
-                updateAll();
+                root->updateBlock();
             } else if (target->getLine() > block->getLine()) {   // jumped to the end of file
                 return;
             } else {                            // on same line
@@ -230,7 +239,7 @@ void BlockGroup::eraseChar(Block *block, int key)
                 }
                 target->getElement()->setLineBreaking(false);
                 //                target->updateAfter();
-                updateAll();
+                root->updateBlock();
             } else if (target->getLine() < block->getLine()) {   // jumped to the beginning of file
                 return;
             } else {                            // on same line
@@ -255,6 +264,17 @@ void BlockGroup::moveFrom(Block *start, int key, int cursorPos)
     case Qt::Key_Left :
         moveCursorLeftRight(start, true);
         break;
+    case Qt::Key_Home :
+        getBlockIn(start->getLine())->getFirstLeaf()->textItem()->setTextCursorPos(0);
+        break;
+    case Qt::Key_End :
+        Block *next = start->getNext(true);
+        while (next->getLine() == start->getLine()) {
+            start = next;
+            next = start->getNext(true);
+        }
+        start->textItem()->setTextCursorPos(-1);
+        break;
     }
 }
 
@@ -275,7 +295,7 @@ void BlockGroup::moveCursorLeftRight(Block *start, bool moveLeft)
             target->getAncestorWhereFirst()->getElement()->getSpaces() > 0)
             position = 0;
     }
-    target->textItem()->setTextCursorPosition(position);
+    target->textItem()->setTextCursorPos(position);
     lastXPos = -1;
     selectBlock(target);
     target->updateGeometryAfter();
@@ -311,10 +331,10 @@ void BlockGroup:: moveCursorUpDown(Block *start, bool moveUp, int from)
         scenePos.setX(lastXPos);
     }
 
-//    if (selected != 0 && selected->isEdited()) {
-//        reanalyze(selected, scenePos);
-//        return;
-//    }
+    if (selected != 0 && selected->isEdited()) {
+        reanalyze(selected, scenePos);
+        return;
+    }
 
     Block *target = blockAt(scenePos);
     if (target == 0) target = root;
@@ -325,33 +345,42 @@ void BlockGroup:: moveCursorUpDown(Block *start, bool moveUp, int from)
 
 QRectF BlockGroup::boundingRect() const
 {
-    return childrenBoundingRect();
+    QRectF rect = childrenBoundingRect();
+    rect.setTopLeft(QPointF());
+    return rect;
 //    return QGraphicsRectItem::boundingRect();
 }
 
 void BlockGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-//    painter->drawRect(boundingRect());
+//    Q_UNUSED(option); Q_UNUSED(widget);
+//    setRect(boundingRect());
+//    painter->fillRect(boundingRect(), Qt::gray);
 }
 
 void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    QGraphicsRectItem::mousePressEvent(event);
+    event->ignore();
+//    QGraphicsRectItem::mousePressEvent(event);
 }
 
-void BlockGroup::reanalyze(Block *block, QPointF cursorPos)
+Block *BlockGroup::reanalyze(Block *block, QPointF cursorPos)
 {
     if (root == 0) {
-        return;
+        return 0;
     }
 
-    if (selected == 0 || !reanalyzeBlock(selected)) {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    if (block == 0 || !reanalyzeBlock(block)) {
         analyzeAll(root->getElement()->getText());
     }
+    QApplication::restoreOverrideCursor();
 
     Block *target = addTextCursorAt(cursorPos);
     selectBlock(target);
-    target->updateGeometryAfter();
+    selected->updateGeometryAfter();
+    // return new block at requested position
+    return selected;
 }
 
 bool BlockGroup::reanalyzeBlock(Block *block)
@@ -393,11 +422,11 @@ bool BlockGroup::reanalyzeBlock(Block *block)
     foldableBlocks.clear();
     root->updateBlock(false);
 
-    foreach (DocBlock *block, tempDocBlocks)
-        block->updateBlock(false);
-    tempDocBlocks.clear();
+    foreach (DocBlock *block, docBlocks)
+        block->setDefaultPos();
+//    docBlocks.clear();
 
-    docScene->update();
+//    docScene->update();
     return true;
 }
 
@@ -411,15 +440,15 @@ bool BlockGroup::analyzeAll(QString text)
     selected = false;
 
     root = new Block(analyzer->analyzeFull(text), 0, this);
-    root->setPos(30, 20);
+    root->setPos(30, 10);
     selectBlock(root);
-    root->getFirstLeaf()->textItem()->setTextCursorPosition(0);
+    root->getFirstLeaf()->textItem()->setTextCursorPos(0);
     root->updateBlock(false);
 
-    foreach (DocBlock *block, tempDocBlocks)
-        block->updateBlock(false);
-    tempDocBlocks.clear();
-    docScene->update();
+    foreach (DocBlock *block, docBlocks)
+        block->setDefaultPos();
+//    docBlocks.clear();
+//    docScene->update();
     return true;
 }
 
@@ -440,11 +469,6 @@ QList<Block*> BlockGroup::blocklist_cast(QList<QGraphicsItem*> list)
     return blocks;
 }
 
-void BlockGroup::updateAll(bool animate) // remove this method when another updater is finished
-{
-    root->updateBlock(animate);
-}
-
 void BlockGroup::keyPressEvent(QKeyEvent *event)
 {
     if (event->modifiers() == Qt::ControlModifier) {
@@ -456,11 +480,9 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
             if (selected != 0) {
                 Block *next = selected->removeBlock(true);
                 selectBlock(next);
-                next->getFirstLeaf()->textItem()->setTextCursorPosition(0);
+                next->getFirstLeaf()->textItem()->setTextCursorPos(0);
                 next->updateGeometryAfter();
             }
-            break;
-        case Qt::Key_Home :
             break;
         }
     }

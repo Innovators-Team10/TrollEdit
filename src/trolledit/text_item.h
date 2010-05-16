@@ -11,7 +11,7 @@ class TextItem : public QGraphicsTextItem
 
 public:
     TextItem(const QString &text, Block *parentBlock, bool multiText = false);
-    void setTextCursorPosition(int i);
+    bool setTextCursorPos(int i);
     bool removeCharAt(int i);   // returns false if text is empty after removal
 
     void setPos(const QPointF &pos);
@@ -22,7 +22,7 @@ public:
 
     void adaptToFloating();
 
-    qreal MARGIN;
+    qreal MARGIN;   // distance between QGraphicsTextItem bounding rect and actial text start
 
 protected:
     void keyPressEvent(QKeyEvent *event);
