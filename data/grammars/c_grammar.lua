@@ -8,7 +8,7 @@
 
 -- important fields for Analyzer class
 -- for clarifications see 'default_grammar.lua'
-extension = "c"
+extensions = {"c", "h"}
 full_grammar = "program"
 other_grammars = {
 	block="in_block", 
@@ -244,8 +244,9 @@ postfix_expression =
 	(N'funct_call' + N'identifier' + N'constant' +
 	T"(" * NI'expression' * T")") * (
 	T"[" * NI'expression' * T"]" +
-	T"." * N'identifier' +
-	T"->" * N'identifier' + N'postfix_operator'
+	T"." * N'postfix_expression' +
+	T"->" * N'postfix_expression' + 
+	N'postfix_operator'
 	)^0,
 	
 postfix_operator = T"++" + T"--",

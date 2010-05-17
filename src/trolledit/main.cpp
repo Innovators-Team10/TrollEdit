@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     // activate "new file" action
     w.actions().first()->activate(QAction::Trigger);
 
-    w.open("../input/in.c");
+    w.open("tests/in.c");
 
     // open all files given as parameters
     for (int i = 1; i < argc; i++)

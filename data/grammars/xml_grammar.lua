@@ -8,7 +8,7 @@
 
 
 -- important fields for Analyzer class
-extension = "xml"
+extensions = {"xml"}
 full_grammar = "document"
 other_grammars = {
 	markup_element="in_markup_element", 
@@ -18,7 +18,7 @@ selectable = {"document", "xml_header", "markup_element", "unknown"}
 multi_text = {"unknown"}
 floating = {}
 
--- require 'lpeg'
+require 'lpeg'
 
 --patterns
 local P, R, S, V = lpeg.P, lpeg.R, lpeg.S, lpeg.V

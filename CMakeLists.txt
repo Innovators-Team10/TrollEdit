@@ -1,6 +1,13 @@
 PROJECT(TrollEdit)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0)
 
+# Override default install path
+IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/TrollEdit CACHE PATH "Installation Destination" FORCE)
+ENDIF()
+
+# Default Install prefix
+
 # Build lua and lpeg libs
 INCLUDE_DIRECTORIES(src/lua-5.1.4/src)
 SUBDIRS(src/lua-5.1.4 src/lpeg-0.9)

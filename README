@@ -11,3 +11,10 @@ project file structure.
 
 Students project page (in Slovak):
 http://labss2.fiit.stuba.sk/TeamProject/2009/team05is-si/
+
+Setting up in QTCreator (2.0 Beta recomended)
+- Open CMakeLists.txt in project browse dialog.
+- Configure CMake with no additional args.
+- Add argument "install" to build step "make", this will install builds to [path_to_project]/TrollEdit with all resources
+- Add custom executable pointing to [path_to_project]/TrollEdit/trolledit with workdir set to [path_to_project]/TrollEdit
+- Build/Debug/Code as needed
