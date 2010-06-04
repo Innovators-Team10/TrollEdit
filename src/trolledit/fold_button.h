@@ -1,16 +1,19 @@
 #ifndef FOLD_BUTTON_H
 #define FOLD_BUTTON_H
 
+#include <QObject>
 #include <QGraphicsPixmapItem>
 #include <QtGui>
 
 class Block;
 class BlockGroup;
 
-class FoldButton : public QGraphicsPixmapItem
+class FoldButton : public QObject, public QGraphicsPixmapItem
 {
+    Q_OBJECT
+
 public:
-    FoldButton(Block *parentBlock, BlockGroup *parentGruoup);
+    FoldButton(Block *parentBlock);
 
     enum { Type = UserType + 10 };
     void updatePos();
@@ -27,9 +30,10 @@ protected:
 
 private:
     Block *myBlock;
-    Block *refBlock; // floating ancestor-or-self of myBlock
+    QString foldText; // custom text showing when myBlock is folded
     QPixmap plus;
     QPixmap minus;
+    friend class Block;
 };
 
 #endif // FOLD_BUTTON_H

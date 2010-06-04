@@ -17,9 +17,6 @@ public:
     QList<QPair<QString, QHash<QString, QString> > > getConfigData();
 
 private:
-    static const QString GRAMMAR_DIR;
-    static const QString DEFAULT_GRAMMAR;
-    static const QString CONFIG_FILE;
     QHash<QString, Analyzer *> analyzers;
     Analyzer *defaultAnalyzer;
     QList<QPair<QString, QHash<QString, QString> > > configData;

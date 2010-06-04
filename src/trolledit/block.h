@@ -1,6 +1,7 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+#include <QObject>
 #include <QGraphicsRectItem>
 #include <QtGui>
 #include <QList>
@@ -22,13 +23,12 @@ public:
 
     enum { Type = UserType + 1 };
     enum OffsetType {
-        InnnerTopLeft = 0, InnerBottomRight = 1, Outer = 2, Drop = 3,
+        InnnerTopLeft = 0, InnerBottomRight = 1, Outer = 2,
     };
 
     // methods to change hierarchy (blocks + AST)
-    void setParentBlock (QGraphicsItem *parent);
-    void stackBeforeBlock (const QGraphicsItem *sibling);
-    Block *removeBlock(bool deleteThis);
+    void setParentBlock(Block *newParent, Block *nextSibling = 0);
+    virtual Block *removeBlock(bool deleteThis);
 
     // block management methods
     Block *getFirstLeaf() const;
@@ -44,11 +44,14 @@ public:
     bool hasMoreLines() const;
     int numberOfLines() const;
 
-    void addBlockAt(Block *block, QPointF pos);
-    QPair<Block*, bool> findClosestBlock(QPointF pos);
+    void addBlockInLine(Block *block, QPointF pos);
+    int getLineAfter(QPointF pos) const;
+    void addBlockBeforeLine(Block *block, int line);
+    QPair<Block*, bool> findClosestChild(QPointF pos) const;
+    QPair<Block*, bool> findClosestLeaf(QPointF pos) const;
 
     // main properties
-    int type() const {return Type;}
+    virtual int type() const {return Type;}
     TreeElement *getElement() const {return element;}
     Block *parentBlock() const {return parent;}
     QList<Block*> childBlocks() const;
@@ -64,7 +67,7 @@ public:
     // textItem properties
     bool isTextBlock() const {return myTextItem != 0;}
     TextItem *textItem() const {return myTextItem;}
-    Block *addTextCursorAt(QPointF pos);
+    virtual Block *addTextCursorAt(QPointF pos);
 
     // geometry
     QPointF idealPos() const {return idealGeometry.topLeft();}
@@ -78,25 +81,27 @@ public:
     // visualization
     QPainterPath shape() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    void updatePen();
     void highlight(QPair<QFont, QColor> format);
     void setShowing(bool newState, Block *until = 0);
-    void offsetChildren(bool flag, QPointF pos = QPointF());
-    QColor getColor(QString key) const;
+    virtual QColor getHoverColor() const;
+    bool isOverlapPossible() const;
+    void setRepaintNeeded() {repaintNeeded = true;}
 
+    // updaters
     virtual void updateBlock(bool doAnimation = true);
-    void updateBlockAfter(bool doAnimation = true);
     virtual void updateGeometryAfter(bool doAnimation = true);
     void animate();
 
 public slots:
     void textFocusChanged(QFocusEvent* event);
     virtual void textChanged();
+    void acceptHover(); // called by hover timer
+
 signals:
     void visibilityChanged(bool flag);
 
 protected:
-    void updatePos(bool updateReal = false);
+    virtual void updatePos(bool updateReal = false);
     void updateSize(bool updateReal = false);
     void updateGeometry(bool updateReal = false);
     void updateLine();
@@ -125,8 +130,8 @@ protected:
     bool showing;    // true when block border is painted, block has inner and outer offset
     int level;       // level of showing
     bool moreSpace;  // true when dropping to this block's parent, block has outer offset
-    bool hovered;    // true after hoverEnterEvent
     bool pointed;    // true if it is last hovered block
+    bool repaintNeeded;
 
     TreeElement *element;       // my AST element
     Block *parent;              // my parent
@@ -138,13 +143,15 @@ protected:
 
     Block *nextSib, *prevSib, *firstChild;    // links
 
-    QHash<QString, QColor> format;
-
     FoldButton *foldButton;
+    QTimer *timer;              // hover timer
 
-    void createControls();
+    QPair<QFont, QColor> highlightFormat; // format of my text (if any)
+
+    QPointF startDragPos; // used to determine drag start
+
     void removeLinks();
-    void assignHighlighting(TreeElement* elm);
+    void assignHighlighting(TreeElement* el);
     friend class BlockGroup;
 };
 

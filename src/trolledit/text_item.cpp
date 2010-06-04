@@ -2,24 +2,27 @@
 #include "block.h"
 #include "block_group.h"
 
-TextItem::TextItem(const QString &text, Block *parentBlock, bool multiText)
+TextItem::TextItem(const QString &text, Block *parentBlock, bool multiText, bool paired)
     : QGraphicsTextItem(text, parentBlock)
 {
     myBlock = parentBlock;
 
     this->multiText = multiText;
+    setFlag(QGraphicsItem::ItemIsSelectable, false);
+    setFlag(QGraphicsItem::ItemIsFocusable, false);
     setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
-    // forbid all mouse and drag-n-drop inteeractions
+    // forbid all mouse and drag-n-drop interactions
     setAcceptedMouseButtons(Qt::NoButton);
     setAcceptDrops(false);
 
     QFontMetricsF *fm = new QFontMetricsF(font());
     MARGIN = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
 
-    connect(this, SIGNAL(focusChanged(QFocusEvent*)), myBlock, SLOT(textFocusChanged(QFocusEvent*)));
+    if (paired) // emit focusChanged() only for paired blocks
+        connect(this, SIGNAL(focusChanged(QFocusEvent*)), myBlock, SLOT(textFocusChanged(QFocusEvent*)));
     connect(document(), SIGNAL(contentsChanged()), myBlock, SLOT(textChanged()));
     
-    connect(this, SIGNAL(keyPressed(QKeyEvent*)), myBlock->blockGroup(), SLOT(keyPressed(QKeyEvent*)));
+    connect(this, SIGNAL(keyPressed(QKeyEvent*)), myBlock->blockGroup(), SLOT(keyTyped(QKeyEvent*)));
     connect(this, SIGNAL(enterPressed(Block*, int)), myBlock->blockGroup(), SLOT(splitLine(Block*, int)));
     connect(this, SIGNAL(erasePressed(Block*, int)), myBlock->blockGroup(), SLOT(eraseChar(Block*, int)));
     connect(this, SIGNAL(moveCursor(Block*, int, int)), myBlock->blockGroup(),
@@ -42,15 +45,16 @@ void TextItem::setPos(const QPointF &pos)
 
 bool TextItem::setTextCursorPos(int i)
 {
-    setFocus();
     int length = toPlainText().length();
     if (i < 0)
         i = length + i + 1;
     if (i < 0 || i > length)
         return false;
+
     QTextCursor cursor = textCursor();
     cursor.setPosition(i);
-    setTextCursor(cursor);  // important - textCursor() returns only copy!
+    setTextCursor(cursor);
+    setFocus();
     return true;
 }
 
@@ -81,14 +85,15 @@ void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 {
     // turn off dashed frame (which is present when edited) and do normal painting
     QStyleOptionGraphicsItem *opt = const_cast<QStyleOptionGraphicsItem*>(option);
-    opt->state &= ~QStyle::State_Selected;
     opt->state &= ~QStyle::State_HasFocus;
     QGraphicsTextItem::paint(painter, opt, widget);
 }
 
 void TextItem::keyPressEvent(QKeyEvent *event) 
 {
+//    myBlock->blockGroup()->keyTyped(event);
     emit keyPressed(event);
+
     int cursorPos = textCursor().position();
 
 //    QPointF cursorPoint = cursor().;
@@ -98,22 +103,22 @@ void TextItem::keyPressEvent(QKeyEvent *event)
         if (cursorPos == text.length())
             cursorPos = -1;
         event->accept();
+//        myBlock->blockGroup()->splitLine(myBlock, cursorPos);
         emit enterPressed(myBlock, cursorPos);
         return;
     }
-//    if (event->key() == Qt::Key_Tab) {    // doesn't work - tab must be catched somewhere else
-//        text.insert(cursorPos,
-//                    QString().fill(' ',myBlock->blockGroup()->TAB_LENGTH));
-//        event->accept();
-//        return;
-//    }
-    QGraphicsTextItem::keyPressEvent(event);
 
+    if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
+        event->ignore();
+    else {
+        QGraphicsTextItem::keyPressEvent(event);
+    }
     int index;
     switch(event->key()) {
     case Qt::Key_Up :
         index = text.indexOf("\n");
         if (cursorPos <= index || index < 0) {
+//            myBlock->blockGroup()->moveFrom(myBlock, event->key(), cursorPos);
             emit moveCursor(myBlock, event->key(), cursorPos);
         }
         break;
@@ -121,32 +126,37 @@ void TextItem::keyPressEvent(QKeyEvent *event)
         index = text.lastIndexOf("\n");
         if (cursorPos > index) {
             if (index < 0) index = 0;
+//            myBlock->blockGroup()->moveFrom(myBlock, event->key(), cursorPos - index);
             emit moveCursor(myBlock, event->key(), cursorPos - index);
         }
         break;
     case Qt::Key_Left :
         if (cursorPos == 0) {
+//            myBlock->blockGroup()->moveFrom(myBlock, Qt::Key_Left, 0);
             emit moveCursor(myBlock, Qt::Key_Left);
         }
         break;
     case Qt::Key_Right :
         if (cursorPos == text.length()) {
+//            myBlock->blockGroup()->moveFrom(myBlock, Qt::Key_Right, 0);
             emit moveCursor(myBlock, Qt::Key_Right);
         }
         break;
     case Qt::Key_Backspace :
         if (cursorPos == 0) {
+//            myBlock->blockGroup()->eraseChar(myBlock, Qt::Key_Backspace);
             emit erasePressed(myBlock, Qt::Key_Backspace);
         }
         break;
     case Qt::Key_Delete :
         if (cursorPos == text.length()) {
+//            myBlock->blockGroup()->eraseChar(myBlock, Qt::Key_Delete);
             emit erasePressed(myBlock, Qt::Key_Delete);
         }
-        event->ignore();
         break;
     case Qt::Key_Home :
     case Qt::Key_End :
+//        myBlock->blockGroup()->moveFrom(myBlock, event->key(), 0);
         emit moveCursor(myBlock, event->key());
         break;
     default :
@@ -157,12 +167,14 @@ void TextItem::keyPressEvent(QKeyEvent *event)
 void TextItem::focusInEvent(QFocusEvent *event)
 {
     QGraphicsTextItem::focusInEvent(event);
+//    myBlock->textFocusChanged(event);
     emit focusChanged(event);
 }
 
 void TextItem::focusOutEvent(QFocusEvent *event)
 {
     QGraphicsTextItem::focusOutEvent(event);
+//    myBlock->textFocusChanged(event);
     emit focusChanged(event);
 }
 

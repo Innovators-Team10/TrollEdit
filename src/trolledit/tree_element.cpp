@@ -2,6 +2,7 @@
 #include "block.h"
 #include "doc_block.h"
 
+
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
 const char *TreeElement::NEWLINE_EL = "nl";
@@ -393,12 +394,43 @@ TreeElement *TreeElement::clone() const
 {
     TreeElement *el = new TreeElement(type, selectable, paragraphsAllowed,
                                      lineBreaking, paired);
+    // set parent & pair to 0, copy rest of the fields
     el->parent = 0;
+    el->pair = 0;
     el->spaces = spaces;
-    el->pair = pair;
     el->floating = floating;
+
+    // if element belongs to docblock, create child with docblock data
+    DocBlock *docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
+    if (docBl != 0) {
+        el->type = "doc_comment";
+        el->floating = true;
+        el->appendChild(new TreeElement(docBl->convertToText()));
+    }
+
+    // append cloned children (this sets their parent field)
     foreach(TreeElement *child, children) {
         el->appendChild(child->clone());
+    }
+
+    // resolve pairing:
+    for(int i = 0; i < children.size(); i++) { // iterate through original children
+        TreeElement *child;
+        TreeElement *origPair = children[i]->pair;
+        if (origPair == 0)                   // if original has no pair continue
+            continue;
+        if (el->children[i]->getPair() != 0) // if clone has pair already set continue
+            continue;
+        int j = i;
+        // otherwise find pair-of-original's index j
+        do {
+            child = children[j];
+            j++;
+        } while (child != origPair && j < children.size());
+        if (child != origPair || j >= children.size())
+            continue;
+        el->children[i]->setPair(el->children[j]); // set pair of clone to clone at index j
+        el->children[j]->setPair(el->children[i]); // and vice versa
     }
     return el;
 }

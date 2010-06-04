@@ -7,35 +7,39 @@
 #include <QUrl>
 
 class Analyzer;
-class DocumentTabs;
 class BlockGroup;
+class MainWindow;
 
 class DocumentScene : public QGraphicsScene
 {
     Q_OBJECT
 
-public:
-    DocumentScene(QWidget *parent);
-    void update(const QRectF &rect = QRectF());
-    bool isModified() const {return modified;}
-    
+public slots:
     void newGroup(Analyzer *defaultAnalyzer);
     void loadGroup(const QString &fileName, Analyzer *analyzer);
-    void saveGroup(const QString &fileName);
-    void closeGroup();
+    void saveGroup(const QString &fileName = "", BlockGroup *group = 0);
+    void saveGroupAs(BlockGroup *group = 0);
+    void saveAllGroups();
+    void closeGroup(BlockGroup *group = 0);
+    void closeAllGroups();
 
-    void setHighlightning(const QHash<QString, QPair<QFont, QColor> > &highlightning);
-    QHash<QString, QPair<QFont, QColor> > getHighlightning() const;
-    void setBlockFormatting(const QHash<QString, QHash<QString, QColor> > &blockFormats);
-    QHash<QString, QHash<QString, QColor> > getBlockFormatting() const;
+public:
+    DocumentScene(MainWindow *parent);
+    void update(const QRectF &rect = QRectF());
+    void selectGroup(BlockGroup *group = 0);
+    BlockGroup *selectedGroup() const {return currentGroup;}
+    void groupWasModified(BlockGroup *group);
+
+    void setHighlighting(const QList<QPair<QString, QHash<QString, QString> > > configData);
+    bool hasFormatFor(QString key) const;
+    QPair<QFont, QColor> getFormatFor(QString key) const;
+    QPair<QFont, QColor> getDefaultFormat() const;
 
     void print(QString text) const;
 
-signals:
-    void requestSize();
+    static QTime time;
 
-private slots:
-    void adjustSceneRect(QRectF rect);
+    MainWindow *getWindow() const {return window;}
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -47,12 +51,14 @@ protected:
     void dropEvent(QGraphicsSceneDragDropEvent *event);
 
 private:
-    bool modified;
+    MainWindow *window;
     QList<BlockGroup*> groups;
     BlockGroup *currentGroup;
 
-    QHash<QString, QPair<QFont, QColor> > highlightning;
-    QHash<QString, QHash<QString, QColor> > blockFormats;
+    QHash<QString, QPair<QFont, QColor> > highlighting;
+
+    void adjustSceneRect();
+    bool toBool(QString textBool);
 };
 
 #endif // DOCUMENT_SCENE_H

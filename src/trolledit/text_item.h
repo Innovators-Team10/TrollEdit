@@ -1,7 +1,8 @@
 #ifndef TEXT_ITEM_H
 #define TEXT_ITEM_H
 
-#include<QGraphicsTextItem>
+#include <QObject>
+#include <QGraphicsTextItem>
 
 class Block;
 
@@ -10,7 +11,10 @@ class TextItem : public QGraphicsTextItem
         Q_OBJECT
 
 public:
-    TextItem(const QString &text, Block *parentBlock, bool multiText = false);
+    TextItem(const QString &text, Block *parentBlock, bool multiText = false, bool paired = false);
+    enum { Type = UserType + 9 };
+    int type() const {return Type;}
+
     bool setTextCursorPos(int i);
     bool removeCharAt(int i);   // returns false if text is empty after removal
 

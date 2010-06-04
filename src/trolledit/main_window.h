@@ -14,7 +14,6 @@
 #include <QLine>
 #include <QGraphicsLineItem>
 
-class DocumentTabs;
 class DocumentScene;
 class LanguageManager;
 
@@ -26,41 +25,38 @@ public:
     MainWindow(QString programPath, QWidget *parent = 0);
 
 public slots:
-    void setCurrentFile(int tabNumber);
     void open(QString fileName);
 
 signals:
     void apply(QBrush *brush, QPen *pen);
 
-protected:
-    void closeEvent(QCloseEvent *event);
-
 private slots:
-    void setCurrentScene(int tabNumber);
     void newFile();
     void open();
-    bool save();
-    bool saveAs();
     void openRecentFile();
     void about();
     void help();
     void settings();
-    bool closeTab();
 
     void printPdf();
     void showPrintableArea();
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 private:
-    enum { MaxRecentFiles = 4 };
+    enum { MaxRecentFiles = 6 };
 
     QAction *aboutQtAction;
     QAction *newAction;
     QAction *openAction;
     QAction *saveAction;
     QAction *saveAsAction;
+    QAction *saveAllAction;
+    QAction *closeAction;
+    QAction *closeAllAction;
     QAction *printPdfAction;
     QAction *printableAreaAction;
-    QAction *closeAction;
     QAction *recentFileActions[MaxRecentFiles];
     QAction *separatorAction;
     QAction *exitAction;
@@ -70,7 +66,7 @@ private:
     QAction *pasteAction;
     QAction *deleteAction;
 
-    QAction *stylesAction;
+    QAction *settingsAction;
 
     QAction *helpAction;
     QAction *aboutAction;
@@ -87,13 +83,8 @@ private:
     QToolBar *formatToolBar;
 
     LanguageManager *langManager;
-    DocumentTabs *documentTabs;
-    DocumentScene *currentScene;
-    QStringList recentFiles;
-    QString currentFile;
+    DocumentScene *scene;
     QHash<QString, QPair<QFont, QColor> > *highlightFormats;
-    QHash<QString, QHash<QString, QColor> > *blockFormats;
-    //SettingsDialog *settingsDialog;
 
     QPrinter *printer;
     QPainter *painter;
@@ -108,14 +99,12 @@ private:
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
     void load(QString fileName);
-    void initializeHighlightning();
-    void initializeBlockFormatting();
-    bool toBool(QString textBool);    
 
     void showArea();
     void hideArea();
-    //void writeSettings();
-    //void readSettings();
+
+    void readSettings();
+    void writeSettings();
 };
 
 #endif // MAIN_WINDOW_H

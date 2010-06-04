@@ -1,6 +1,8 @@
 #ifndef DOC_BLOCK_H
 #define DOC_BLOCK_H
 
+#include <QObject>
+
 #include "block.h"
 
 class TreeElement;
@@ -12,42 +14,57 @@ class Arrow;
 class DocBlock : public Block
 {
     Q_OBJECT
+
 public:
     DocBlock(QPointF pos, BlockGroup *parentgroup = 0);
     DocBlock(TreeElement *element, Block* parentBlock, BlockGroup *parentgroup = 0);
     ~DocBlock();
 
     enum { Type = UserType + 3 };
+    int type() const {return Type;}
+
     void addText(QString text = "");
-    void addImage(const QImage &image);
+    void addImage(const QImage &image, QString imagePath);
     void addLink(QUrl url);
+    void addWebLink(QUrl url);
+    void addArrowTo(Block *end);
+    Block *targetBlock() const;
 
     QString convertToText() const;
     enum DocType {  // type of docblock
-        Generic = 0, Text = 1, Image = 2, Link = 3,
+        Generic = 0, Text = 1, Image = 2, Link = 3, WebLink = 4,
     };
-    DocType getDocType() const {return type;}
+    DocType getDocType() const {return docType;}
 
-    bool isFoldable() const;        // reimplemented from block
-    void setFolded(bool fold);      // reimplemented from block
+    // reimplemented from block
+    Block *addTextCursorAt(QPointF pos);
+    bool isFoldable() const;
+    void setFolded(bool fold);
+    Block *removeBlock(bool deleteThis);
+    QColor getHoverColor() const;
+
+    // udaters
+    // reimplemented from block
+    void updateBlock(bool doAnimation = true);
+    void updateGeometryAfter(bool doAnimation = true);
 
 public slots:
     void textChanged();             // reimplemented from block
+    void arrowDestroyed();
 
 protected:
-    void addArrowTo(Block *end);
+    void updatePos(bool updateReal = false);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
-    void updateBlock(bool doAnimation = true);              // reimplemented from block
-    void updateGeometryAfter(bool doAnimation = true);      // reimplemented from block
-    void setDefaultPos();
 
 private:
-    QImage image;
+    QString path;           // full path for Image and Link types
     Arrow *arrow;
-    DocType type;
-    QTextDocument *backup;
+    DocType docType;        // type of this docblock
+    QTextDocument *backup;  // backup data used for folding
+
+    bool locked;
 
     friend class BlockGroup;
 };

@@ -1,5 +1,5 @@
 #include <QtGui>
-#include <cmath>
+#include <math.h>
 
 #include "arrow.h"
 #include "block.h"
@@ -15,8 +15,7 @@ Arrow::Arrow(DocBlock *startItem, Block *endItem, BlockGroup *parentGroup)
     myStartItem = startItem;
     myEndItem = endItem;
     myColor = Qt::black;
-    setPen(QPen(myColor, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    setZValue(10);
+    setPen(QPen(myColor, 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     connect(myStartItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
     connect(myEndItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
     connect(myEndItem, SIGNAL(visibilityChanged(bool)), this, SLOT(updateVisibility(bool)));
@@ -45,21 +44,13 @@ QRectF Arrow::boundingRect() const
 
 QPainterPath Arrow::shape() const
 {
-    QPainterPath path; //= QGraphicsLineItem::shape();
+    QPainterPath path;
     path.moveTo(line1.p1());
     path.lineTo(line1.p2());
     path.lineTo(line2.p2());
 
-    QPainterPathStroker ps;
-    ps.setCapStyle(pen().capStyle());
-    ps.setWidth(pen().widthF());
-    ps.setJoinStyle(pen().joinStyle());
-    ps.setMiterLimit(pen().miterLimit());
-    QPainterPath p = ps.createStroke(path);
-    p.addPath(path);
-
-    p.addPolygon(arrowHead);
-    return p;
+    path.addPolygon(arrowHead);
+    return path;
 }
 
 void Arrow::updateVisibility(bool flag)
@@ -74,29 +65,37 @@ void Arrow::deleteLater()
     QObject::deleteLater();
 }
 
-QPointF Arrow::startPoint() // TODO, if start->right < end->left ...
+int S = 40;
+
+QPointF Arrow::startPoint()
 {
-    return mapFromItem(myStartItem,
-                       0,
-                       myStartItem->idealSize().height()/2);
+    QPointF startLT = mapFromItem(myStartItem, 0, 0);
+    QPointF endLT = mapFromItem(myEndItem, 0, 0);
+    if(startLT.x() + myStartItem->idealSize().width() + S
+        < endLT.x() + myEndItem->idealSize().width())
+        return startLT + QPointF(myStartItem->idealSize().width(), 0);
+    else
+        return startLT;
 }
 
-QPointF Arrow::midPoint() // TODO
+QPointF Arrow::midPoint()
 {
-    qreal y = mapFromItem(myEndItem,
-                          0,
-                          myEndItem->idealSize().height()/2).y();
-    qreal x = mapFromItem(myStartItem,
-                          -40,
-                          0).x();
-    return QPointF(x, y);
+    QPointF startLT = mapFromItem(myStartItem, 0, 0);
+    QPointF endLT = mapFromItem(myEndItem, 0, 0);
+    qreal x;
+
+    if(startLT.x() + myStartItem->idealSize().width() + S
+        < endLT.x() + myEndItem->idealSize().width())
+        x = startLT.x() + myStartItem->idealSize().width() + S;
+    else
+        x = startLT.x() - S;
+
+    return QPointF(x, endLT.y());
 }
 
 QPointF Arrow::endPoint() // TODO
 {
-    return mapFromItem(myEndItem,
-                       myEndItem->idealSize().width(),
-                       myEndItem->idealSize().height()/2);
+    return mapFromItem(myEndItem, myEndItem->idealSize().width(),0);
 }
 
 void Arrow::paint(QPainter *painter, const QStyleOptionGraphicsItem *,
@@ -124,10 +123,16 @@ void Arrow::paint(QPainter *painter, const QStyleOptionGraphicsItem *,
     QPointF arrowP2 = line1.p1() + QPointF(sin(angle + Pi - Pi / 3) * arrowSize,
                                             cos(angle + Pi - Pi / 3) * arrowSize);
 
+    //arrow corner
+    cornerLine1= QLineF(endPoint(),endPoint()+QPointF(0,10));
+    cornerLine2= QLineF(endPoint(),endPoint()-QPointF(10,0));
+
     arrowHead.clear();
     arrowHead << line1.p1() << arrowP1 << arrowP2;
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawLine(line1);
     painter->drawLine(line2);
+    painter->drawLine(cornerLine1);
+     painter->drawLine(cornerLine2);
     painter->drawPolygon(arrowHead);
 }

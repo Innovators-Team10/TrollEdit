@@ -1,6 +1,7 @@
 #ifndef ARROW_H
 #define ARROW_H
 
+#include <QObject>
 #include <QGraphicsLineItem>
 
 class Block;
@@ -17,8 +18,7 @@ public:
     Arrow(DocBlock *startItem, Block *endItem, BlockGroup *parentGroup);
     ~Arrow();
 
-    int type() const
-    { return Type; }
+    int type() const { return Type; }
     QRectF boundingRect() const;
     QPainterPath shape() const;
     void setColor(const QColor &color) { myColor = color; }
@@ -42,7 +42,7 @@ private:
     Block *myEndItem;
     QColor myColor;
     QPolygonF arrowHead;
-    QLineF line1, line2;
+    QLineF line1, line2, cornerLine1, cornerLine2;
 };
 
 #endif

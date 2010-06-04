@@ -1,0 +1,24 @@
+-- this file lists default code that will be shown after creating new file
+-- one snippet per grammar extension is allowed for now
+-- snippets might take advantage of any accessible lua code
+
+-- C source code
+c = [[
+// created ]] .. os.date() .. 
+[[
+
+#include<stdio.h>
+
+int main(int argc, char *argv[] )  {
+	
+	return 0;
+}
+]]
+
+-- xml file
+xml = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<tag>
+	
+</tag>
+]]

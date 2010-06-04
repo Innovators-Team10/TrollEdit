@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<server>
+		<port>37447</port>
+		<default-rules> <!-- default values for checkboxes in create game dialog -->
+			<expansion key="INNS_AND_CATHEDRALS" value="true" />
+			<expansion key="TRAIDERS_AND_BUILDERS" value="false" />
+			<expansion key="PRINCESS_AND_DRAGON" value="false" />
+			<expansion key="TOWER" value="false" />
+			<expansion key="ABBEY_AND_MAYOR" value="false" />
+			<expansion key="CATAPULT" value="false" />
+			
+			<expansion key="KING_AND_SCOUT" value="true" />
+			<expansion key="RIVER" value="false" />
+			<expansion key="RIVER_II" value="false" />
+			<expansion key="CATHARS" value="false" />
+			<expansion key="GAMES_QUARTERLY" value="true" />
+			<expansion key="CULT" value="false" />
+			<expansion key="TUNNEL" value="false" />
+
+			<rule key="BASIC__SMALL_CITY_2_POINTS" value="false" />
+			<rule key="BASIC__FARM_CITY_SCORED_ONCE" value="false" />
+
+			<rule key="DRAGON__VOLCANO_CANNOT_PLACE_BUILDER" value="true" />
+			<rule key="DRAGON__VOLCANO_CANNOT_MOVE_FAIRY" value="true" />
+			<rule key="DRAGON__PRINCESS_MUST_REMOVE_KNIGHT" value="false" />
+			<rule key="DRAGON__DRAGON_MOVE_AFTER_SCORING" value="false" />
+
+			<rule key="GQ__PIG_HERD" value="true" />
+
+			<rule key="ABBEY__MULTI_BARN_ALLOWED" value="false" />
+			
+			<rule key="TUNNEL__TUNNELIZE_OTHER_EXPANSIONS" value="true" />			
+		</default-rules>
+	</server>
+
+	<client>
+		<!-- language: client language can be specified 
+			if value is SYSTEM using default system language
+			otheways use ISO language code of demand language, 
+			supported: cs, en, sk, fi
+		 -->
+		<language>SYSTEM</language>
+		<default-settings>
+			<option key="BEEP_ALERT" value="false" />
+			<option key="NOTIFY_FARM_PLACE" value="false" />
+			<option key="NOTIFY_TOWER_PLACE" value="true" />
+		</default-settings>		
+		<player-colors>
+			<!-- name as constant or in #RRGGBB format -->
+			<color name="RED"/>
+			<color name="BLUE"/>
+			<color name="YELLOW"/>
+			<color name="#009900"/>
+			<color name="BLACK"/>
+			<color name="#808000"/>
+		</player-colors>
+		 
+	</client>
+
+</config>
