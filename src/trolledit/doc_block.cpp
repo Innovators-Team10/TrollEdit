@@ -33,20 +33,35 @@ DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)    // manual creation
     setPos(pos);
     setVisible(true);
     locked = true;
+    highlightFormat = group->docScene->getFormatFor(element->getType());
+    highlight(highlightFormat);
 
     // add arrow
+    arrow = 0;
     addArrowTo(arrowTarget);
 }
 
-DocBlock::DocBlock(TreeElement* el, Block* parentBlock, BlockGroup *parentgroup)
+DocBlock::DocBlock(QString text, TreeElement* el, Block* parentBlock, BlockGroup *parentgroup)
         // automatic creation
     : Block(el, parentBlock, parentgroup)
 {
     Q_ASSERT(el->isFloating()); // automatic creation should be called for floating elements only
     // find arrow target
     Block *arrowTarget = 0;
-    if (parent != 0)
+    if (prevSib != 0)
+        arrowTarget = prevSib;
+    else if (parent != 0)
         arrowTarget = parent;
+    // adjust linebreaks
+    if (text.endsWith('\n')) {
+        text.chop(1);
+        if (nextSib == 0)
+            parent->getElement()->setLineBreaking(true);
+        else if (prevSib != 0) prevSib->getElement()->setLineBreaking(true);
+    } else if (prevSib != 0 && nextSib == 0 &&
+               parent->getElement()->getAncestorWhereLast()->isLineBreaking()) {
+        prevSib->getElement()->setLineBreaking(false);
+    }
     // clean up
     removeLinks();            // remove all "contacts with family"
     if (parentBlock != 0) {
@@ -68,9 +83,14 @@ DocBlock::DocBlock(TreeElement* el, Block* parentBlock, BlockGroup *parentgroup)
 
     setVisible(true);
     locked = false;
+    highlightFormat = group->docScene->getFormatFor(element->getType());
+    highlight(highlightFormat);
 
     // add arrow
+    arrow = 0;
     addArrowTo(arrowTarget);
+
+    setContent(text);
 }
 
 DocBlock::~DocBlock()
@@ -101,12 +121,12 @@ void DocBlock::updatePos(bool updateReal)
     }
 
     if (!locked) {
-        qreal x = group->mainBlock()->idealPos().x() + group->mainBlock()->idealSize().width() + 100;
-        if (arrow == 0) {
+        Block *target = targetBlock();
+        if (target == 0) {
+            qreal x = group->mainBlock()->idealPos().x() + group->mainBlock()->idealSize().width() + 100;
             setPos(x ,0);
         } else {
-            Block *endItem = arrow->endItem();
-            setPos(x, group->mapFromItem(endItem->parentItem(), endItem->idealPos()).y());
+            setPos(group->mapFromItem(target, target->idealRect().topRight()) + QPointF(100, 0));
         }
     }
     idealGeometry.moveTo(pos());
@@ -127,6 +147,74 @@ Block *DocBlock::addTextCursorAt(QPointF pos)
     if (cursorPos < 0 || !myTextItem->setTextCursorPos(cursorPos))
         myTextItem->setTextCursorPos(0);
     return this;                        // return block with cursor
+}
+
+void DocBlock::setContent(QString text)
+//        TODO: improve!! QRegExp's different behavior in some cases made difficulties in finding more ellegant solution
+{
+    QHash<QString, QStringList> commentTokens = group->getAnalyzer()->getCommentTokens();
+    QString pattern;
+    QString content;
+
+    // no comments supported by this language
+    if (commentTokens["line"].value(0, "") == "" && commentTokens["multiline"].value(0, "")  == "")
+        return;
+
+    /* construction of the matching pattern; it's basically something like this:
+     * "start_token(content)(\[!((pos.x),(pos.y))?(type)!\])?end_token"
+     */
+    if (commentTokens["line"].value(0, "") == "")
+        pattern = QRegExp::escape(commentTokens["multiline"].value(0));
+    else if(commentTokens["multiline"].value(0, "")  == "")
+        pattern = QRegExp::escape(commentTokens["line"].value(0));
+    else
+        if (commentTokens["multiline"].value(0).startsWith(commentTokens["line"].value(0)))
+            pattern = "(?:" + QRegExp::escape(commentTokens["line"].value(0)) + "(" + QRegExp::escape(commentTokens["multiline"].value(0).remove(0, commentTokens["line"].value(0).length())) + "))";
+        else
+            pattern = "(" + QRegExp::escape(commentTokens["multiline"].value(0)) + "|" + QRegExp::escape(commentTokens["line"].value(0)) + ")";
+    pattern += "\\s*([^\\s].*[^\\s])\\s*\\[!((-?\\d+),(-?\\d+),)?(\\d)!\\].*";
+
+    QRegExp regExp(pattern);
+    int pos = regExp.indexIn(text);
+    if (pos > -1) {
+        QImage image;
+        int type = regExp.cap(5).toInt();
+        content = regExp.cap(1);
+
+        // remove line comment tokens simulating multiline comment if it's not naturally supported
+        if (group->getAnalyzer()->queryMultilineSupport() == "false")
+            content.replace(QRegExp("\\n\\s*" + QRegExp::escape(commentTokens["line"].value(0))), "\n");
+
+        switch (type) {
+        case Image:
+            image = QImage(content);
+            addImage(image, content);
+            break;
+        case Link:
+            addLink(QUrl::fromLocalFile(content));
+            break;
+        case WebLink:
+            addWebLink(QUrl(content));
+            break;
+        case Text:
+        default:
+            addText(content);
+        }
+
+        // block has saved position
+        if (!regExp.cap(2).isEmpty()) {
+            setPos(regExp.cap(3).toFloat(), regExp.cap(4).toFloat());
+            locked = true;
+        }
+    } else {// no match with pattern, just add text
+        content = text.remove(commentTokens["line"].value(0, ""));
+        content.remove(commentTokens["multiline"].value(0, ""));
+        content.remove(commentTokens["line"].value(1, ""));
+        content.remove(commentTokens["multiline"].value(1, ""));
+        content = content.trimmed();
+        content.replace(QRegExp("\\n( |\\t)*"), "\n");
+        addText(content);
+    }
 }
 
 void DocBlock::addText(QString text)
@@ -160,12 +248,12 @@ void DocBlock::addLink(QUrl url)
     docType = Link;
     path = url.toString();
     QString str = path;
-	
-	QTextCursor cursor = QTextCursor(myTextItem->document());
+
+    // add file icon
+    QTextCursor cursor = QTextCursor(myTextItem->document());
     QFileInfo info(url.toLocalFile());
     QFileIconProvider *provider = new QFileIconProvider();
-    QImage image(provider->icon(info).pixmap(16,16).toImage());
-
+    QImage image(provider->icon(info).pixmap(16, 16).toImage());
     cursor.document()->setPlainText(" ");
     cursor.insertImage(image);
 	
@@ -183,13 +271,19 @@ void DocBlock::addWebLink(QUrl url)
 {
     myTextItem->setTextInteractionFlags(Qt::TextSelectableByKeyboard);
     docType = WebLink;
+
+    // add web icon
+    QTextCursor cursor = QTextCursor(myTextItem->document());
+    cursor.document()->setPlainText(" ");
+    cursor.insertImage(QImage(":/weblink.png"));
+
     path = url.toString();
     QString str = path;
     if (str.lastIndexOf("/") > 7){
         str = str.left(str.lastIndexOf("/"));
     }
     QString html = "<a href=\""+path+"\">"+str+"</a>";
-    myTextItem->setHtml(html);
+    cursor.insertHtml(html);
     if (arrow != 0)
         arrow->setColor(getHoverColor());
     updateBlock(false);
@@ -197,6 +291,11 @@ void DocBlock::addWebLink(QUrl url)
 
 void DocBlock::addArrowTo(Block *end)
 {
+    if (arrow != 0) {
+        disconnect(arrow, 0, 0, 0);
+        disconnect(targetBlock(), 0, this, 0);
+        delete arrow;
+    }
     if (end == 0) {
         arrow = 0;
     } else {
@@ -219,20 +318,54 @@ Block *DocBlock::targetBlock() const
     return 0;
 }
 
-QString DocBlock::convertToText() const //TODO
+QString DocBlock::convertToText() const //TODO ak nie je multiline support, upravit blok; a nezobrazujem ziadne znacky ked to mam
 {
+    QString returnText;
+    QHash<QString, QStringList> commentTokens = group->getAnalyzer()->getCommentTokens();
+
     switch (docType) {
     case Text :
-        return myTextItem->toPlainText();
-    case Image :
-        return QString("//" + path);
+        if (hasMoreLines() || commentTokens["line"].value(0, "") == "") {
+            returnText = commentTokens["multiline"].value(0) + " ";
+            returnText += myTextItem->toPlainText();
+            if (locked || docType != Text) {
+                returnText += QString(" [!");
+                if (locked)
+                    returnText += QString::number(pos().x()) + "," + QString::number(pos().y()) + ",";
+                returnText += QString::number(docType) + "!] ";
+            }
+            returnText += commentTokens["multiline"].value(1);
+
+            // add line comment tokens simulating multiline comment if it's not naturally supported
+            if (group->getAnalyzer()->queryMultilineSupport() == "false")
+                returnText.replace("\n", commentTokens["line"].value(1) + "\n" + commentTokens["line"].value(0));
+        } else {
+            returnText = commentTokens["line"].value(0) + myTextItem->toPlainText();
+            if (locked || docType != Text) {
+                returnText += QString(" [!");
+                if (locked)
+                    returnText += QString::number(pos().x()) + "," + QString::number(pos().y()) + ",";
+                returnText += QString::number(docType) + "!] ";
+            }
+            returnText += commentTokens["line"].value(1);
+        }
+        break;
+    case Image :        
     case Link :
-        return QString("//" + path);
     case WebLink :
-        return QString("//" + path);
+        returnText = commentTokens["multiline"].value(0) + " ";
+        returnText += QString(path + " [!" + QString::number(pos().x()) + "," + QString::number(pos().y()) + "," + QString::number(docType) + "!] ");
+        returnText += commentTokens["multiline"].value(1);
+        break;
     default:
-        return QString("// nothing");
+        if (commentTokens["line"].value(0, "") != "")
+            returnText = commentTokens["line"].value(0) + " comment " + commentTokens["line"].value(1);
+        else {
+            returnText = commentTokens["multiline"].value(0) + " comment " + commentTokens["multiline"].value(1);
+        }
     }
+
+    return returnText;
 }
 
 QColor DocBlock::getHoverColor() const
@@ -298,9 +431,10 @@ void DocBlock::textChanged()
         removeBlock(true);
     } else {
         if (element->getType() != text) {
-            if(!isFolded()) {
-                element->setType(text);
-            }
+//            if(!isFolded()) {
+//                element->setType(text);
+//            }
+            group->setModified(true);
             updateBlock(false);
         }
     }
@@ -318,17 +452,20 @@ void DocBlock::setFolded(bool fold)
 
     if (fold) {
         backup = myTextItem->document()->clone();
-        QString cue;
         if (docType == Image) {
-            cue = "image ..."; //todo
+            QTextCursor cursor = QTextCursor(myTextItem->document());
+            cursor.document()->setPlainText(" ");
+            cursor.insertImage(QImage(":/image.png"));
+            cursor.insertText(QFileInfo(path).fileName());
         } else {
-            cue = myTextItem->toPlainText();
+            QString cue = myTextItem->toPlainText();
             int index = cue.indexOf("\n");
             cue.truncate(qMin(8, index));
             cue.append(" ...");
+            myTextItem->setPlainText(cue);
+            myTextItem->setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
         }
-        myTextItem->setPlainText(cue);
-        myTextItem->setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
+
     } else {
         Q_ASSERT(backup != 0);
         myTextItem->setDocument(backup);
@@ -337,6 +474,11 @@ void DocBlock::setFolded(bool fold)
         backup = 0;
     }
     updateBlock();
+}
+
+void DocBlock::setLocked(bool lock)
+{
+    locked = lock;
 }
 
 void DocBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

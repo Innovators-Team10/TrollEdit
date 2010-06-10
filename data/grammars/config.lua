@@ -1,9 +1,14 @@
-cfg_keys = {"text_style", "comment_style", "keyword", "line_comment", "multiline_comment", "doc_comment", "string_constant", "character_constant", "number_constant", "label", "header_file", "funct_call", "assignment_operator", "binary_operator", "prefix_operator", "postfix_operator", "markup_tag", "attribute_key", "attribute_value",  "funct_definition"}
+cfg_keys = {"text_style", "comment_style", "keyword", 
+"line_comment", "multiline_comment", "doc_comment", "string_constant", "character_constant", 
+"number_constant", "label", "header_file", "funct_call", 
+"assignment_operator", "binary_operator", "prefix_operator", "postfix_operator", 
+"markup_tag", "attribute_key", "attribute_value",  "funct_definition"}
 
 text_style = {family="courier", size="12", color="black", bold="false", italic="false", underline="false"}
-comment_style = {base="text_style", family="verdana", italic="true", color="black"}
+comment_style = {base="text_style", family="verdana", italic="true", color="teal"}
 
 keyword = {base="text_style", color="blue"}
+comment = {base="comment_style"}
 line_comment = {base="comment_style"}
 multiline_comment = {base="comment_style"}
 doc_comment = {base="comment_style"}

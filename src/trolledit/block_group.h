@@ -7,10 +7,11 @@
 #include <QTime>
 #include <QStatusBar>
 
+#include "analyzer.h"
+
 class Block;
 class DocBlock;
 class DocumentScene;
-class Analyzer;
 class FoldButton;
 
 class BlockGroup : public QObject, public QGraphicsRectItem
@@ -31,10 +32,11 @@ public:
     int type() const { return Type; }
     Block *mainBlock() const {return root;}
     int getLastLine() const {return lastLine;}
-    QString getFileName() const {return fileName;}
+    QString getFilePath() const {return fileName;}
     void setFileName(QString newFileName) {fileName = newFileName;}
     bool isModified() const {return modified;}
     void setModified(bool flag);
+    void setContent(QString content);
 
     // block management
     Block *getBlockIn(int line) const;
@@ -51,13 +53,17 @@ public:
 
     DocBlock *addDocBlock(QPointF scenePos);
     QList<DocBlock*> docBlocks() const;
+    void highlightLines(QSet<int> lines);
+    bool searchBlocks(QString searchStr, bool allowInner, bool exactMatch);
+    void clearSearchResults();
 
     // analysis
-    void setAnalyzer(Analyzer *analyzer) {this->analyzer = analyzer;}
+    void setAnalyzer(Analyzer *newAnalyzer) {analyzer = newAnalyzer;}
+    Analyzer *getAnalyzer() const {return analyzer;}
     Block *reanalyze(Block* block = 0, QPointF cursorPos = QPointF());
     void analyzeAll(QString text);
     bool reanalyzeBlock(Block* block);
-    QString toText() const;
+    QString toText(bool noDocs = false) const;
 
     // visualization
     void showInsertLine(InsertLine type, QPointF scenePos);
@@ -93,6 +99,7 @@ public slots:
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {Q_UNUSED(event);}
     void dragEnterEvent(QGraphicsSceneDragDropEvent *event);
     void dragMoveEvent(QGraphicsSceneDragDropEvent *event);
@@ -118,6 +125,8 @@ private:
     qreal lastXPos;
     QGraphicsLineItem *horizontalLine, *verticalLine; // insertion cues
     bool modified;
+    QHash<int, QGraphicsRectItem*> highlightingRects;
+    bool searched;
 
     friend class DocumentScene;
 };

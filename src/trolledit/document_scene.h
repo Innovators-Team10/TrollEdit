@@ -14,14 +14,24 @@ class DocumentScene : public QGraphicsScene
 {
     Q_OBJECT
 
+signals:
+    void modified(bool flag);
+    void fileSelected(BlockGroup *group);
+
 public slots:
-    void newGroup(Analyzer *defaultAnalyzer);
-    void loadGroup(const QString &fileName, Analyzer *analyzer);
-    void saveGroup(const QString &fileName = "", BlockGroup *group = 0);
+    void newGroup(Analyzer *analyzer);
+    void loadGroup(QString fileName, Analyzer *analyzer);
+    void revertGroup(BlockGroup *group = 0);
+    void saveGroup(QString fileName = "", BlockGroup *group = 0, bool noDocs = false);
     void saveGroupAs(BlockGroup *group = 0);
     void saveAllGroups();
+    void saveGroupAsWithoutDoc(BlockGroup *group = 0);
     void closeGroup(BlockGroup *group = 0);
     void closeAllGroups();
+    void setGroupLang(Analyzer *newAnalyzer, BlockGroup *group = 0);
+    void showPreview(BlockGroup *group = 0);
+    void findText(QString searchStr, BlockGroup *group = 0);
+    void cleanGroup(BlockGroup *group = 0);
 
 public:
     DocumentScene(MainWindow *parent);

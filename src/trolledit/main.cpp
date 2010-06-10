@@ -16,10 +16,8 @@ int main(int argc, char *argv[])
     MainWindow w(path);
     w.show();
 
-    // activate "new file" action
-    w.actions().first()->activate(QAction::Trigger);
-
-    w.open("tests/in.c"); // TEMP
+//    w.newFile();
+//    w.open("../input/in.c"); // TEMP
 
     // open all files given as parameters
     for (int i = 1; i < argc; i++)

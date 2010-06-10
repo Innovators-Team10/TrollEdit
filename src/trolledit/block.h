@@ -11,6 +11,7 @@ class TreeElement;
 class BlockGroup;
 class FoldButton;
 class TextItem;
+class DocBlock;
 
 class Block : public QObject, public QGraphicsRectItem
 {
@@ -33,6 +34,7 @@ public:
     // block management methods
     Block *getFirstLeaf() const;
     Block *getLastLeaf() const;
+    Block *getFirstChild() const {return firstChild;}
     Block *getAncestorWhereFirst() const;
     Block *getAncestorWhereLast() const;
     Block *getNextSibling() const {return nextSib;}
@@ -86,6 +88,7 @@ public:
     virtual QColor getHoverColor() const;
     bool isOverlapPossible() const;
     void setRepaintNeeded() {repaintNeeded = true;}
+    void setYellow(bool flag) {isSearchResult = flag;}
 
     // updaters
     virtual void updateBlock(bool doAnimation = true);
@@ -132,6 +135,7 @@ protected:
     bool moreSpace;  // true when dropping to this block's parent, block has outer offset
     bool pointed;    // true if it is last hovered block
     bool repaintNeeded;
+    bool isSearchResult;
 
     TreeElement *element;       // my AST element
     Block *parent;              // my parent

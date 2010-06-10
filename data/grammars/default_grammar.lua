@@ -9,8 +9,11 @@ full_grammar = "grammar"	-- name of complete grammars
 other_grammars = {}		-- names of available partial grammars
 paired = {}				-- list of paired elements (terminal or nonterminal) e.g. {"begin", "end", "(", ")" } 
 selectable = {"general_text", "line", "word", "unknown"}	-- list of nonterminal elements that could be selected and moved by user
-multi_text = {"unknown"}	-- list of nonterminal elements able/allowed to contain more lines of text (in their child terminals)
+multi_text = {}	-- list of nonterminal elements able/allowed to contain more lines of text (in their child terminals)
 floating = {}			-- list of floating elements
+multiline_support = "false"		-- natural support for multiline comments in language
+line_tokens = {}	-- start & end tokens for line comment
+multiline_tokens = {}		-- start & end tokens for multiline comment; if language does not support multiline comments, define custom tokens
 
 require 'lpeg'
 

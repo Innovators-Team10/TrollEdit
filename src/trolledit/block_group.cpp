@@ -3,7 +3,6 @@
 #include "doc_block.h"
 #include "text_item.h"
 #include "tree_element.h"
-#include "analyzer.h"
 #include "document_scene.h"
 
 const QString BlockGroup::BLOCK_MIME = "block_data";
@@ -36,6 +35,7 @@ BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
     selected = 0;
     lastXPos = -1;
     modified = true;
+    searched = false;
     smoothTextAnimation = false;
     foldableBlocks.clear();
 
@@ -54,6 +54,12 @@ BlockGroup::~BlockGroup()
 {
     docScene = 0;
     root = 0;
+}
+
+void BlockGroup::setContent(QString content)
+{
+    analyzeAll(content);
+    docScene->update();
 }
 
 void BlockGroup::setRoot(Block *newRoot)
@@ -82,9 +88,11 @@ void BlockGroup::setRoot(Block *newRoot)
         root->getFirstLeaf()->textItem()->setTextCursorPos(0);
     }
     root->setVisible(true);
+    clearSearchResults();
     root->updateBlock(false);
-    foreach (DocBlock *dbl, docBlocks())
+    foreach (DocBlock *dbl, docBlocks()) {
         dbl->updateBlock(false);
+    }
     updateSize();
 }
 
@@ -298,12 +306,14 @@ void BlockGroup::splitLine(Block *block, int cursorPos)
         next->getFirstLeaf()->textItem()->setTextCursorPos(0);
         next->edited = true;
     }
+    clearSearchResults();
     root->updateBlock();//updateAfter(true);
     smoothTextAnimation = false;
 }
 
 void BlockGroup::eraseChar(Block *block, int key)
 {
+    clearSearchResults();
     Block *target = 0;
     if (key == Qt::Key_Backspace) {             // move to previous block
         target = block->getAncestorWhereFirst();
@@ -318,8 +328,7 @@ void BlockGroup::eraseChar(Block *block, int key)
                     target = target->parentBlock();
                 }
                 target->getElement()->setLineBreaking(false);
-                //                target->updateAfter();
-                root->updateBlock();
+                root->updateBlock(); // todo more effective updater
             } else if (target->getLine() > block->getLine()) {   // jumped to the end of file
                 return;
             } else {                            // on same line
@@ -340,8 +349,7 @@ void BlockGroup::eraseChar(Block *block, int key)
                     target = target->parentBlock();
                 }
                 target->getElement()->setLineBreaking(false);
-                //                target->updateAfter();
-                root->updateBlock();
+                root->updateBlock(); // todo more effective updater
             } else if (target->getLine() < block->getLine()) {   // jumped to the beginning of file
                 return;
             } else {                            // on same line
@@ -353,6 +361,7 @@ void BlockGroup::eraseChar(Block *block, int key)
 
 void BlockGroup::moveFrom(Block *start, int key, int cursorPos)
 {
+    Block *bl;
     time.restart();
     switch (key) {
     case Qt::Key_Up :
@@ -368,15 +377,18 @@ void BlockGroup::moveFrom(Block *start, int key, int cursorPos)
         moveCursorLeftRight(start, true);
         break;
     case Qt::Key_Home :
-        getBlockIn(start->getLine())->getFirstLeaf()->textItem()->setTextCursorPos(0);
+        bl = getBlockIn(start->getLine())->getFirstLeaf();
+        bl->textItem()->setTextCursorPos(0);
+        selectBlock(bl, true);
         break;
     case Qt::Key_End :
-        Block *next = start->getNext(true);
-        while (next->getLine() == start->getLine()) {
-            start = next;
-            next = start->getNext(true);
+        bl = start->getNext(true);
+        while (bl->getLine() == start->getLine()) {
+            start = bl;
+            bl = start->getNext(true);
         }
         start->textItem()->setTextCursorPos(-1);
+        selectBlock(start, true);
         break;
     }
 }
@@ -521,11 +533,11 @@ QPainterPath BlockGroup::shape() const
 
 void BlockGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    Q_UNUSED(option); Q_UNUSED(widget);
+    Q_UNUSED(widget);
 
     if (docScene->selectedGroup() == this) {
         painter->setPen(pen());
-        painter->drawRect(rect());
+        painter->drawRect(rect().adjusted(2,2,-2,-2));
     }
 }
 
@@ -537,12 +549,16 @@ Block *BlockGroup::reanalyze(Block *block, QPointF cursorPos)
 
     selected = 0;
 
+    getStatusBar()->showMessage("Analysing...");
     QApplication::setOverrideCursor(Qt::WaitCursor);
+
+//    QApplication::setOverrideCursor(Qt::CrossCursor);
     if (!reanalyzeBlock(block)) {
         analyzeAll(root->getElement()->getText());
     }
 
     QApplication::restoreOverrideCursor();
+    getStatusBar()->clearMessage();
     qDebug("\nBlockGroup::reanalyze()");
     time.restart();
 
@@ -554,6 +570,7 @@ Block *BlockGroup::reanalyze(Block *block, QPointF cursorPos)
     qDebug("block selection: %d", time.restart());
     // return new block at requested position
     docScene->update();
+
     return selected;
 }
 
@@ -608,7 +625,6 @@ bool BlockGroup::reanalyzeBlock(Block *block)
     // reset root (root is the same)
     setRoot(root);
     qDebug("root update: %d", time.restart());
-
     return true;
 }
 
@@ -618,6 +634,8 @@ void BlockGroup::analyzeAll(QString text)
     if (text.isEmpty()) { // use snippet if text is empty
         text = analyzer->getSnippet();
         qDebug("\nDefault snipped used");
+        getStatusBar()->showMessage("File reset - default text used", 2000);
+        if (text.isEmpty()) text = "    ";
     }
     time.restart();
 
@@ -634,9 +652,9 @@ void BlockGroup::analyzeAll(QString text)
     qDebug("root update: %d", time.restart());
 }
 
-QString BlockGroup::toText() const
+QString BlockGroup::toText(bool noDocs) const
 {
-    return root->getElement()->getText();
+    return root->getElement()->getText(noDocs);
 }
 
 QList<Block*> BlockGroup::blocklist_cast(QList<QGraphicsItem*> list)
@@ -754,12 +772,14 @@ void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
             return;
         }
 
+        setModified(true);
+
         // clone block
 //        TreeElement *cloneEl = selected->element->clone();
         QString text = selected->element->getText();
         if (text.endsWith("\n")) text.chop(1);
         TreeElement *cloneEl = new TreeElement(text);
-        //NOTE: deep clone is not needed since it will be reanalyzed anyway
+        // NOTE: deep clone is not needed here since it will be reanalyzed anyway
 
         qDebug("element cloned: %d", time.restart());
         Block *clone = new Block(cloneEl, 0, this);
@@ -788,7 +808,6 @@ void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
             }
         }
         // reanalyze all
-        //            root->updateBlock(false);
         reanalyze(clone, scenePos);
 
         event->accept();
@@ -834,4 +853,109 @@ void BlockGroup::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
     } else {
         QGraphicsRectItem::dragLeaveEvent(event);
     }
+}
+
+void BlockGroup::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+        event->ignore();
+        return;
+    }
+    if (docScene->itemAt(event->scenePos()) == this) {  // clicked directly on group
+        setPos(30, 30);
+        event->accept();
+    } else {                                            // clicked on block/button inside group
+        event->ignore();
+    }
+    QGraphicsRectItem::mouseDoubleClickEvent(event);
+
+}
+
+void BlockGroup::highlightLines(QSet<int> lines)
+{
+    if (lines.isEmpty()) return;
+
+//    foreach (QGraphicsRectItem *hRect, highlightingRects.values()) {
+//        int key = highlightingRects.key(hRect);
+//        if (!lines.contains(key)) {
+//            highlightingRects.remove(key);
+//            delete hRect;
+//        }
+//    }
+
+    qreal offset = 4;
+    QColor color;
+    color.setNamedColor("yellow");
+    color.setAlpha(100);
+
+    foreach (int line, lines) {
+        if (highlightingRects.value(line, 0) != 0) continue;
+
+        Block *bl = getBlockIn(line);
+        if (bl != 0) {
+            QPointF pos = mapFromItem(bl, 0, 0);
+            QGraphicsRectItem *hRect = new QGraphicsRectItem(
+                    pos.x(), pos.y() + offset,
+                    root->idealSize().width() - pos.x(), CHAR_HEIGHT - 2*offset,
+                    this);
+            hRect->setPen(QPen(color));
+            hRect->setBrush(QBrush(color));
+            highlightingRects.insert(line, hRect);
+            searched = true;
+        }
+    }
+}
+
+bool BlockGroup::searchBlocks(QString searchStr, bool allowInner, bool exactMatch)
+{
+    if (searchStr.isEmpty())
+        return false;
+
+    bool found = false;
+    TreeElement *el = root->getElement();
+    Block *bl;
+    if (allowInner) searchStr.replace(" ", "_");
+
+    while (el->hasNext()) {
+        if (allowInner || el->isLeaf()) {
+            if ((!exactMatch && el->getType().contains(searchStr)) ||
+                el->getType() == searchStr) {
+                TreeElement *foundEl = el;
+                do {
+                    bl = foundEl->getBlock();
+                    if (foundEl->isLeaf()) break;
+                    foundEl = (*foundEl)[0];
+                } while (bl == 0);
+                if (bl != 0) {
+                    bl->setYellow(true);
+                    found = true;
+                }
+            }
+        }
+        el = el->next();
+    }
+    if (found)
+        searched = true;
+    return found;
+}
+
+void BlockGroup::clearSearchResults()
+{
+    if (!searched) return;
+    searched = false;
+
+    TreeElement *el = root->getElement();
+    Block *bl;
+    while (el->hasNext()) {
+        bl = el->getBlock();
+        if (bl != 0)
+            bl->setYellow(false);
+        el = el->next();
+    }
+
+    foreach (QGraphicsRectItem *hRect, highlightingRects.values()) {
+        delete hRect;
+    }
+    highlightingRects.clear();
+    qDebug("Search cleared");
 }

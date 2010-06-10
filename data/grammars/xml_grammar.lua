@@ -15,10 +15,17 @@ other_grammars = {
 	markup_element="in_markup_element", 
 }
 paired = {"<", ">", "start_element", "end_element"}
-selectable = {"document", "xml_header", "markup_element", "comment",
-		"attribute", "block", "unknown"}
-multi_text = {"unknown"}
-floating = {}
+selectable = {"document", "xml_header", "markup_element", 
+		"attribute", "block", "unknown", "unknown_word"}
+multi_text = {"multiline_comment", "unknown"}
+floating = {"multiline_comment"}
+
+-- does language support multiline comments?
+multiline_support = "true"
+
+-- start & end tokens for comments; if language does not support multiline comments, define custom tokens
+line_tokens = {}
+multiline_tokens = {"<!--", "-->"}
 
 require 'lpeg'
 
@@ -62,8 +69,9 @@ local grammar = {"S",
 document =  
 	Ct(
 	Cc("document") *
-	N'nl'^0 *
-	N'xml_header'^-1 * N'markup_element'^-1 *
+	(N'multiline_comment' + N'nl')^0 *
+	N'xml_header'^-1 * 
+	N'markup_element'^-1 *
 	N'unknown'^0 *
 	N'whites'^-1 * -1),
 	
@@ -79,13 +87,14 @@ xml_header =
 	T"<?xml" * 
 	(T"version=" * N'version_number')^-1 * 
 	(T"encoding=" * N'attribute_value')^-1 *
-	T"?>",
+	T"?>" *
+	(N'multiline_comment')^0,
 version_number = T"\"" * NI'number' * T'.' * NI'number' * T"\"",
 markup_element = 
-	N'comment' +
-	N'empty_element' +
-	N'start_element' * N'block' * N'end_element',
-block = N'word'^1 + N'markup_element'^0, 
+	N'empty_element' * (N'multiline_comment')^0 +
+	N'start_element'  * (N'multiline_comment')^0 
+	* N'block'^-1 * N'end_element'  * (N'multiline_comment')^0 ,
+block = N'word'^1 + N'markup_element'^1, 
 start_element = T"<" * N'markup_tag' * N'attribute'^0 * T">",
 end_element = T"</" * N'markup_tag' * T">",
 empty_element = T"<" * N'markup_tag' * N'attribute'^0 * T"/>",
@@ -98,16 +107,18 @@ markup_tag = T((NI'letter' + S("_:")) * NI'markup_tag_char'^0),
 word = T(NI'char'^1),
 number = T(NI'digit'^1),
 attribute_word = T((P(1) - S('=\"<>/'))^1),
-comment = T(P"<!--" * (1 - P"-->")^0 * P"-->"),
+multiline_comment = T(P"<!--" * (1 - P"-->")^0 * P"-->"),
 	
 -- LITERALS
-unknown = N'whites'^-1 * TP((1 - S" \t\r\n")^1) * N'nl'^0,
+unknown = N'unknown_word'^1 * N'nl'^0,	-- anything divided to words
+unknown_word = N'whites'^-1 * TP((1 - S" \t\r\n")^1),
+
 whites = TP(S(" \t")^1),	 		-- spaces and tabs
 nl = S(" \t")^0 * TP(P"\r"^-1*P"\n"), 	-- single newline, preceding spaces are ignored
 
 letter = R("az", "AZ"),
 digit = R("09"),
-char = P(1) - S("<>/"),
+char = P(1) - S("<>/ \t\r\n"),
 markup_tag_char = NI'letter' + NI'digit' + S(".-_:"),
 }
 -- ***  END OF GRAMMAR  ****
@@ -122,4 +133,4 @@ in_markup_element = P(grammar)
 -- TESTING - this script cannot be used by Analyzer.cpp when these lines are uncommented !!!
 
 -- dofile('default_grammar.lua')
--- test("../../input/input.xml", document)
+-- test("../../input/carcassonne.xml", document)

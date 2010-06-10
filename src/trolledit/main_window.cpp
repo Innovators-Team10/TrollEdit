@@ -3,6 +3,7 @@
 #include "document_scene.h"
 #include "language_manager.h"
 #include "analyzer.h"
+#include "block_group.h"
 
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
@@ -11,6 +12,9 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 
     scene = new DocumentScene(this);
     scene->setHighlighting(langManager->getConfigData());
+    connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
+    connect(scene, SIGNAL(fileSelected(BlockGroup*)),
+            this, SLOT(setCurrentFile(BlockGroup*)));
 
     view->setScene(scene);
     setCentralWidget(view);
@@ -27,56 +31,100 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     icon.addFile(":/icon16.png");
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
+    setCurrentFile(0);
 }
 
 void MainWindow::createActions()
 {
-    // new file
-    newAction = new QAction(QIcon(":/new.png"), tr("&New"), this);
+    groupActions = new QActionGroup(this);
+
+    // new
+    QIcon newIcon(":/m/new"); newIcon.addFile(":/s/new");
+    newAction = new QAction(newIcon, tr("&New"), this);
     newAction->setShortcut(tr("CTRL+N"));
     newAction->setToolTip(tr("Create a new file"));
     connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
     addAction(newAction);
 
     // open
-    openAction = new QAction(QIcon(":/open.png"), tr("&Open..."), this);
+    QIcon openIcon(":/m/open"); openIcon.addFile(":/s/open");
+    openAction = new QAction(openIcon, tr("&Open..."), this);
     openAction->setShortcut(tr("CTRL+O"));
     openAction->setToolTip(tr("Open an existing file"));
-    openAction->setStatusTip(tr("Open an existing file"));                 // TODO - status msg for actions
     connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+    // revert
+//    QIcon revertIcon(":/m/open"); openIcon.addFile(":/s/open");
+    revertAction = new QAction(tr("&Revert"), this);
+    revertAction->setShortcut(tr("CTRL+R"));
+    revertAction->setToolTip(tr("Revert to last save"));
+    connect(revertAction, SIGNAL(triggered()), scene, SLOT(revertGroup()));
+    groupActions->addAction(revertAction);
+
     // save
-    saveAction = new QAction(QIcon(":/save.png"), tr("&Save"), this);
+    QIcon saveIcon(":/m/save"); saveIcon.addFile(":/s/save");
+    saveAction = new QAction(saveIcon, tr("&Save"), this);
     saveAction->setShortcut(tr("CTRL+S"));
-    saveAction->setToolTip(tr("Save the file to disk"));
+    saveAction->setToolTip(tr("Save file"));
     connect(saveAction, SIGNAL(triggered()), scene, SLOT(saveGroup()));
+    groupActions->addAction(saveAction);
 
     // save as
-    saveAsAction = new QAction(QIcon(":/save-as.png"), tr("Save As..."), this);
-    saveAsAction->setToolTip(tr("Save the file as..."));
+    QIcon saveAsIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as");
+    saveAsAction = new QAction(saveAsIcon, tr("Save &As..."), this);
+    saveAsAction->setToolTip(tr("Save file as..."));
     connect(saveAsAction, SIGNAL(triggered()), scene, SLOT(saveGroupAs()));
+    groupActions->addAction(saveAsAction);
+
+    // save as
+//    QIcon saveAsNoDocIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as");
+    saveAsNoDocAction = new QAction(tr("Save Without Comments"), this);
+    saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
+    connect(saveAsNoDocAction, SIGNAL(triggered()), scene, SLOT(saveGroupAsWithoutDoc()));
+    groupActions->addAction(saveAsNoDocAction);
 
     // save all
-    saveAllAction = new QAction(tr("Save All..."), this);
+    saveAllAction = new QAction(tr("Save All"), this);
     saveAllAction->setToolTip(tr("Save all files"));
     connect(saveAllAction, SIGNAL(triggered()), scene, SLOT(saveAllGroups()));
 
     // close
-    closeAction = new QAction(QIcon(":/close.png"), tr("&Close File"), this);
-//    closeAction->setShortcut(tr("CTRL+P"));
-    closeAction->setToolTip(tr("Close current file"));
+    QIcon closeIcon(":/m/close"); closeIcon.addFile(":/s/close");
+    closeAction = new QAction(closeIcon, tr("&Close File"), this);
+    closeAction->setShortcut(tr("CTRL+Q"));
+    closeAction->setToolTip(tr("Close file"));
     connect(closeAction, SIGNAL(triggered()), scene, SLOT(closeGroup()));
+    groupActions->addAction(closeAction);
 
     // close all
-    closeAllAction = new QAction(tr("&Close All"), this);
+    closeAllAction = new QAction(tr("Close All"), this);
     closeAllAction->setToolTip(tr("Close all files"));
     connect(closeAllAction, SIGNAL(triggered()), scene, SLOT(closeAllGroups()));
 
     // print pdf
-    printPdfAction = new QAction(QIcon(":/print.png"), tr("&Print PDF"), this);
+    QIcon printIcon(":/m/print"); printIcon.addFile(":/s/print");
+    printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
     printPdfAction->setShortcut(tr("CTRL+P"));
     printPdfAction->setToolTip(tr("Print scene to PDF"));
     connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
+	groupActions->addAction(printPdfAction);
+
+    // show plain text editor
+    QIcon editIcon(":/m/edit"); printIcon.addFile(":/s/edit");
+    plainEditAction = new QAction(editIcon, tr("&Edit Plain Text"), this);
+    plainEditAction->setShortcut(tr("CTRL+E"));
+    plainEditAction->setToolTip(tr("Edit file as plain text"));
+    connect(plainEditAction, SIGNAL(triggered()), scene, SLOT(showPreview()));
+    groupActions->addAction(plainEditAction);
+
+    // clear search results
+    QIcon clearIcon(":/m/clear"); saveIcon.addFile(":/s/clear");
+    clearAction = new QAction(clearIcon, tr("Clea&n Search"), this);
+    clearAction->icon().addFile(":/m/save.png");
+//    clearAction->setShortcut(tr("CTRL+S"));
+    clearAction->setToolTip(tr("Clean search results"));
+    connect(clearAction, SIGNAL(triggered()), scene, SLOT(cleanGroup()));
+    groupActions->addAction(clearAction);
 
     // recent files
     for (int i = 0; i < MaxRecentFiles; ++i) {
@@ -87,20 +135,22 @@ void MainWindow::createActions()
     }
 
     // exit
-    exitAction = new QAction(tr("E&xit"), this);
-    exitAction->setShortcut(tr("CTRL+Q"));
-    exitAction->setToolTip(tr("Quit the application. Prompts to save files"));
-    exitAction->setStatusTip(tr("Exit the application"));
+    QIcon exitIcon(":/s/exit");
+    exitAction = new QAction(exitIcon, tr("E&xit"), this);
+    exitAction->setToolTip(tr("Quit the application."));
     connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
     // settings
-    settingsAction = new QAction(QIcon(":/properties.png"), tr("Se&ttings"), this);
+    QIcon settingsIcon(":/m/settings"); settingsIcon.addFile(":/s/settings");
+    settingsAction = new QAction(settingsIcon, tr("Se&ttings"), this);
     settingsAction->setToolTip(tr("General application settings"));
     connect(settingsAction, SIGNAL(triggered()), this, SLOT(settings()));
 
     // help
-    helpAction = new QAction(tr("&Help"), this);
-    helpAction->setToolTip(tr("Show application's help"));
+    QIcon helpIcon(":/m/help"); helpIcon.addFile(":/s/help");
+    helpAction = new QAction(helpIcon, tr("&Help"), this);
+    helpAction->setShortcut(tr("F1"));
+    helpAction->setToolTip(tr("Show application help"));
     connect(helpAction, SIGNAL(triggered()), this, SLOT(help()));
 
     // about
@@ -114,8 +164,9 @@ void MainWindow::createActions()
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     // show printable area
-    printableAreaAction = new QAction(QIcon(":/area.png"), tr("Show Printable Area"), this);
-    aboutAction->setToolTip(tr("Show margins of printable area"));
+    QIcon areaIcon(":/m/area"); areaIcon.addFile(":/s/area");
+    printableAreaAction = new QAction(areaIcon, tr("Show Printable Area"), this);
+    printableAreaAction->setToolTip(tr("Show margins of printable area"));
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
 }
@@ -126,14 +177,17 @@ void MainWindow::createMenus()
     fileMenu = menuBar()->addMenu(tr("&File"));
      fileMenu->addAction(newAction);
     fileMenu->addAction(openAction);
+    fileMenu->addAction(revertAction);
     fileMenu->addSeparator();
     fileMenu->addAction(saveAction);
     fileMenu->addAction(saveAsAction);
+    fileMenu->addAction(saveAsNoDocAction);
     fileMenu->addAction(saveAllAction);
     fileMenu->addSeparator();
     fileMenu->addAction(closeAction);
     fileMenu->addAction(closeAllAction);
     fileMenu->addSeparator();
+    fileMenu->addAction(plainEditAction);
     fileMenu->addAction(printableAreaAction);
     fileMenu->addAction(printPdfAction);
     separatorAction = fileMenu->addSeparator();
@@ -169,29 +223,98 @@ void MainWindow::createToolBars()
     formatToolBar->addAction(saveAction);
     formatToolBar->addAction(closeAction);
     formatToolBar->addSeparator();
+
+    formatToolBar->addAction(plainEditAction);
     formatToolBar->addAction(printableAreaAction);
     formatToolBar->addAction(printPdfAction);
-    formatToolBar->addAction(settingsAction);
-//    formatToolBar->addAction();
+    //formatToolBar->addAction(settingsAction);
+    formatToolBar->addSeparator();
 
+    scriptsBox = new QComboBox();
+    scriptsBox->setMaxVisibleItems(10);
+    scriptsBox->addItems(langManager->getLanguages());
+    connect(scriptsBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(langChanged(QString)));
+    formatToolBar->addWidget(scriptsBox);
+    formatToolBar->addSeparator();
+	
+    searchLabel = new QLabel();
+//    searchLabel->setText(" Search ");
+    searchLabel->setPixmap(QPixmap(":/m/search"));
+    formatToolBar->addWidget(searchLabel);
+
+    searchLineEdit = new QLineEdit();
+    searchLineEdit->setFixedSize(200, 20);
+    connect(searchLineEdit, SIGNAL(editingFinished()), this, SLOT(search()));
+    formatToolBar->addWidget(searchLineEdit);
+
+    formatToolBar->addAction(clearAction);
+}
+
+void MainWindow::setModified(bool flag)
+{
+    setWindowModified(flag);
+    saveAction->setEnabled(flag);
+    revertAction->setEnabled(flag);
+}
+
+void MainWindow::setCurrentFile(BlockGroup *group)
+{
+    QString fileName;
+    QString lang;
+    if (group != 0) {
+        fileName = group->getFilePath();
+        lang = group->getAnalyzer()->getLanguageName();
+        selectedGroup = group;
+    } else {
+        lang = "";
+        fileName = "Empty";
+        selectedGroup = 0;
+    }
+
+    if (fileName.isEmpty() || fileName == "Empty") {
+        setWindowFilePath(fileName);
+        groupActions->setEnabled(false);
+        searchLineEdit->setEnabled(false);
+    } else {
+        groupActions->setEnabled(true);
+        searchLineEdit->setEnabled(true);
+        if (scriptsBox->currentText() != lang) {
+            int index = scriptsBox->findText(lang, Qt::MatchFixedString);
+            scriptsBox->blockSignals(true);
+            scriptsBox->setCurrentIndex(index);
+            scriptsBox->blockSignals(false);
+        }
+        if (windowFilePath() != fileName) {
+            setWindowFilePath(fileName);
+            if (!QFileInfo(fileName).fileName().isEmpty()) {
+                fileName = QFileInfo(fileName).fileName();
+            } else {
+                revertAction->setEnabled(false);
+            }
+            saveAction->setText(tr("&Save \"%1\"").arg(fileName));
+            saveAsAction->setText(tr("Save \"%1\" &As...").arg(fileName));
+            closeAction->setText(tr("&Close \"%1\"").arg(fileName));
+        }
+    }
 }
 
 void MainWindow::newFile()
 {
-    scene->newGroup(langManager->getAnalyzerFor("*"));
+    scene->newGroup(langManager->getAnalyzerForLang(scriptsBox->currentText()));
 }
 
 void MainWindow::open()
 {
     QString fileFilters = tr("All files (*)");
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), ".", fileFilters);
+    QString dir = QFileInfo(windowFilePath()).absoluteDir().absolutePath();
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), dir, fileFilters);
     open(fileName);
 }
 
 void MainWindow::open(QString fileName)
 {
     if (!fileName.isEmpty() && QFile::exists(fileName)) {
-        QSettings settings("Ufopak", "TrollEdit");
+        QSettings settings(QApplication::organizationName(), QApplication::applicationName());
         QStringList files = settings.value("recentFileList").toStringList();
         files.removeAll(fileName);
         files.prepend(fileName);
@@ -211,20 +334,17 @@ void MainWindow::load(QString fileName)
     scene->loadGroup(fileName, analyzer);
 }
 
-//void MainWindow::save()
-//{
-//    scene->saveGroup();
-//}
-//
-//void MainWindow::saveAs()
-//{
-//    scene->saveGroupAs("");
-//}
-//
-//void MainWindow::saveAll()
-//{
-//    scene->saveAllGroups(currentFile);
-//}
+void MainWindow::langChanged(QString newLang)
+{
+    scene->setGroupLang(langManager->getAnalyzerForLang(newLang));
+}
+
+void MainWindow::search()
+{
+    QString searchText = searchLineEdit->text();
+    scene->findText(searchText);
+    
+}
 
 void MainWindow::printPdf()
 {
@@ -244,11 +364,21 @@ void MainWindow::printPdf()
     rect.setHeight(printer.pageRect().height() - (printer.paperRect().height() - printer.pageRect().height()));
     rect.setWidth(printer.pageRect().width() - (printer.paperRect().width() - printer.pageRect().width()));
 
-    int y = 0;
+    int endCondition;
+    if (selectedGroup == 0) {
+        startPoint = QPointF();
+        endCondition = scene->sceneRect().height();
+    } else {
+        startPoint = selectedGroup->pos();
+        endCondition = startPoint.y() + selectedGroup->rect().height();
+    }
+
+    int x = startPoint.x() - 30;
+    int y = startPoint.y() - 30;
     int h = 1200;
     int w = 802;
     QRectF rect2;
-    rect2 = QRectF(0, y, w, h);
+    rect2 = QRectF(x, y, w, h);
 
 
     //    QColor color;
@@ -258,56 +388,65 @@ void MainWindow::printPdf()
 
     if(printableAreaAction->isChecked())
         hideArea();
-    for(int i=0; i<10; i++){
+//    for(int i=0; i<10; i++){
+    while(endCondition){
         scene->render(&painter, rect, rect2, Qt::KeepAspectRatio);
         y+=1200;
-        if(y < scene->sceneRect().height())
-        {
-            rect2.setRect(0, y, w, h);
+        if (y < endCondition) {
+            rect2.setRect(x, y, w, h);
             printer.newPage();
         }
         else
-            break;
+            endCondition = 0;
     }
     if(printableAreaAction->isChecked())
         showArea();
+    statusBar()->showMessage("Pdf export finished", 2000);
 }
 
 void MainWindow::showPrintableArea()
 {
+    if (selectedGroup == 0) {
+        startPoint = QPointF();
+    } else {
+        startPoint = selectedGroup->pos();
+    }
     QColor color;
     color.setBlue(255);
     color.setGreen(150);
     QPen pen(color, 2, Qt::DashDotDotLine);
 
     int pagelength = 1200;
-    int endpage = pagelength;
+    int endpage = 0;
 
-    if(printableAreaAction->isChecked())
-    {
+    if(printableAreaAction->isChecked()) {
         line = new QGraphicsLineItem(0);
-        line->setLine(802, 0, 802, scene->sceneRect().height());
+        line->setLine(startPoint.x() - 30, startPoint.y() - 30, startPoint.x() - 30, scene->sceneRect().height());
         line->setVisible(true);
         line->setPen(pen);
-        line->setZValue(-50);
+        line->setZValue(50);
         list.append(line);
 
-        while(endpage < scene->sceneRect().height())
-        {
+        line = new QGraphicsLineItem(0);
+        line->setLine(startPoint.x() + 802 -30, startPoint.y() - 30, startPoint.x() + 802 - 30, scene->sceneRect().height());
+        line->setVisible(true);
+        line->setPen(pen);
+        line->setZValue(50);
+        list.append(line);
+
+        while(endpage < scene->sceneRect().height()) {
             line = new QGraphicsLineItem(0);
-            line->setLine(0, endpage, 802, endpage);
+            line->setLine(startPoint.x() - 30, startPoint.y() + endpage - 30, startPoint.x() + 802 - 30, startPoint.y() + endpage - 30);
             line->setVisible(true);
             line->setPen(pen);
-            line->setZValue(-50);
+            line->setZValue(50);
             list.append(line);
             endpage += pagelength;
         }
         showArea();
-    }
-
-    else
-    {
+    } else {
         hideArea();
+        list.clear();
     }
 }
 
@@ -323,7 +462,6 @@ void MainWindow::hideArea()
         scene->removeItem(list.at(i));
 }
 
-
 void MainWindow::openRecentFile()
 {
     QAction *action = qobject_cast<QAction *>(sender());
@@ -334,23 +472,17 @@ void MainWindow::openRecentFile()
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About TrollText"),
+    QMessageBox::about(this, tr("About TrollEdit"),
                        tr("<h2>TrollEdit 1.0</h2>"
-                          "<p/>Team 5 - UFOPAK"
-                          "<p/>This is just a prototype of text editor"
+                          "<p/>Team 5 - Ufopak"
+                          "<p/>This is a prototype of novel text editor "
                           "which is being developed for Team project course."));
 }
 
 void MainWindow::updateRecentFileActions()
 {
-    QSettings settings("Ufopak", "TrollEdit");
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     QStringList files = settings.value("recentFileList").toStringList();
-
-    //    QMutableStringListIterator i(files);
-    //    while (i.hasNext()) {
-    //        if (!QFile::exists(i.next()))
-    //            i.remove();
-    //    }
 
     int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
@@ -373,7 +505,7 @@ QString MainWindow::strippedName(const QString &fullFileName)
 
 void MainWindow::help()
 {
-    //HelpBrowser::showPage("index.html");
+    QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"//doc//index.html"));
 }
 
 void MainWindow::settings()
@@ -383,26 +515,26 @@ void MainWindow::settings()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-//    if (maybeSave()) {
-        writeSettings();
-        event->accept();
-//    } else {
-//        event->ignore();
-//    }
+    scene->closeAllGroups();
+    writeSettings();
+    event->accept();
 }
 
 void MainWindow::readSettings()
 {
-    QSettings settings("Ufopak", "TrollEdit");
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     QPoint pos = settings.value("pos", QPoint(100, 100)).toPoint();
     QSize size = settings.value("size", QSize(850, 700)).toSize();
     resize(size);
     move(pos);
+    if (settings.value("maximized", false).toBool())
+        showMaximized();
 }
 
 void MainWindow::writeSettings()
 {
-    QSettings settings("Ufopak", "TrollEdit");
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     settings.setValue("pos", pos());
     settings.setValue("size", size());
+    settings.setValue("maximized", isMaximized());
 }

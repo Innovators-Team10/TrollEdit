@@ -1,20 +1,40 @@
 <RCC>
     <qresource prefix="/">
-        <file>minus.png</file>
-        <file>plus.png</file>
-        <file>icon32.png</file>
-        <file>icon16.png</file>
-        <file>new.png</file>
-        <file>area.png</file>
-        <file>close.png</file>
-        <file>image.png</file>
-        <file>link.png</file>
-        <file>new.png</file>
-        <file>open.png</file>
-        <file>print.png</file>
-        <file>properties.png</file>
-        <file>save.png</file>
-        <file>save-as.png</file>
-        <file>text.png</file>
+        <file alias="minus">minus.png</file>
+        <file alias="plus">plus.png</file>
+        <file alias="icon32">icon32.png</file>
+        <file alias="icon16">icon16.png</file>
+        <file alias="link">link.png</file>
+        <file alias="text">text.png</file>
+        <file alias="image">image.png</file>
+        <file alias="weblink">weblink.png</file>
+    </qresource>
+    <qresource prefix="/m">
+        <file alias="area">area22.png</file>
+        <file alias="close">close22.png</file>
+        <file alias="new">new22.png</file>
+        <file alias="open">open22.png</file>
+        <file alias="print">print22.png</file>
+        <file alias="save">save22.png</file>
+        <file alias="save-as">save-as22.png</file>
+        <file alias="settings">settings22.png</file>
+        <file alias="help">help22.png</file>
+        <file alias="edit">text-editor22.png</file>
+        <file alias="clear">clean22.png</file>
+        <file alias="search">search22.png</file>
+    </qresource>
+    <qresource prefix="/s">
+        <file alias="area">area16.png</file>
+        <file alias="close">close16.png</file>
+        <file alias="new">new16.png</file>
+        <file alias="open">open16.png</file>
+        <file alias="print">print16.png</file>
+        <file alias="save">save16.png</file>
+        <file alias="save-as">save-as16.png</file>
+        <file alias="settings">settings16.png</file>
+        <file alias="help">help16.png</file>
+        <file alias="exit">exit16.png</file>
+        <file alias="edit">text-editor16.png</file>
+        <file alias="clear">clean16.png</file>
     </qresource>
 </RCC>

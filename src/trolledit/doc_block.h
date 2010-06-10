@@ -17,12 +17,13 @@ class DocBlock : public Block
 
 public:
     DocBlock(QPointF pos, BlockGroup *parentgroup = 0);
-    DocBlock(TreeElement *element, Block* parentBlock, BlockGroup *parentgroup = 0);
+    DocBlock(QString text, TreeElement *element, Block* parentBlock, BlockGroup *parentgroup = 0);
     ~DocBlock();
 
     enum { Type = UserType + 3 };
     int type() const {return Type;}
 
+    void setContent(QString text);
     void addText(QString text = "");
     void addImage(const QImage &image, QString imagePath);
     void addLink(QUrl url);
@@ -40,6 +41,7 @@ public:
     Block *addTextCursorAt(QPointF pos);
     bool isFoldable() const;
     void setFolded(bool fold);
+    void setLocked(bool lock);
     Block *removeBlock(bool deleteThis);
     QColor getHoverColor() const;
 
@@ -63,7 +65,6 @@ private:
     Arrow *arrow;
     DocType docType;        // type of this docblock
     QTextDocument *backup;  // backup data used for folding
-
     bool locked;
 
     friend class BlockGroup;

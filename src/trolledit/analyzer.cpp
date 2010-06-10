@@ -9,6 +9,9 @@ const char *Analyzer::PAIRED_TOKENS_FIELD = "paired";
 const char *Analyzer::SELECTABLE_TOKENS_FIELD = "selectable";
 const char *Analyzer::MULTI_TEXT_TOKENS_FIELD = "multi_text";
 const char *Analyzer::FLOATING_TOKENS_FIELD = "floating";
+const char *Analyzer::MULTILINE_SUPPORT_FIELD = "multiline_support";
+const char *Analyzer::LINE_COMMENT_TOKENS_FIELD = "line_tokens";
+const char *Analyzer::MULTILINE_COMMENT_TOKENS_FIELD = "multiline_tokens";
 const char *Analyzer::CONFIG_KEYS_FIELD = "cfg_keys";
 const QString Analyzer::TAB = "    ";
 
@@ -27,7 +30,6 @@ Analyzer::Analyzer(QString script)
     } catch (QString exMsg) {
         msgBox->critical(0, "Script error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
     }
-    lua_close(L);
 }
 
 void Analyzer::setupConstants()
@@ -95,18 +97,41 @@ void Analyzer::setupConstants()
         floatingTokens.append(QString(lua_tostring(L, -1)));
         lua_pop(L, 1);
     }
+
+    // get multiline comment support
+    lua_getglobal (L, MULTILINE_SUPPORT_FIELD);
+    multilineSupport = QString(lua_tostring(L, -1));
+    lua_pop(L, 1);
+
+    QStringList tokens;
+
+    // get line tokens
+    lua_getglobal (L, LINE_COMMENT_TOKENS_FIELD);
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        tokens.append(QString(lua_tostring(L, -1)));
+        lua_pop(L, 1);
+    }
+    commentTokens["line"] = tokens;
+    tokens.clear();
+
+    // get multiline tokens
+    lua_getglobal (L, MULTILINE_COMMENT_TOKENS_FIELD);
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        tokens.append(QString(lua_tostring(L, -1)));
+        lua_pop(L, 1);
+    }
+    commentTokens["multiline"] = tokens;
 }
 
 Analyzer::~Analyzer()
 {
+    lua_close(L);
 }
 
 void Analyzer::readSnippet(QString fileName)
 {
-    L = lua_open();
-    luaL_openlibs(L);
-    lua_pushcfunction(L, luaopen_lpeg);
-    lua_call(L, 0, 0);
     try {
         if (luaL_loadfile(L, qPrintable(fileName))
             || lua_pcall(L, 0, 0, 0)) {
@@ -118,20 +143,13 @@ void Analyzer::readSnippet(QString fileName)
 
         if (defaultSnippet.isEmpty())
             defaultSnippet = "blank";
-
-        lua_close(L);
     } catch (QString exMsg) {
         msgBox->critical(0, "Snippet file error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
-        lua_close(L);
     }
 }
 
 QList<QPair<QString, QHash<QString, QString> > > Analyzer::readConfig(QString fileName)
 {
-    L = lua_open();
-    luaL_openlibs(L);
-    lua_pushcfunction(L, luaopen_lpeg);
-    lua_call(L, 0, 0);
     QList<QPair<QString, QHash<QString, QString> > > tables;
     try {
         if (luaL_loadfile(L, qPrintable(fileName))
@@ -161,11 +179,9 @@ QList<QPair<QString, QHash<QString, QString> > > Analyzer::readConfig(QString fi
             }
             tables << QPair<QString, QHash<QString, QString> >(key, pairs);
         }
-        lua_close(L);
         return tables;
     } catch (QString exMsg) {
         msgBox->critical(0, "Config file error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
-        lua_close(L);
         return tables;
     }
 }
@@ -173,11 +189,6 @@ QList<QPair<QString, QHash<QString, QString> > > Analyzer::readConfig(QString fi
 // analyze string by provided grammar
 TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 {
-    L = lua_open();
-    luaL_openlibs(L);
-    lua_pushcfunction(L, luaopen_lpeg);
-    lua_call(L, 0, 0);
-
     luaL_dofile(L, qPrintable(scriptName));    // load the script
     lua_getglobal (L, "lpeg");                  // table to be indexed
     lua_getfield(L, -1, "match");               // function to be called: 'lpeg.match'
@@ -193,7 +204,6 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
     if(lua_istable(L, -1)) {
         root = createTreeFromLuaStack();
     }
-    lua_close(L);
 
     if (root != 0) {
         processWhites(root);

@@ -8,14 +8,10 @@
 #include <QPrintPreviewDialog>
 #include <QPainter>
 #include <QList>
-#include <QBrush>
-#include <QColor>
-#include <QRectF>
-#include <QLine>
-#include <QGraphicsLineItem>
 
 class DocumentScene;
 class LanguageManager;
+class BlockGroup;
 
 class MainWindow : public QMainWindow
 {
@@ -26,6 +22,8 @@ public:
 
 public slots:
     void open(QString fileName);
+    void setModified(bool flag);
+    void setCurrentFile(BlockGroup *group);
 
 signals:
     void apply(QBrush *brush, QPen *pen);
@@ -37,6 +35,8 @@ private slots:
     void about();
     void help();
     void settings();
+    void langChanged(QString);
+    void search();
 
     void printPdf();
     void showPrintableArea();
@@ -46,19 +46,24 @@ protected:
 
 private:
     enum { MaxRecentFiles = 6 };
+    QActionGroup *groupActions;     // used to disable subset of actions when no group is selected
 
     QAction *aboutQtAction;
     QAction *newAction;
     QAction *openAction;
+    QAction *revertAction;
     QAction *saveAction;
     QAction *saveAsAction;
     QAction *saveAllAction;
+    QAction *saveAsNoDocAction;
     QAction *closeAction;
     QAction *closeAllAction;
     QAction *printPdfAction;
     QAction *printableAreaAction;
+    QAction *plainEditAction;
     QAction *recentFileActions[MaxRecentFiles];
     QAction *separatorAction;
+    QAction *clearAction;
     QAction *exitAction;
 
     QAction *cutAction;
@@ -81,6 +86,9 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
+    QComboBox *scriptsBox;
+    QLineEdit *searchLineEdit;
+    QLabel *searchLabel;
 
     LanguageManager *langManager;
     DocumentScene *scene;
@@ -102,6 +110,8 @@ private:
 
     void showArea();
     void hideArea();
+	QPointF startPoint;
+    BlockGroup *selectedGroup;
 
     void readSettings();
     void writeSettings();

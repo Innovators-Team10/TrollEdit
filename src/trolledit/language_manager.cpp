@@ -24,14 +24,17 @@ LanguageManager::LanguageManager(QString programPath)
                 Analyzer *a = new Analyzer(file.absoluteFilePath());
                 a->readSnippet(snippetFile.absoluteFilePath());
                 QStringList extensions = a->getExtensions();
-                foreach (QString ext, extensions)
+                foreach (QString ext, extensions) {
                     analyzers.insert(ext, a);
+                }
+                languages.insert(a->getLanguageName(), extensions.first());
             } catch(...) {
                 // analyzer is not inserted, messages were already displayed in Analyzer class
             }
         }
     }
     defaultAnalyzer = new Analyzer(defaultGrammar.absoluteFilePath());
+    languages.insert(defaultAnalyzer->getLanguageName(), defaultAnalyzer->getExtensions().first());
 
     // TODO: we assume grammars are there; but if there is none, what happens?
     //       make some test for this case and throw an exception, catch it in main
@@ -54,7 +57,21 @@ Analyzer *LanguageManager::getAnalyzerFor(QString suffix) const
         return defaultAnalyzer;
 }
 
+Analyzer *LanguageManager::getAnalyzerForLang(QString language) const
+{
+    return getAnalyzerFor(languages.value(language));
+}
+
 QList<QPair<QString, QHash<QString, QString> > > LanguageManager::getConfigData()
 {
     return configData;
+}
+
+QStringList LanguageManager::getLanguages() const
+{
+    QStringList lang(languages.keys());
+    lang.removeOne(defaultAnalyzer->getLanguageName());
+    lang.sort();
+    lang.append(defaultAnalyzer->getLanguageName());
+    return lang;
 }

@@ -9,25 +9,29 @@
 #include <QtGui>
 
 QTime DocumentScene::time;
+int unknownCounter = 0;
 
 DocumentScene::DocumentScene(MainWindow *parent)
     : QGraphicsScene(parent)
 {
-    window = parent;
+    window = parent;    // currently not in use
     currentGroup = 0;
 //    setItemIndexMethod(QGraphicsScene::NoIndex);
 }
 
-void DocumentScene::newGroup(Analyzer *defaultAnalyzer)
+void DocumentScene::newGroup(Analyzer *analyzer)
 {
-    loadGroup("", defaultAnalyzer);
+    loadGroup("", analyzer);
 }
 
-void DocumentScene::loadGroup(const QString &fileName, Analyzer *analyzer)
+bool loadingFinished;
+
+void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
 {
     QString content;
     if (fileName.isEmpty()) {
         content = "";
+        fileName = QString("Unknown%1").arg(++unknownCounter);
     } else {
         QFile file(fileName);
         if (!file.open(QIODevice::ReadOnly)) {
@@ -39,30 +43,66 @@ void DocumentScene::loadGroup(const QString &fileName, Analyzer *analyzer)
         content = in.readAll();
     }
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    time.start();
-    if (currentGroup != 0) { // todo
-        groups.removeOne(currentGroup);
-        removeItem(currentGroup);
-        delete currentGroup;
-        qDebug("\n Old group deleted: %d", time.restart());
+    selectGroup();
+    loadingFinished = false;
+    if (groups.size() == 0) {
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+    } else {
+        QApplication::setOverrideCursor(Qt::CrossCursor);
+        window->statusBar()->showMessage("Select position");
     }
-    currentGroup = 0;
-
+    time.start();
     BlockGroup *newGr = new BlockGroup(content, analyzer, this);
+    newGr->setVisible(false);
     groups << newGr;
     qDebug("\nGroup created: %d", time.restart());
     newGr->setFileName(fileName);
     newGr->setModified(false);
-    newGr->setPos(30, 30);
-
     selectGroup(newGr);
 
+    loadingFinished = true;
+
+    if (groups.size() == 1) {
+        newGr->setPos(30, 30);
+        newGr->setVisible(true);
+        window->statusBar()->showMessage("File loaded", 2000);
+        newGr->mainBlock()->getFirstLeaf()->textItem()->setTextCursorPos(0);
+        QApplication::restoreOverrideCursor();
+        update();
+    }
+}
+
+void DocumentScene::revertGroup(BlockGroup *group)
+{
+    if (group == 0) {
+        if (currentGroup == 0) return;
+        group = currentGroup;
+    }
+    QString fileName = group->getFilePath();
+    if (!QFileInfo(fileName).exists()) return;
+
+    QString content;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(new QWidget, tr("TrollEdit"),
+                             tr("Cannot read file %1:\n%2.").arg(file.fileName()).arg(file.errorString()));
+        return;
+    }
+    QTextStream in(&file);
+    content = in.readAll();
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    group->setContent(content);
+    group->setModified(false);
+
+    window->statusBar()->showMessage("File reverted", 2000);
+    group->mainBlock()->getFirstLeaf()->textItem()->setTextCursorPos(0);
     QApplication::restoreOverrideCursor();
     update();
 }
 
-void DocumentScene::saveGroup(const QString &fileName, BlockGroup *group)
+void DocumentScene::saveGroup(QString fileName, BlockGroup *group, bool noDocs)
 {
     if (group == 0) {
         if (currentGroup == 0) return;
@@ -71,11 +111,11 @@ void DocumentScene::saveGroup(const QString &fileName, BlockGroup *group)
 
     QFile file;
     if (fileName.isEmpty()) {
-        if (group->getFileName().isEmpty()) {
+        if (!QFileInfo(group->getFilePath()).exists()) {
             saveGroupAs(group);
             return;
         } else {
-            file.setFileName(group->getFileName());
+            file.setFileName(group->getFilePath());
         }
     } else {
         file.setFileName(fileName);
@@ -88,13 +128,17 @@ void DocumentScene::saveGroup(const QString &fileName, BlockGroup *group)
     }
     QApplication::setOverrideCursor(Qt::WaitCursor);
     QTextStream out(&file);
-    out << group->toText();
+    out << group->toText(noDocs);
     QApplication::restoreOverrideCursor();
 
     group->setFileName(file.fileName());
     group->setModified(false);
     update();
-    window->setWindowModified(false);
+    emit modified(false);
+
+    QString msg = "File saved";
+    if (noDocs) msg.append(" without comments");
+    window->statusBar()->showMessage(msg, 2000);
 }
 
 void DocumentScene::saveGroupAs(BlockGroup *group)
@@ -103,13 +147,29 @@ void DocumentScene::saveGroupAs(BlockGroup *group)
         if (currentGroup == 0) return;
         group = currentGroup;
     }
-    QString fileName = QFileDialog::getSaveFileName((QWidget*)parent());
+    QString dir = QFileInfo(window->windowFilePath()).absoluteDir().absolutePath();
+
+    QString fileName = QFileDialog::getSaveFileName((QWidget*)parent(), tr("Save file..."),
+                                                    dir);
 
     if (!fileName.isEmpty())
         saveGroup(fileName, group);
 }
 
-void DocumentScene::saveAllGroups() {
+void DocumentScene::saveGroupAsWithoutDoc(BlockGroup *group)
+{
+    if (group == 0) {
+        if (currentGroup == 0) return;
+        group = currentGroup;
+    }
+    QString fileName = QFileDialog::getSaveFileName((QWidget*)parent());
+
+    if (!fileName.isEmpty())
+        saveGroup(fileName, group, true);
+}
+
+void DocumentScene::saveAllGroups()
+{
     foreach (BlockGroup *group, groups) {
         saveGroup("", group);
     }
@@ -120,25 +180,111 @@ void DocumentScene::closeGroup(BlockGroup *group)
     if (group == 0) {
         if (currentGroup == 0) return;
         group = currentGroup;
-        currentGroup = 0;
     }
-    if (group->isModified())
-        saveGroup("", group);
+    if (group->isModified()) {
+        QFileInfo info(group->getFilePath());
+        QString fileName;
+        if (info.exists())
+            fileName = info.fileName();
+        else
+            fileName = group->getFilePath();
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(window, tr("Save changes"),
+                                   tr("File \"%1\" has been modified.\n"
+                                      "Do you want to save your changes?").arg(fileName),
+                                   QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        if (ret == QMessageBox::Save) {
+            saveGroup("", group);
+        } else if (ret == QMessageBox::Cancel) {
+            return;
+        }
+    }
 
+    if (currentGroup == group) currentGroup = 0;
     groups.removeOne(group);
     delete group;
-    if (!groups.isEmpty())
+    if (!groups.isEmpty()) {
         selectGroup(groups.last());
-    else
+    } else {
         selectGroup();
+    }
     update();
 }
 
-void DocumentScene::closeAllGroups() {
+void DocumentScene::closeAllGroups()
+{
     foreach (BlockGroup *group, groups) {
         closeGroup(group);
     }
 }
+
+void DocumentScene::findText(QString searchStr, BlockGroup *group)
+{
+    if (searchStr.isEmpty()) return;
+
+    if (group == 0) {
+        if (currentGroup == 0) return;
+        group = currentGroup;
+    }
+    bool ret = false;
+    group->clearSearchResults();
+    bool inner = false;
+
+    QRegExp blockMatch("@(\\S*)");
+    if (blockMatch.indexIn(searchStr) > -1) {               // search inner blocks
+        searchStr = blockMatch.cap(1);
+        inner = true;
+    }
+    QRegExp exactMatch("\"(\\S*)\"");
+    if (exactMatch.indexIn(searchStr) > -1) {       // only exact blocks
+        searchStr = exactMatch.cap(1);
+        ret = group->searchBlocks(searchStr, inner, true);
+    } else {                                        // any blocks
+        ret = group->searchBlocks(searchStr, inner, false);
+    }
+    if (!ret && !inner) {                                                // search text
+        QSet<int> lineNumbers;
+        QString allText = group->toText(true);
+        QStringList lines = allText.split("\n", QString::KeepEmptyParts);
+        for (int i =0 ;i < lines.size(); i++) {
+            QString line = lines.at(i);
+            if (line.contains(searchStr))
+                lineNumbers << i;
+        }
+        if (!lineNumbers.isEmpty()) {
+            group->highlightLines(lineNumbers);
+            ret = true;
+        }
+    }
+    if (ret) {
+        group->update();
+        window->statusBar()->showMessage("Search finished", 1000);
+    } else {
+        window->statusBar()->showMessage("Not found", 1000);
+    }
+}
+
+void DocumentScene::cleanGroup(BlockGroup *group)
+{
+    if (group == 0) {
+        if (currentGroup == 0) return;
+        group = currentGroup;
+    }
+    group->clearSearchResults();
+    group->update();
+}
+
+void DocumentScene::setGroupLang(Analyzer *newAnalyzer, BlockGroup *group)
+{
+    if (group == 0) {
+        if (currentGroup == 0) return;
+        group = currentGroup;
+    }
+    QString content = group->toText();
+    group->setAnalyzer(newAnalyzer);
+    group->setContent(content);
+}
+
 
 void DocumentScene::selectGroup(BlockGroup *group)
 {
@@ -154,13 +300,11 @@ void DocumentScene::selectGroup(BlockGroup *group)
         updateNedded = true;
     }
     if (currentGroup != 0) {
-        QString fileName = QFileInfo(currentGroup->getFileName()).fileName();
-        if (fileName.isEmpty()) fileName = "unknown";
-        window->setWindowFilePath(fileName);
-        window->setWindowModified(currentGroup->isModified());
+        emit fileSelected(currentGroup);
+        emit modified(currentGroup->isModified());
     } else {
-        window->setWindowFilePath("");
-        window->setWindowModified(false);
+        emit fileSelected(0);
+        emit modified(false);
     }
 
     if (updateNedded)
@@ -170,11 +314,55 @@ void DocumentScene::selectGroup(BlockGroup *group)
 void DocumentScene::groupWasModified(BlockGroup *group)
 {
     if (group == currentGroup)
-        window->setWindowModified(group->isModified());
+        emit modified(group->isModified());
+}
+
+void DocumentScene::showPreview(BlockGroup *group)
+{
+    if (group == 0) {
+        if (currentGroup == 0) return;
+        group = currentGroup;
+    }
+
+    QDialog *dialog = new QDialog(window);
+    QLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom, dialog);
+    QPlainTextEdit *edit = new QPlainTextEdit();
+    QString text = group->toText();
+    edit->appendPlainText(text);
+//    edit->setTextInteractionFlags(Qt::NoTextInteraction);
+//    connect(edit->document(), SIGNAL(contentsChanged()),
+//            dialog, SLOT(setWindowModified(bool)));
+    layout->addWidget(edit);
+    dialog->setLayout(layout);
+    dialog->setWindowTitle(window->windowTitle() + " - text preview");
+    dialog->exec();
+    QString newText = edit->toPlainText();
+    if (newText != text) {
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        group->analyzeAll(newText);
+        QApplication::restoreOverrideCursor();
+    } else {
+        window->statusBar()->showMessage("No changes", 2000);
+    }
+
 }
 
 void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+
+    if (QApplication::overrideCursor() != 0 &&
+        QApplication::overrideCursor()->shape() == Qt::CrossCursor) {
+        QApplication::restoreOverrideCursor();
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        while (!loadingFinished);
+        currentGroup->setPos(event->scenePos());
+        currentGroup->setVisible(true);
+        currentGroup->mainBlock()->getFirstLeaf()->textItem()->setTextCursorPos(0);
+        window->statusBar()->showMessage("File loaded", 2000);
+        QApplication::restoreOverrideCursor();
+        return;
+    }
+
     if (event->button() == Qt::LeftButton) {
         if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
             if (currentGroup != 0) {
@@ -218,11 +406,13 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 str.append("\n");
             }
         } else {
-            str = rootEl->getText();
+            str = "";//rootEl->getText();
         }
-        QGraphicsItem *text = addText(str);
-        text->setPos(event->scenePos());
-        text->setZValue(-1);
+        if (!str.isEmpty()) {
+            QGraphicsItem *text = addText(str);
+            text->setPos(event->scenePos());
+            text->setZValue(-1);
+        }
     }
 
     QGraphicsScene::mousePressEvent(event);
@@ -230,6 +420,10 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void DocumentScene::wheelEvent(QGraphicsSceneWheelEvent *event)
 {
+    if (currentGroup == 0) {
+        event->ignore();
+        return;
+    }
     if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
         qreal delta = event->delta() / 100.0;
         if (delta > 0)
@@ -237,6 +431,7 @@ void DocumentScene::wheelEvent(QGraphicsSceneWheelEvent *event)
         if (delta < 0)
             currentGroup->setScale(currentGroup->scale() / -delta);
         event->accept();
+        adjustSceneRect();
     } else {
         event->ignore();
     }
@@ -319,8 +514,8 @@ QPair<QFont, QColor> DocumentScene::getDefaultFormat() const
 void DocumentScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
     focusInEvent(new QFocusEvent(QEvent::FocusIn, Qt::MouseFocusReason));
-    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage()) {
-//        || event->mimeData()->hasFormat(BlockGroup::BLOCK_MIME))
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage()
+        || event->mimeData()->hasFormat(BlockGroup::BLOCK_MIME)) {
         event->accept();
     } else {
         event->ignore();
@@ -335,6 +530,7 @@ void DocumentScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 void DocumentScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
     focusOutEvent(new QFocusEvent(QEvent::FocusOut, Qt::MouseFocusReason));
+    QApplication::restoreOverrideCursor();
 
     if (itemAt(event->scenePos()) != 0) {
         QGraphicsScene::dragLeaveEvent(event);
@@ -344,8 +540,8 @@ void DocumentScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 
 void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage()) {
-//        || event->mimeData()->hasFormat(BlockGroup::BLOCK_MIME))
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls() || event->mimeData()->hasImage()
+        || event->mimeData()->hasFormat(BlockGroup::BLOCK_MIME)) {
         event->accept();
         if (currentGroup != 0) { // scroll while dragging
             QPointF p = currentGroup->mapFromScene(event->scenePos());
@@ -363,6 +559,7 @@ void DocumentScene::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 
 void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
+    QApplication::restoreOverrideCursor();
     DocBlock *docBlock = 0;
     if (event->mimeData()->hasUrls()) {
         foreach (QUrl url, event->mimeData()->urls()) {

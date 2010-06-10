@@ -21,19 +21,21 @@ FoldButton::FoldButton(Block *parentBlock)
     setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
     setZValue(5);
     setAcceptedMouseButtons(Qt::LeftButton);
-
-//    updatePos();
 }
 
 void FoldButton::updatePos() {
-//    Block *refBlock = myBlock; // refBlock is floating ancestor-or-self of myBlock
-//    while (!refBlock->getElement()->isFloating() && refBlock->parentBlock() != 0)
-//        refBlock = refBlock->parentBlock();
 
-//    QPointF flBlockPos = myBlock->mapFromItem(refBlock, 0, 0);
-
-    qreal x = /*flBlockPos.x()*/ - plus.size().width() - 10;
+    qreal x = 0;
     qreal y = myBlock->blockGroup()->CHAR_HEIGHT/2 - plus.size().height()/2;
+
+    if (!myBlock->getElement()->isFloating()) {
+        Block *lineStart = myBlock->blockGroup()->getBlockIn(myBlock->getLine());
+        if (myBlock->getAncestorWhereFirst() != lineStart) {
+            x = myBlock->mapFromItem(lineStart, 0, 0).x();
+        }
+    }
+
+    x -= (plus.size().width() + 10);
     setPos(x, y);
 
 

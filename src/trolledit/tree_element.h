@@ -60,7 +60,9 @@ public:
      TreeElement *getRoot();
      TreeElement *getParent() const;
      QString getType() const;
-     QString getText() const;
+     QString getText(bool noComments = false) const;
+     TreeElement *getAncestorWhereLast() const;
+     TreeElement *getAncestorWhereFirst() const;
 
      bool isImportant() const;
      void setBlock(Block *block);

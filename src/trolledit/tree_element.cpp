@@ -78,7 +78,7 @@ void TreeElement::appendChildren(QList<TreeElement*> children)
 
 void TreeElement::insertChild(int index, TreeElement *child)
 {
-    children.insert(index,child);
+    children.insert(index, child);
     child->parent = this;
 }
 
@@ -140,7 +140,7 @@ bool TreeElement::isWhite() const
 }
 bool TreeElement::isUnknown() const
 {
-    return type == UNKNOWN_EL;
+    return type.contains(UNKNOWN_EL);
 }
 bool TreeElement::hasSiblings() const
 {
@@ -296,6 +296,28 @@ QList<TreeElement*> TreeElement::getAllLeafs() const
     return list;
 }
 
+TreeElement *TreeElement::getAncestorWhereFirst() const
+{
+    TreeElement *el = const_cast<TreeElement*>(this);
+    if (el->isFloating()) return el;
+    while (el->parent != 0 && el->parent->indexOfChild(el) == 0)
+        el = el->parent;
+    while (!el->isImportant())
+        el = el->children[0];
+    return el;
+}
+
+TreeElement *TreeElement::getAncestorWhereLast() const
+{
+    TreeElement *el = const_cast<TreeElement*>(this);
+    if (el->isFloating()) return el;
+    while (el->parent != 0 && el->parent->indexOfChild(el) == el->parent->childCount()-1)
+        el = el->parent;
+    while (!el->isImportant())
+        el = el->children[el->childCount()-1];
+    return el;
+}
+
 
 TreeElement *TreeElement::getRoot()
 {
@@ -316,7 +338,7 @@ QString TreeElement::getType() const
 }
 
 // returns all text in this element and it's descendants
-QString TreeElement::getText() const
+QString TreeElement::getText(bool noComments) const
 {
     DocBlock *docBl = 0;
     if (isFloating()) {
@@ -327,19 +349,24 @@ QString TreeElement::getText() const
     QString spacesStr = QString().fill(' ', spaces);
     if (isLeaf()) {
         text = type;                            // get my text
-        if (docBl != 0)
-            text = docBl->convertToText();      // get text of docblock
+        if (docBl != 0) {
+            if (noComments)
+                text = "";
+            else
+                text = docBl->convertToText();      // get text of docblock
+        }
     } else {
-        if (docBl != 0)
+        if (docBl != 0 && !noComments)
             text.append(docBl->convertToText());// get text of docblock
         foreach (TreeElement *e, children) {
-            text.append(e->getText());          // get child texts
+            text.append(e->getText(noComments));          // get child texts
         }
         text.replace("\n", "\n"+spacesStr);     // indent after each line break
     }
     text.prepend(spacesStr);                    // indent my text
     if (lineBreaking) {
-        text.append("\n");                      // add line break if needed
+        if (docBl == 0 || !noComments)
+            text.append("\n");                      // add line break if needed
     }
     return text;
 }

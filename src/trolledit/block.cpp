@@ -63,16 +63,7 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
             } else {                        // create docblock form child element
                 QString text = childEl->getText();
                 childEl->deleteAllChildren();
-                DocBlock *bl = new DocBlock(childEl, this);
-
-                if (text.endsWith('\n')) { // comment ends with newline:
-                    text.chop(1);          // remove it and put linebreak to previous child
-                    if (i > 0) {
-                        element->getChildren()[i-1]->setLineBreaking(true);
-                        bl->element->setLineBreaking(true);
-                    }
-                }
-                bl->addText(text);
+                new DocBlock(text, childEl, this, group);
             }
         }        
     }
@@ -89,14 +80,15 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
     moreSpace = false;
     moveStarted = false;
     pointed = false;
+    isSearchResult = false;
     foldButton = 0;
     level = 0;
-    setPen(QPen(QBrush(Qt::black), 2));
 
     animation = new QPropertyAnimation(this, "geometry");
     animation->setDuration(200);
 
     if (element->isSelectable()) {
+        setPen(QPen(QBrush(Qt::black), 2));
         setAcceptHoverEvents(true);
         timer = new QTimer(this);
         timer->setSingleShot(true);
@@ -108,22 +100,10 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
     // set size
     updateGeometry(true);
 
-    updateFoldButton();
+//    updateFoldButton();
 
     if (parent == 0)
         setVisible(false);
-
-//    QToolBar tb = new QToolBar();
-//    QToolButton *b = new QToolButton();
-//    QIcon *ico = new QIcon();
-//    ico->addPixmap(QPixmap(":/minus.png"),QIcon::Normal,QIcon::Off);
-//    ico->addPixmap(QPixmap(":/plus.png"),QIcon::Active,QIcon::Off);
-//    b->setIcon(*ico);
-//    b->setCheckable(true);
-//    b->
-//    b->move(30, 30);
-//
-//    group->docScene->addWidget(b);
 }
 
 Block::~Block()
@@ -135,20 +115,14 @@ void Block::assignHighlighting(TreeElement *el)
         // todo - remove hardcoded vales such as "declarator"
 {
     if (el->isLeaf()) {
-        bool f = false;
-        if(el->getParent()) {
+        highlightFormat = group->docScene->getDefaultFormat();
+        if (el->getParent()) {
             QString parentType = el->getParent()->getType();
             if (group->docScene->hasFormatFor(parentType) && !el->getParent()->getType().startsWith("funct_")) {
                 highlightFormat = group->docScene->getFormatFor(parentType);
-                f = true;
             }
         }
-        if (group->docScene->hasFormatFor(el->getType())) {
-            highlightFormat = group->docScene->getFormatFor(el->getType());
-            f = true;
-        }
-        if (!f)
-            highlightFormat = group->docScene->getDefaultFormat();
+
         highlight(highlightFormat);
     } else {
         if (group->docScene->hasFormatFor(el->getType())) {
@@ -214,6 +188,7 @@ void Block::setParentBlock(Block *newParent, Block *nextSibling)
         branch = element->getRoot(); // get root of unvisualized(?) branch
     }
     this->parent = 0;
+    QGraphicsRectItem::setParentItem(0);
 
     // add to new parent element before nextSibling
     if (newParent != 0) {
@@ -276,131 +251,9 @@ void Block::setParentBlock(Block *newParent, Block *nextSibling)
         QGraphicsRectItem::stackBefore(nextSibling);
 }
 
-/*
-void Block::setParentBlock(Block *newParent)
-        // moves this element and all unimportant elements on way to parentBlock's element ("branch")
-        // to new parent
-        // NOTE: to remove block from its parent use removeBlock() which removes all empty ancestors too
-{
-    if (newParent == this) {
-        newParent = 0;//debug - toto nemoze nastavat
-        qWarning("newParent == this in setParentBlock()");
-    }
-    if (newParent != 0) Q_ASSERT(newParent->group == group);
-
-    TreeElement *branch;
-    // remove from old parent element
-    Block *oldParent = this->parent;
-    if (oldParent != 0) {
-        TreeElement *oldParentEl = oldParent->element;
-        // find ancestor that is child of oldParentEl (i.e. root of the branch)
-        int index = oldParentEl->indexOfBranch(this->element);
-        branch = (*oldParentEl)[index];
-        // remove branch from original parent
-        oldParentEl->removeChild(branch);
-        // remove spaces
-        element->setSpaces(0);
-        // resolve line breaks
-        Block *ancestor = getAncestorWhereLast();
-        if (nextSib == 0 && !element->isFloating()) {
-            if(ancestor->element->isLineBreaking()) {
-                element->setLineBreaking(true);
-                if (prevSib != 0 && prevSib->element->isLineBreaking())
-                    prevSib->element->setLineBreaking(false);
-                else
-                    ancestor->element->setLineBreaking(false);
-            } else {
-                if (prevSib != 0 && prevSib->element->isLineBreaking()) {
-                    ancestor->element->setLineBreaking(true);
-                    prevSib->element->setLineBreaking(false);
-                }
-            }
-        }
-        // remove links
-        removeLinks();
-    } else {
-        branch = element->getRoot(); // get root of unvisualized(?) branch
-    }
-    this->parent = 0;
-
-    // append to new parent element
-    if (newParent != 0) {
-        TreeElement *newParentEl = newParent->element;
-        newParentEl->appendChild(branch);
-        branch = 0;
-        if (!element->isFloating()) {
-            // update links
-            QList<Block*> siblings = newParent->childBlocks();
-            if (siblings.size() > 0) {      // this block is not in siblings yet!
-                prevSib = siblings.at(siblings.size() - 1);
-                prevSib->nextSib = this;
-            } else {
-                newParent->firstChild = this;
-                prevSib = 0;
-            }
-            nextSib = 0;
-            // remove textItem if needed
-            if (newParent->myTextItem != 0) {
-                delete newParent->myTextItem;
-                newParent->myTextItem = 0;
-            }
-            // resolve line breaks
-            if(element->isLineBreaking()) {
-                element->setLineBreaking(false);
-                newParent->element->setLineBreaking(true);
-            }
-        }
-    }
-
-    // remove from old parent block & append to new parent block
-    QGraphicsRectItem::setParentItem(newParent);
-    this->parent = newParent;
-}
-
-void Block::stackBeforeBlock(Block *nextSibling)
-        // moves this element and all unimportant elements on way to parentBlock's element ("branch")
-        // within current parent of this branch
-{
-    if (nextSibling != 0 && nextSibling != nextSib) {
-        if (parent != 0 && nextSibling->parent == parent) {
-            TreeElement *parentEl = parent->element;
-            // find ancestor that is child of parentEl (i.e root of the branch)
-            int index = parentEl->indexOfBranch(this->element);
-            TreeElement *branch = (*parentEl)[index];
-            // remove branch from original position
-            parentEl->removeChild(branch);
-            // compute new index
-            index = parentEl->indexOfBranch(nextSibling->element);
-            // insert branch at new position
-            parentEl->insertChild(index, branch);
-            // resolve line breaks
-            Block *ancestor = getAncestorWhereLast();
-            if (nextSib == 0 && ancestor->element->isLineBreaking()) {
-                element->setLineBreaking(true);
-                if (prevSib != 0 && prevSib->element->isLineBreaking())
-                    prevSib->element->setLineBreaking(false);
-                else
-                    ancestor->element->setLineBreaking(false);
-            }
-            // update links
-            removeLinks();
-            if (!element->isFloating()) {
-                prevSib = nextSibling->prevSib;
-                if (prevSib != 0) {
-                    prevSib->nextSib = this;
-                } else {
-                    parent->firstChild = this;
-                }
-                nextSib = nextSibling;
-                nextSibling->prevSib = this;
-            }
-        }
-        QGraphicsRectItem::stackBefore(nextSibling);
-    }
-}*/
-
 Block *Block::removeBlock(bool deleteThis)
 {
+    group->setModified(true);
     QList<Block*> toDelete;
     Block *toRemove = this;
     Block *next = getNext();
@@ -722,7 +575,6 @@ void Block::textChanged()
 {
     QString text = myTextItem->toPlainText();
     bool toUpdate = false;
-
     myTextItem->document()->blockSignals(true);
 
     if (text.isEmpty()) {   // delete block
@@ -756,6 +608,7 @@ void Block::textChanged()
     }
 
     if (element->getType() != text || toUpdate) {
+        group->clearSearchResults();
         if(!isFolded()) {
             // remove highlighting if text changed
             if (element->getType() != text && ! edited) {
@@ -959,6 +812,7 @@ void Block::updateBlock(bool doAnimation)
         animate();
     // root updates group size
     if (parent == 0) {
+        group->clearSearchResults();
         group->updateSize();
         qDebug("   Blocks updated");
     }
@@ -1005,9 +859,9 @@ void Block::updateGeometry(bool updateReal)
 
 void Block::updatePos(bool updateReal)
 {
-//    if (isTextBlock()) {
-//        myTextItem->setPos(getOffset(InnnerTopLeft));
-//    }
+    //    if (isTextBlock()) {
+    //        myTextItem->setPos(getOffset(InnnerTopLeft));
+    //    }
     if (element->isFloating()) {
         idealGeometry.moveTo(pos());
         return;
@@ -1015,34 +869,34 @@ void Block::updatePos(bool updateReal)
     QPointF pos = QPointF();
     if (prevSib != 0) {
         if (!prevSib->element->isLineBreaking() || parent == 0) {
-//            QPointF offs;
+            //            QPointF offs;
             if (prevSib->hasMoreLines()) {
                 Block *lastLeaf = prevSib->getLastLeaf();
                 pos = lastLeaf->mapIdealToAncestor(prevSib->parent, lastLeaf->idealRect().topRight());
                 if (prevSib->showing || lastLeaf->moreSpace) {
                     pos.rx() = prevSib->idealPos().x() + prevSib->idealSize().width();
-//                    offs = prevSib->getOffset(Outer);
+                    //                    offs = prevSib->getOffset(Outer);
                 } //else {
-//                    offs = lastLeaf->getOffset(Outer);
-//                }
+                //                    offs = lastLeaf->getOffset(Outer);
+                //                }
             } else {
-//                offs = prevSib->getOffset(Outer);
+                //                offs = prevSib->getOffset(Outer);
                 pos = prevSib->idealPos();
                 pos.rx() += prevSib->idealSize().width();
             }
-//            pos.rx() += getOffset(Outer).x() + offs.x();
+            //            pos.rx() += getOffset(Outer).x() + offs.x();
         } else {
             qreal maxY = 0;
-//            qreal offsY = 0;
+            //            qreal offsY = 0;
             foreach (Block *child, parent->childBlocks()) {
                 int y = child->idealPos().y() + child->idealSize().height();
                 if (y > maxY) {
                     maxY = y;
-//                    offsY = child->getOffset(Outer).y();
+                    //                    offsY = child->getOffset(Outer).y();
                 }
                 if (child == prevSib) break;
             }
-//            pos.rx() = parent->getOffset(InnnerTopLeft).x();
+            //            pos.rx() = parent->getOffset(InnnerTopLeft).x();
             pos.ry() += maxY ;//+ getOffset(Outer).y() + offsY;
         }
     } else {
@@ -1078,20 +932,20 @@ void Block::updateSize(bool updateReal)
             // NOTE: not very elegant trick, think about it
             // used to add some extra space at the end of the line for block inserting
             // (moreSpace flag will be used in getOffset() and OFFSET_INSERT will be added)
-//            if (child->isTextBlock() &&
-//                child->getAncestorWhereLast()->element->isLineBreaking()) {
-//                childRect.setBottomRight(childRect.bottomRight() +
-//                                         child->getOffset(Outer)*2);
-//            }
+            //            if (child->isTextBlock() &&
+            //                child->getAncestorWhereLast()->element->isLineBreaking()) {
+            //                childRect.setBottomRight(childRect.bottomRight() +
+            //                                         child->getOffset(Outer)*2);
+            //            }
             rect = rect.united(childRect);
             child = child->nextSib;
         }
         size = rect.size();
     }
-//    QPointF offs = getOffset(InnnerTopLeft) + getOffset(InnerBottomRight);
-//
-//    size.rwidth() += offs.x();
-//    size.rheight() += offs.y();
+    //    QPointF offs = getOffset(InnnerTopLeft) + getOffset(InnerBottomRight);
+    //
+    //    size.rwidth() += offs.x();
+    //    size.rheight() += offs.y();
     if (size != idealSize()) repaintNeeded = true;
 
     idealGeometry.setSize(size);
@@ -1163,7 +1017,6 @@ QPainterPath Block::shape() const
     int width = pen().width();
     int mod = width % 2;
     int half = width / 2;
-
     path.addRect(boundingRect().adjusted(-half, -half, half+mod, half+mod));
     return path;
 }
@@ -1180,23 +1033,29 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 
     QRectF rect = boundingRect();
     QPainterPath path;
-//    path.addRect(rect);
-    path.addRoundedRect(rect, 5, 5, Qt::AbsoluteSize);
+    //    path.addRect(rect);
+    path.addRoundedRect(rect, 6, 6, Qt::AbsoluteSize);
 
     if (element->isFloating())
         painter->fillPath(path, Qt::white);
 
     if (showing) { // background
         painter->fillPath(path, Qt::white);
-        QColor color = getHoverColor();
         if (level > 0) {
+            QColor color = getHoverColor();
             color.setAlpha(level * GRAD_STEP);
             painter->fillPath(path, color);
         }
     }
+    if (isSearchResult) { // search background
+        QColor color;
+        color.setNamedColor("yellow");
+        color.setAlpha(150);
+        painter->fillRect(0, 4, rect.width(), rect.height() - 2*4, color);
+    }
     if (pointed) {  // hover background
         QColor color = Qt::gray;
-        color.setAlpha(60);
+        color.setAlpha(70);
         painter->fillPath(path, color);
     }
     if (showing) {  // frame
@@ -1205,7 +1064,6 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
         painter->setPen(color);
         painter->setRenderHint(QPainter::Antialiasing);
         painter->drawPath(path);
-//        qDebug("********* painted %s", qPrintable(element->getType()));
     }
 }
 
@@ -1365,4 +1223,3 @@ void Block::updateFoldButton()
         foldButton = 0;
     }
 }
-

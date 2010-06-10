@@ -25,6 +25,8 @@ public:
     QStringList getExtensions() const {return extensions;}
     QString getLanguageName() const {return langName;}
     QString getSnippet() const {return defaultSnippet;}
+    QString queryMultilineSupport() const {return multilineSupport;}
+    QHash<QString, QStringList> getCommentTokens() const {return commentTokens;}
     QList<QPair<QString, QHash<QString, QString> > > readConfig(QString fileName);
     void readSnippet(QString fileName);
     static const QString TAB;
@@ -38,6 +40,9 @@ private:
     static const char *SELECTABLE_TOKENS_FIELD;
     static const char *MULTI_TEXT_TOKENS_FIELD;
     static const char *FLOATING_TOKENS_FIELD;
+    static const char *MULTILINE_SUPPORT_FIELD;
+    static const char *LINE_COMMENT_TOKENS_FIELD;
+    static const char *MULTILINE_COMMENT_TOKENS_FIELD;
     static const char *CONFIG_KEYS_FIELD;
 
     lua_State *L;               // the Lua interpreter
@@ -51,6 +56,8 @@ private:
     QStringList multiTextTokens;        // list of tokens which can contain more lines of text
     QStringList floatingTokens;         // list of tokens allowed to say out of hierarchy
     QString defaultSnippet;             // code that will be displayed in new file
+    QString multilineSupport;           // natural support of multiline comments
+    QHash<QString, QStringList> commentTokens;      // start & end tokens for comments
 
     void setupConstants();
     TreeElement* analyzeString(QString grammar, QString input);

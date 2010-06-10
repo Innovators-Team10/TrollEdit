@@ -14,10 +14,13 @@ public:
     ~LanguageManager();
 
     Analyzer *getAnalyzerFor(QString suffix) const;
+    Analyzer *getAnalyzerForLang(QString language) const;
     QList<QPair<QString, QHash<QString, QString> > > getConfigData();
+    QStringList getLanguages() const;
 
 private:
-    QHash<QString, Analyzer *> analyzers;
+    QHash<QString, Analyzer *> analyzers;       // <file_extension, analyzer>
+    QHash<QString, QString> languages;          // <language_name, file_extension>
     Analyzer *defaultAnalyzer;
     QList<QPair<QString, QHash<QString, QString> > > configData;
 };

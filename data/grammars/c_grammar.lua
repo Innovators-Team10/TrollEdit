@@ -15,16 +15,24 @@ other_grammars = {
 	block="in_block", 
 	translation_unit="top_element"
 }
-paired = {"{", "}", "(", ")", "[", "]", }
+paired = {"{", "}", "(", ")", "[", "]"}
 selectable = {
-	"preprocessor", "funct_definition", "declaration", 
+	"preprocessor", "preprocessors",
+	"funct_definition", "declaration", 
 	"initializer", "block", "funct_parameter", "expression",  
 	"program", "header_file", "cast", 
-	"unknown", "if_statement", "while_statement", 
+	"unknown","unknown_word", "if_statement", "while_statement", 
 	"for_statement", "switch_statement", "simple_statement"
 	}	
-multi_text = {"multiline_comment", "doc_comment",}
+multi_text = {"ine_comment", "multiline_comment", "doc_comment",}
 floating = {"doc_comment", "multiline_comment", "line_comment"}
+
+-- does language support multiline comments?
+multiline_support = "true"
+
+-- start & end tokens for comments; if language does not support multiline comments, define custom tokens
+line_tokens = {"//", ""}
+multiline_tokens = {"/*", "*/"}
 
 require 'lpeg'
 
@@ -93,7 +101,9 @@ in_block =
 	N'whites'^-1 ),
 
 -- NONTERMINALS
-translation_unit = N'preprocessor' + N'funct_definition' + N'declaration',
+translation_unit = N'preprocessors' + N'funct_definition' + N'declaration',
+
+preprocessors = N'preprocessor'^1,
 
 preprocessor = (NI'include' + ((TK"#define" + TK"#elif" + TK"#else" + TK"#endif" +
 	TK"#error" + TK"#ifdef" + TK"#ifndef" + TK"#if" + TK"#import" + TK"#line" +
