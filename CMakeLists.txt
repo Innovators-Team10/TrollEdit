@@ -1,5 +1,8 @@
-PROJECT(TrollEdit)
+PROJECT(TrollEdit) 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0)
+
+# Settings
+OPTION(USE_JIT "Use LuaJIT instead of Lua" TRUE)
 
 # Override default install path
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -9,8 +12,14 @@ ENDIF()
 # Default Install prefix
 
 # Build lua and lpeg libs
-INCLUDE_DIRECTORIES(src/lua-5.1.4/src)
-SUBDIRS(src/lua-5.1.4 src/lpeg-0.9)
+IF (USE_JIT)
+	INCLUDE_DIRECTORIES(src/luajit-1.1.6/src)
+	SUBDIRS(src/luajit-1.1.6)
+ELSE()
+	INCLUDE_DIRECTORIES(src/lua-5.1.4/src)
+	SUBDIRS(src/lua-5.1.4)
+ENDIF()
+SUBDIRS(src/lpeg-0.9)
 
 # Find dependencies
 FIND_PACKAGE(Qt4 REQUIRED)
