@@ -12,6 +12,9 @@ project file structure.
 Students project page (in Slovak):
 http://labss2.fiit.stuba.sk/TeamProject/2009/team05is-si/
 
+Original repository:
+http://code.google.com/p/ufo-pak/
+
 Setting up in QTCreator (2.0 Beta recomended)
 - Open CMakeLists.txt in project browse dialog.
 - Configure CMake with no additional args.
