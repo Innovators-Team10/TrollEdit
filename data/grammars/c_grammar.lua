@@ -1,4 +1,5 @@
 -- C grammar
+require "lpeg"
 
 -- TODO:
 -- enumeration constant?

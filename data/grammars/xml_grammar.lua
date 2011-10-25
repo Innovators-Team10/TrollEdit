@@ -1,4 +1,5 @@
 -- Simple XML grammar
+require "lpeg"
 
 -- TODO:
 --   improve grammar for attributes

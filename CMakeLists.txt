@@ -1,47 +1,57 @@
-PROJECT(TrollEdit) 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0)
+project(trolledit) 
+cmake_minimum_required(VERSION 2.8.0)
+
+## INSTALL DEFAULTS (Relative to CMAKE_INSTALL_PREFIX)
+set ( INSTALL_BIN bin CACHE PATH "Where to install binaries to." )
+set ( INSTALL_LIB lib CACHE PATH "Where to install libraries to." )
+set ( INSTALL_INC include CACHE PATH "Where to install headers to." )
+set ( INSTALL_ETC etc CACHE PATH "Where to store configuration files" )
+set ( INSTALL_LMOD ${INSTALL_LIB}/lua CACHE PATH "Directory to install Lua modules." )
+set ( INSTALL_CMOD ${INSTALL_LIB}/lua CACHE PATH "Directory to install Lua binary modules." )
+set ( INSTALL_DATA share/trolledit CACHE PATH "Directory for shared data." )
 
 # Settings
-OPTION(USE_JIT "Use LuaJIT instead of Lua" TRUE)
+option(USE_BUILTIN_LUA "Use builtin LuaJIT2" ON)
 
 # Override default install path
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-	SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/TrollEdit CACHE PATH "Installation Destination" FORCE)
-ENDIF()
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/TrollEdit CACHE PATH "Installation Destination" FORCE)
+endif()
 
-# Default Install prefix
-
-# Build lua and lpeg libs
-IF (USE_JIT)
-	INCLUDE_DIRECTORIES(src/luajit-1.1.6/src)
-	SUBDIRS(src/luajit-1.1.6)
-ELSE()
-	INCLUDE_DIRECTORIES(src/lua-5.1.4/src)
-	SUBDIRS(src/lua-5.1.4)
-ENDIF()
-SUBDIRS(src/lpeg-0.9)
+# Build lua and lpeg libs if needed
+if (USE_BUILTIN_LUA)
+  set ( LUA_LIBRARY liblua )
+  set ( LUA_INCLUDE_DIR luajit/src )
+  include_directories(${LUA_INCLUDE_DIR})
+  add_subdirectory(luajit)
+  add_subdirectory(lpeg)
+else()
+  # Find HOST Lua implementation
+  find_package(Lua51 REQUIRED)
+  include_directories(${LUA_INCLUDE_DIR})
+endif()
 
 # Find dependencies
-FIND_PACKAGE(Qt4 REQUIRED)
+find_package(Qt4 REQUIRED)
 
 # Setup environment
-INCLUDE(${QT_USE_FILE})
-INCLUDE_DIRECTORIES(${QT_INCLUDE_DIR})
+include(${QT_USE_FILE})
+include_directories(${QT_INCLUDE_DIR})
 
 # Collect sources, headers and resources
-FILE(GLOB_RECURSE TROLL_CPP src/trolledit/*.cpp)
-FILE(GLOB_RECURSE TROLL_H src/trolledit/*.h)
-FILE(GLOB_RECURSE TROLL_RC res/*.qrc)
+file(GLOB_RECURSE TROLL_CPP src/*.cpp)
+file(GLOB_RECURSE TROLL_H src/*.h)
+file(GLOB_RECURSE TROLL_RC res/*.qrc)
     
 # Process resources with Qt4 tools 
-QT4_ADD_RESOURCES(TROLL_RC ${TROLL_RC})
-QT4_WRAP_CPP(TROLL_MOC ${TROLL_H})
+qt4_add_resources(TROLL_RC ${TROLL_RC})
+qt4_wrap_cpp(TROLL_MOC ${TROLL_H})
 
 # Build TrollEdit, include lpeg into it.
-ADD_EXECUTABLE(trolledit ${TROLL_CPP} ${TROLL_MOC} ${TROLL_RC})
-TARGET_LINK_LIBRARIES(trolledit ${QT_LIBRARIES} lua lpeg)
+add_executable(trolledit ${TROLL_CPP} ${TROLL_MOC} ${TROLL_RC})
+target_link_libraries(trolledit ${QT_LIBRARIES} ${LUA_LIBRARY})
 
 # Install
-INSTALL(TARGETS trolledit DESTINATION .)
-INSTALL(DIRECTORY data/ DESTINATION .)
+install(TARGETS trolledit DESTINATION ${INSTALL_BIN})
+install(DIRECTORY data/ DESTINATION ${INSTALL_DATA})
 

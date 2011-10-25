@@ -1,4 +1,6 @@
 -- important fields for Analyzer class
+require "lpeg"
+
 extensions = {"lua"}
 language = "Lua"
 full_grammar = "lua_grammar"

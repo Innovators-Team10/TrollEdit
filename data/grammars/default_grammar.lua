@@ -1,7 +1,7 @@
 -- Default grammar for an unknown language
 -- parses given text into lines
 -- DON'T REMOVE from /grammars directory !!!
-
+require "lpeg"
 -- important fields for Analyzer class (order is not relevant)
 extensions = {""}			-- language file extensions, e.g. "lua"
 language = "Text"		-- short description/name of this language
