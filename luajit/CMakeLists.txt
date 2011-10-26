@@ -214,8 +214,7 @@ target_link_libraries ( lua liblua )
 # On windows a variant of the lua interpreter without console output needs to be built
 if(LUA_BUILD_WLUA)
   add_executable ( wlua WIN32 src/luajit.c src/lua.rc )
-  target_link_libraries ( wlua liblua )  
-  install_executable ( wlua )
+  target_link_libraries ( wlua liblua )
   install ( TARGETS wlua RUNTIME DESTINATION ${INSTALL_BIN} LIBRARY DESTINATION ${INSTALL_LIB} ARCHIVE DESTINATION ${INSTALL_LIB} )
 endif()
 
