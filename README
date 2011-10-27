@@ -10,10 +10,8 @@ instead of the default qmake. Other modifications include statically linked in l
 project file structure.
 
 Students project page (in Slovak):
-http://labss2.fiit.stuba.sk/TeamProject/2009/team05is-si/
+http://labss2.fiit.stuba.sk/TeamProject/2011/team10is-si/plan.html
 
-Original repository:
-http://code.google.com/p/ufo-pak/
 
 Setting up in QTCreator (2.0 Beta recomended)
 - Open CMakeLists.txt in project browse dialog.
