@@ -1,3 +1,9 @@
+/**
+ * tree_element.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class TreeElement and it's funtions and identifiers
+ *
+ */
 #ifndef TREEELEMENT_H
 #define TREEELEMENT_H
 

@@ -1,3 +1,9 @@
+/**
+ * document_scene.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class DocumentScene and it's funtions and identifiers
+ *
+ */
 #ifndef DOCUMENT_SCENE_H
 #define DOCUMENT_SCENE_H
 

@@ -24,13 +24,17 @@ TreeElement::TreeElement(QString type, bool selectable,
 
 TreeElement::~TreeElement()
 {
-    if (pair != 0) {
+    if (pair != 0)
+    {
         pair->setPair(0);
         pair = 0;
     }
+
     if (!isLeaf())
         removeAllChildren();
-    if (parent != 0) {
+
+    if (parent != 0)
+    {
         if (!parent->isImportant())
             delete parent;
         else
@@ -71,7 +75,8 @@ void TreeElement::appendChild(TreeElement *child)
 
 void TreeElement::appendChildren(QList<TreeElement*> children)
 {
-    foreach (TreeElement *child, children) {
+    foreach (TreeElement *child, children)
+    {
         appendChild(child);
     }
 }
@@ -84,7 +89,8 @@ void TreeElement::insertChild(int index, TreeElement *child)
 
 void TreeElement::insertChildren(int index, QList<TreeElement*> children)
 {
-    for (int i = 0; i < children.size(); i++) {
+    for (int i = 0; i < children.size(); i++)
+    {
         insertChild(index+i, children.at(i));
     }
 }
@@ -96,23 +102,30 @@ bool TreeElement::removeChild(TreeElement *child)
 }
 
 bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
-    if (removeChild(desc)) {
+
+    if (removeChild(desc))
+    {
         return true;
-    } else {
-        foreach (TreeElement *el, children) {
-            if (el->removeDescendant(desc))
-                return true;
+    }
+    else
+    {
+        foreach (TreeElement *el, children)
+        {
+            if (el->removeDescendant(desc)) return true;
+
         }
     }
+
     return false;
 }
 
 bool TreeElement::removeAllChildren()
 {
-    if (children.isEmpty())
-        return false;
+    if (children.isEmpty()) return false;
+
     foreach (TreeElement *child, children)
         removeChild(child);
+
     return true;
 }
 
@@ -167,19 +180,28 @@ void TreeElement::adjustSpaces(int offset)
     bool newLineComming = true;
     bool lb = false;
     offset += spaces;
-    foreach (TreeElement *child, children) {
+
+    foreach (TreeElement *child, children)
+    {
         lb = child->isLineBreaking();
-        while (!child->isImportant()) {
+
+        while (!child->isImportant())
+        {
             child->setLineBreaking(false);
             child = (*child)[0];
             lb = lb || child->isLineBreaking();
         }
+
         child->setLineBreaking(lb);
-        if (newLineComming) {
+
+        if (newLineComming)
+        {
             child->addSpaces(-offset);
             newLineComming = false;
         }
+
         child->adjustSpaces(offset);
+
         if (child->isLineBreaking())
             newLineComming = true;
     }
@@ -188,7 +210,9 @@ void TreeElement::adjustSpaces(int offset)
 bool TreeElement::setLineBreaking(bool flag)
 {
     if (lineBreaking == flag) return false;
+
     lineBreaking = flag;
+
     return true;
 }
 
@@ -247,14 +271,19 @@ int TreeElement::indexOfChild(const TreeElement *child) const
 int TreeElement::indexOfBranch(const TreeElement *desc) const
 {
     int i = indexOfChild(desc);
-    if (i > -1) {
+
+    if (i > -1)
+    {
         return i;
-    } else {
-        for (i = 0; i < children.size(); i++) {
-            if (children[i]->indexOfBranch(desc) > -1)
-                return i;
+    }
+    else
+    {
+        for (i = 0; i < children.size(); i++)
+        {
+            if (children[i]->indexOfBranch(desc) > -1) return i;
         }
     }
+
     return -1;
 }
 
@@ -267,54 +296,71 @@ QList<TreeElement*> TreeElement::getAncestors() const
 {
     QList<TreeElement*> list;
     TreeElement *e = parent;
-    while (e != 0) {
+
+    while (e != 0)
+    {
         list << e;
         e = e->getParent();
     }
+
     return list;
 }
 
 QList<TreeElement*> TreeElement::getDescendants() const
 {
     QList<TreeElement*> list;
-    foreach (TreeElement *child, children) {
+
+    foreach (TreeElement *child, children)
+    {
         list << child;
         list << child->getDescendants();
     }
+
     return list;
 }
 
 QList<TreeElement*> TreeElement::getAllLeafs() const
 {
     QList<TreeElement*> list;
-    foreach (TreeElement *child, children) {
+
+    foreach (TreeElement *child, children)
+    {
         if (child->isLeaf())
             list << child;
         else
             list << child->getDescendants();
     }
+
     return list;
 }
 
 TreeElement *TreeElement::getAncestorWhereFirst() const
 {
     TreeElement *el = const_cast<TreeElement*>(this);
+
     if (el->isFloating()) return el;
+
     while (el->parent != 0 && el->parent->indexOfChild(el) == 0)
         el = el->parent;
+
     while (!el->isImportant())
         el = el->children[0];
+
     return el;
 }
 
 TreeElement *TreeElement::getAncestorWhereLast() const
 {
     TreeElement *el = const_cast<TreeElement*>(this);
+
     if (el->isFloating()) return el;
+
     while (el->parent != 0 && el->parent->indexOfChild(el) == el->parent->childCount()-1)
         el = el->parent;
+
     while (!el->isImportant())
         el = el->children[el->childCount()-1];
+
     return el;
 }
 
@@ -341,33 +387,44 @@ QString TreeElement::getType() const
 QString TreeElement::getText(bool noComments) const
 {
     DocBlock *docBl = 0;
-    if (isFloating()) {
-        docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
-    }
+
+    if (isFloating()) docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
 
     QString text;
     QString spacesStr = QString().fill(' ', spaces);
-    if (isLeaf()) {
-        text = type;                            // get my text
-        if (docBl != 0) {
+
+    if (isLeaf())
+    {
+        text = type;                            //! get my text
+        if (docBl != 0)
+        {
             if (noComments)
                 text = "";
             else
-                text = docBl->convertToText();      // get text of docblock
+                text = docBl->convertToText();      //! get text of docblock
         }
-    } else {
+    }
+    else
+    {
         if (docBl != 0 && !noComments)
-            text.append(docBl->convertToText());// get text of docblock
-        foreach (TreeElement *e, children) {
-            text.append(e->getText(noComments));          // get child texts
+            text.append(docBl->convertToText());    //! get text of docblock
+
+        foreach (TreeElement *e, children)
+        {
+            text.append(e->getText(noComments));          //! get child texts
         }
-        text.replace("\n", "\n"+spacesStr);     // indent after each line break
+
+        text.replace("\n", "\n"+spacesStr);     //! indent after each line break
     }
-    text.prepend(spacesStr);                    // indent my text
-    if (lineBreaking) {
+
+    text.prepend(spacesStr);                    //! indent my text
+
+    if (lineBreaking)
+    {
         if (docBl == 0 || !noComments)
-            text.append("\n");                      // add line break if needed
+            text.append("\n");                      //! add line break if needed
     }
+
     return text;
 }
 
@@ -385,7 +442,9 @@ TreeElement *TreeElement::next()
 bool TreeElement::hasNext(int index)
 {
     if (index < childCount()) return true;
+
     if (parent == 0) return false;
+
     return parent->hasNext(this->index() + 1);
 }
 
@@ -393,7 +452,9 @@ TreeElement *TreeElement::next(int index)
 {
     if (index < childCount())
         return children.at(index);
+
     if (parent == 0) return 0;
+
     return parent->next(this->index() + 1);
 }
 
@@ -429,35 +490,47 @@ TreeElement *TreeElement::clone() const
 
     // if element belongs to docblock, create child with docblock data
     DocBlock *docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
-    if (docBl != 0) {
+
+    if (docBl != 0)
+    {
         el->type = "doc_comment";
         el->floating = true;
         el->appendChild(new TreeElement(docBl->convertToText()));
     }
 
     // append cloned children (this sets their parent field)
-    foreach(TreeElement *child, children) {
+    foreach (TreeElement *child, children)
+    {
         el->appendChild(child->clone());
     }
 
     // resolve pairing:
-    for(int i = 0; i < children.size(); i++) { // iterate through original children
+    for (int i = 0; i < children.size(); i++) //! iterate through original children
+    {
         TreeElement *child;
         TreeElement *origPair = children[i]->pair;
-        if (origPair == 0)                   // if original has no pair continue
+
+        if (origPair == 0)                   //! if original has no pair continue
             continue;
-        if (el->children[i]->getPair() != 0) // if clone has pair already set continue
+
+        if (el->children[i]->getPair() != 0) //! if clone has pair already set continue
             continue;
+
         int j = i;
         // otherwise find pair-of-original's index j
-        do {
+        do
+        {
             child = children[j];
             j++;
-        } while (child != origPair && j < children.size());
+        }
+        while (child != origPair && j < children.size());
+
         if (child != origPair || j >= children.size())
             continue;
-        el->children[i]->setPair(el->children[j]); // set pair of clone to clone at index j
-        el->children[j]->setPair(el->children[i]); // and vice versa
+
+        el->children[i]->setPair(el->children[j]); //! set pair of clone to clone at index j
+        el->children[j]->setPair(el->children[i]); //! and vice versa
     }
+
     return el;
 }
