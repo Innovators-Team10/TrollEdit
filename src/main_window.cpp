@@ -127,7 +127,8 @@ void MainWindow::createActions()
     groupActions->addAction(clearAction);
 
     // recent files
-    for (int i = 0; i < MaxRecentFiles; ++i) {
+    for (int i = 0; i < MaxRecentFiles; ++i)
+    {
         recentFileActions[i] = new QAction(this);
         recentFileActions[i]->setVisible(false);
         connect(recentFileActions[i], SIGNAL(triggered()),
@@ -191,8 +192,10 @@ void MainWindow::createMenus()
     fileMenu->addAction(printableAreaAction);
     fileMenu->addAction(printPdfAction);
     separatorAction = fileMenu->addSeparator();
+
     for (int i = 0; i < MaxRecentFiles; ++i)
         fileMenu->addAction(recentFileActions[i]);
+
     fileMenu->addSeparator();
     fileMenu->addAction(exitAction);
 
@@ -261,36 +264,51 @@ void MainWindow::setCurrentFile(BlockGroup *group)
 {
     QString fileName;
     QString lang;
-    if (group != 0) {
+
+    if (group != 0)
+    {
         fileName = group->getFilePath();
         lang = group->getAnalyzer()->getLanguageName();
         selectedGroup = group;
-    } else {
+    }
+    else
+    {
         lang = "";
         fileName = "Empty";
         selectedGroup = 0;
     }
 
-    if (fileName.isEmpty() || fileName == "Empty") {
+    if (fileName.isEmpty() || fileName == "Empty")
+    {
         setWindowFilePath(fileName);
         groupActions->setEnabled(false);
         searchLineEdit->setEnabled(false);
-    } else {
+    }
+    else
+    {
         groupActions->setEnabled(true);
         searchLineEdit->setEnabled(true);
-        if (scriptsBox->currentText() != lang) {
+
+        if (scriptsBox->currentText() != lang)
+        {
             int index = scriptsBox->findText(lang, Qt::MatchFixedString);
             scriptsBox->blockSignals(true);
             scriptsBox->setCurrentIndex(index);
             scriptsBox->blockSignals(false);
         }
-        if (windowFilePath() != fileName) {
+        if (windowFilePath() != fileName)
+        {
             setWindowFilePath(fileName);
-            if (!QFileInfo(fileName).fileName().isEmpty()) {
+
+            if (!QFileInfo(fileName).fileName().isEmpty())
+            {
                 fileName = QFileInfo(fileName).fileName();
-            } else {
+            }
+            else
+            {
                 revertAction->setEnabled(false);
             }
+
             saveAction->setText(tr("&Save \"%1\"").arg(fileName));
             saveAsAction->setText(tr("Save \"%1\" &As...").arg(fileName));
             closeAction->setText(tr("&Close \"%1\"").arg(fileName));
@@ -313,11 +331,13 @@ void MainWindow::open()
 
 void MainWindow::open(QString fileName)
 {
-    if (!fileName.isEmpty() && QFile::exists(fileName)) {
+    if (!fileName.isEmpty() && QFile::exists(fileName))
+    {
         QSettings settings(QApplication::organizationName(), QApplication::applicationName());
         QStringList files = settings.value("recentFileList").toStringList();
         files.removeAll(fileName);
         files.prepend(fileName);
+
         while (files.size() > MaxRecentFiles)
             files.removeLast();
 
@@ -349,8 +369,9 @@ void MainWindow::search()
 void MainWindow::printPdf()
 {
     QString fileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
-    if (fileName.isEmpty())
-        return;
+
+    if (fileName.isEmpty()) return;
+
     int resolution = 1200;
     QPrinter printer(QPrinter::HighResolution);
     //    printer.setOrientation(QPrinter::Landscape);
@@ -365,10 +386,14 @@ void MainWindow::printPdf()
     rect.setWidth(printer.pageRect().width() - (printer.paperRect().width() - printer.pageRect().width()));
 
     int endCondition;
-    if (selectedGroup == 0) {
+
+    if (selectedGroup == 0)
+    {
         startPoint = QPointF();
         endCondition = scene->sceneRect().height();
-    } else {
+    }
+    else
+    {
         startPoint = selectedGroup->pos();
         endCondition = startPoint.y() + selectedGroup->rect().height();
     }
@@ -380,37 +405,45 @@ void MainWindow::printPdf()
     QRectF rect2;
     rect2 = QRectF(x, y, w, h);
 
-
     //    QColor color;
     //    color.setBlue(250);
     QPainter painter( &printer );
     //    scene->setSceneRect(0, 0, 1600, 2000);
 
-    if(printableAreaAction->isChecked())
-        hideArea();
+    if(printableAreaAction->isChecked()) hideArea();
+
 //    for(int i=0; i<10; i++){
-    while(endCondition){
+    while(endCondition)
+    {
         scene->render(&painter, rect, rect2, Qt::KeepAspectRatio);
         y+=1200;
-        if (y < endCondition) {
+
+        if (y < endCondition)
+        {
             rect2.setRect(x, y, w, h);
             printer.newPage();
         }
         else
             endCondition = 0;
     }
+
     if(printableAreaAction->isChecked())
         showArea();
+
     statusBar()->showMessage("Pdf export finished", 2000);
 }
 
 void MainWindow::showPrintableArea()
 {
-    if (selectedGroup == 0) {
+    if (selectedGroup == 0)
+    {
         startPoint = QPointF();
-    } else {
+    }
+    else
+    {
         startPoint = selectedGroup->pos();
     }
+
     QColor color;
     color.setBlue(255);
     color.setGreen(150);
@@ -419,7 +452,8 @@ void MainWindow::showPrintableArea()
     int pagelength = 1200;
     int endpage = 0;
 
-    if(printableAreaAction->isChecked()) {
+    if(printableAreaAction->isChecked())
+    {
         line = new QGraphicsLineItem(0);
         line->setLine(startPoint.x() - 30, startPoint.y() - 30, startPoint.x() - 30, scene->sceneRect().height());
         line->setVisible(true);
@@ -434,7 +468,8 @@ void MainWindow::showPrintableArea()
         line->setZValue(50);
         list.append(line);
 
-        while(endpage < scene->sceneRect().height()) {
+        while(endpage < scene->sceneRect().height())
+        {
             line = new QGraphicsLineItem(0);
             line->setLine(startPoint.x() - 30, startPoint.y() + endpage - 30, startPoint.x() + 802 - 30, startPoint.y() + endpage - 30);
             line->setVisible(true);
@@ -443,8 +478,11 @@ void MainWindow::showPrintableArea()
             list.append(line);
             endpage += pagelength;
         }
+
         showArea();
-    } else {
+    }
+    else
+    {
         hideArea();
         list.clear();
     }
@@ -465,7 +503,9 @@ void MainWindow::hideArea()
 void MainWindow::openRecentFile()
 {
     QAction *action = qobject_cast<QAction *>(sender());
-    if (action) {
+
+    if (action)
+    {
         open(action->data().toString());
     }
 }
@@ -486,12 +526,14 @@ void MainWindow::updateRecentFileActions()
 
     int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
-    for (int i = 0; i < numRecentFiles; ++i) {
+    for (int i = 0; i < numRecentFiles; ++i)
+    {
         QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
         recentFileActions[i]->setText(text);
         recentFileActions[i]->setData(files[i]);
         recentFileActions[i]->setVisible(true);
     }
+
     for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
         recentFileActions[j]->setVisible(false);
 
@@ -527,6 +569,7 @@ void MainWindow::readSettings()
     QSize size = settings.value("size", QSize(850, 700)).toSize();
     resize(size);
     move(pos);
+
     if (settings.value("maximized", false).toBool())
         showMaximized();
 }

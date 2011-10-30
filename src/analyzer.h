@@ -1,3 +1,10 @@
+/**
+ * analyzer.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class Analyzer and it's funtions and identifiers
+ *
+ */
+
 #ifndef ANALYZER_H
 #define ANALYZER_H
 
@@ -44,28 +51,28 @@ private:
     static const char *MULTILINE_COMMENT_TOKENS_FIELD;
     static const char *CONFIG_KEYS_FIELD;
 
-    lua_State *L;               // the Lua interpreter
-    QStringList extensions;     // types of files to be analyzed
-    QString langName;           // name/description of analyzed language(s)
-    QString scriptName;        // script name
-    QString mainGrammar;        // name of complete gramar
-    QHash<QString, QString> subGrammars;// names of partial grammars
-    QStringList pairedTokens;           // list of paired tokens, example: "{", "}", "begin", "end"...
-    QStringList selectableTokens;       // list of tokens which can contain line-breaking children
-    QStringList multiTextTokens;        // list of tokens which can contain more lines of text
-    QStringList floatingTokens;         // list of tokens allowed to say out of hierarchy
-    QString defaultSnippet;             // code that will be displayed in new file
-    QString multilineSupport;           // natural support of multiline comments
-    QHash<QString, QStringList> commentTokens;      // start & end tokens for comments
+    lua_State *L;               //! the Lua interpreter
+    QStringList extensions;     //! types of files to be analyzed
+    QString langName;           //! name/description of analyzed language(s)
+    QString scriptName;        //! script name
+    QString mainGrammar;        //! name of complete gramar
+    QHash<QString, QString> subGrammars;//! names of partial grammars
+    QStringList pairedTokens;           //! list of paired tokens, example: "{", "}", "begin", "end"...
+    QStringList selectableTokens;       //! list of tokens which can contain line-breaking children
+    QStringList multiTextTokens;        //! list of tokens which can contain more lines of text
+    QStringList floatingTokens;         //! list of tokens allowed to say out of hierarchy
+    QString defaultSnippet;             //! code that will be displayed in new file
+    QString multilineSupport;           //! natural support of multiline comments
+    QHash<QString, QStringList> commentTokens;      //! start & end tokens for comments
 
     void setupConstants();
     TreeElement* analyzeString(QString grammar, QString input);
     TreeElement* createTreeFromLuaStack();
     void checkPairing(TreeElement *element);
 
-    void processWhites(TreeElement *root); // move all whites as high as possible without changing tree text
+    void processWhites(TreeElement *root); //! move all whites as high as possible without changing tree text
 
-    QMessageBox *msgBox; // for (error) mesasage
+    QMessageBox *msgBox; //! for (error) mesasage
 };
 
 #endif // ANALYZER_H

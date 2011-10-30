@@ -18,8 +18,9 @@ TextItem::TextItem(const QString &text, Block *parentBlock, bool multiText, bool
     QFontMetricsF *fm = new QFontMetricsF(font());
     MARGIN = (QGraphicsTextItem::boundingRect().width() - fm->width(toPlainText())) / 2;
 
-    if (paired) // emit focusChanged() only for paired blocks
+    if (paired) //! emit focusChanged() only for paired blocks
         connect(this, SIGNAL(focusChanged(QFocusEvent*)), myBlock, SLOT(textFocusChanged(QFocusEvent*)));
+
     connect(document(), SIGNAL(contentsChanged()), myBlock, SLOT(textChanged()));
     
     connect(this, SIGNAL(keyPressed(QKeyEvent*)), myBlock->blockGroup(), SLOT(keyTyped(QKeyEvent*)));
@@ -46,8 +47,10 @@ void TextItem::setPos(const QPointF &pos)
 bool TextItem::setTextCursorPos(int i)
 {
     int length = toPlainText().length();
+
     if (i < 0)
         i = length + i + 1;
+
     if (i < 0 || i > length)
         return false;
 
@@ -55,21 +58,24 @@ bool TextItem::setTextCursorPos(int i)
     cursor.setPosition(i);
     setTextCursor(cursor);
     setFocus();
+
     return true;
 }
 
 bool TextItem::removeCharAt(int i)
 {
     QString text = toPlainText();
+
     if (text.length() == 0)
         i = 0;
     else if (i < 0)
         i = text.length() + i;
+
     text.remove(i,1);
     setPlainText(text);
-    if (text.isEmpty()) {
-        return false;
-    }
+
+    if (text.isEmpty()) return false;
+
     return true;
 }
 
@@ -99,65 +105,83 @@ void TextItem::keyPressEvent(QKeyEvent *event)
 //    QPointF cursorPoint = cursor().;
     QString text = toPlainText();
 
-    if (event->key() == Qt::Key_Return && !multiText) {
+    if (event->key() == Qt::Key_Return && !multiText)
+    {
         if (cursorPos == text.length())
             cursorPos = -1;
+
         event->accept();
 //        myBlock->blockGroup()->splitLine(myBlock, cursorPos);
         emit enterPressed(myBlock, cursorPos);
+
         return;
     }
 
     if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
         event->ignore();
-    else {
-        QGraphicsTextItem::keyPressEvent(event);
-    }
+    else QGraphicsTextItem::keyPressEvent(event);
+
     int index;
-    switch(event->key()) {
+
+    switch(event->key())
+    {
     case Qt::Key_Up :
         index = text.indexOf("\n");
-        if (cursorPos <= index || index < 0) {
+        if (cursorPos <= index || index < 0)
+        {
 //            myBlock->blockGroup()->moveFrom(myBlock, event->key(), cursorPos);
             emit moveCursor(myBlock, event->key(), cursorPos);
         }
+
         break;
     case Qt::Key_Down :
         index = text.lastIndexOf("\n");
-        if (cursorPos > index) {
+
+        if (cursorPos > index)
+        {
             if (index < 0) index = 0;
 //            myBlock->blockGroup()->moveFrom(myBlock, event->key(), cursorPos - index);
             emit moveCursor(myBlock, event->key(), cursorPos - index);
         }
+
         break;
     case Qt::Key_Left :
-        if (cursorPos == 0) {
+        if (cursorPos == 0)
+        {
 //            myBlock->blockGroup()->moveFrom(myBlock, Qt::Key_Left, 0);
             emit moveCursor(myBlock, Qt::Key_Left);
         }
+
         break;
     case Qt::Key_Right :
-        if (cursorPos == text.length()) {
+        if (cursorPos == text.length())
+        {
 //            myBlock->blockGroup()->moveFrom(myBlock, Qt::Key_Right, 0);
             emit moveCursor(myBlock, Qt::Key_Right);
         }
+
         break;
     case Qt::Key_Backspace :
-        if (cursorPos == 0) {
+        if (cursorPos == 0)
+        {
 //            myBlock->blockGroup()->eraseChar(myBlock, Qt::Key_Backspace);
             emit erasePressed(myBlock, Qt::Key_Backspace);
         }
+
         break;
     case Qt::Key_Delete :
-        if (cursorPos == text.length()) {
+        if (cursorPos == text.length())
+        {
 //            myBlock->blockGroup()->eraseChar(myBlock, Qt::Key_Delete);
             emit erasePressed(myBlock, Qt::Key_Delete);
         }
+
         break;
     case Qt::Key_Home :
     case Qt::Key_End :
 //        myBlock->blockGroup()->moveFrom(myBlock, event->key(), 0);
         emit moveCursor(myBlock, event->key());
+
         break;
     default :
         event->ignore();
