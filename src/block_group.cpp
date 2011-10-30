@@ -64,11 +64,14 @@ void BlockGroup::setContent(QString content)
 
 void BlockGroup::setRoot(Block *newRoot)
 {
-    if (newRoot == 0) {
+    if (newRoot == 0)
+    {
         qWarning("Cannot set 0 as root");
         return;
     }
-    if (root != 0 && root != newRoot) {
+
+    if (root != 0 && root != newRoot)
+    {
         root->deleteLater();
         root = 0;
     }
@@ -83,21 +86,29 @@ void BlockGroup::setRoot(Block *newRoot)
     root = newRoot;
     root->setPos(20, 0);
     // select add cursor and update
-    if (docScene->selectedGroup() == this) {
+
+    if (docScene->selectedGroup() == this)
+    {
         selectBlock(root);
         root->getFirstLeaf()->textItem()->setTextCursorPos(0);
     }
+
     root->setVisible(true);
     clearSearchResults();
     root->updateBlock(false);
-    foreach (DocBlock *dbl, docBlocks()) {
+
+    foreach (DocBlock *dbl, docBlocks())
+    {
         dbl->updateBlock(false);
     }
+
     updateSize();
 }
 
-void BlockGroup::setModified(bool flag) {
-    if (flag != modified) {
+void BlockGroup::setModified(bool flag)
+{
+    if (flag != modified)
+    {
         modified = flag;
         docScene->groupWasModified(this);
     }
@@ -122,21 +133,28 @@ Block *BlockGroup::getBlockIn(int line) const
 }
 void BlockGroup::setBlockIn(Block *block, int line)
 {
-    if (lineStarts.size() > line) {
+    if (lineStarts.size() > line)
+    {
         lineStarts[line] = block;
-    } else {
-        while (lineStarts.size() < line) {
+    }
+    else
+    {
+        while (lineStarts.size() < line)
+        {
             lineStarts << 0;
             qWarning("Line %d skipped!", lineStarts.size() - 1);
         }
+
         lineStarts << block;
     }
+
     lastLine = line;
 }
 
 bool BlockGroup::addFoldable(Block *block)
 {
-    if (block->getLine() < 0) { // for block out of hierarchy (always able to fold)
+    if (block->getLine() < 0) //! for block out of hierarchy (always able to fold)
+    {
         foldableBlocks << block;
         return true;
     }
@@ -144,11 +162,16 @@ bool BlockGroup::addFoldable(Block *block)
     bool able = true;
     Block *toRemove = 0;
     foldableBlocks.remove(block);
-    foreach (Block *bl, foldableBlocks) {
-        if (bl->getLine() == block->getLine()) {
+
+    foreach (Block *bl, foldableBlocks)
+    {
+        if (bl->getLine() == block->getLine())
+        {
             if (block->isAncestorOf(bl)) {
-                toRemove = bl;                   // if block is ancestor, throw out bl
-            } else {
+                toRemove = bl;                   //! if block is ancestor, throw out bl
+            }
+            else
+            {
                 able = false;
             }
             break;
@@ -156,7 +179,8 @@ bool BlockGroup::addFoldable(Block *block)
     }
     if (able)
         foldableBlocks << block;
-    if (toRemove) {
+    if (toRemove)
+    {
         foldableBlocks.remove(toRemove);
         toRemove->updateFoldButton();
     }
@@ -178,11 +202,15 @@ DocBlock *BlockGroup::addDocBlock(QPointF scenePos)
 QList<DocBlock*> BlockGroup::docBlocks() const
 {
     QList<DocBlock*> blocks;
-    foreach (QGraphicsItem *item, childItems()) {
+
+    foreach (QGraphicsItem *item, childItems())
+    {
         DocBlock *block = qgraphicsitem_cast<DocBlock*>(item);
+
         if (block != 0)
             blocks << block;
     }
+
     return blocks;
 }
 
@@ -190,11 +218,14 @@ Block *BlockGroup::blockAt(QPointF scenePos) const
 {
     qWarning("BlockGroup::blockAt() is probably not working");
     QGraphicsItem *item = docScene->itemAt(scenePos);
+
     if (item == 0)
         return 0;
-    QGraphicsTextItem *textItem;    // leaf item would be covered by its QGraphicsTextItem child
+    QGraphicsTextItem *textItem;    //! leaf item would be covered by its QGraphicsTextItem child
+
     if ((textItem = qgraphicsitem_cast<QGraphicsTextItem*>(item)) != 0)
         item = textItem->parentItem();
+
     return qgraphicsitem_cast<Block*>(item);
 }
 
@@ -202,10 +233,13 @@ int BlockGroup::lineAt(QPointF scenePos) const
 {
     scenePos = root->mapFromScene(scenePos);
     int line;
+
     if (scenePos.y() <= 0)
         return 0;
+
     if (scenePos.y() >= root->idealSize().height())
         return lastLine + 1;
+
     line = root->getLineAfter(scenePos);
 
     return qMin(line, lastLine + 1);
@@ -213,11 +247,14 @@ int BlockGroup::lineAt(QPointF scenePos) const
 
 void BlockGroup::selectBlock(Block *block, bool updateNeeded)
 {
-    if (!block->getElement()->isSelectable()) {
+    if (!block->getElement()->isSelectable())
+    {
         if (block->parentBlock() != 0)
             selectBlock(block->parentBlock(), updateNeeded);
+
         return;
     }
+
     if (selected == block) return;
     // NOTE: only blocks that won't be selected later are deselected
     Block *commonAncestor = qgraphicsitem_cast<Block*>(block->commonAncestorItem(selected));
@@ -226,6 +263,7 @@ void BlockGroup::selectBlock(Block *block, bool updateNeeded)
     selected->setShowing(true);
 
     if (!updateNeeded) return;
+
     if (commonAncestor != 0)
         commonAncestor->update();
     else
@@ -234,11 +272,14 @@ void BlockGroup::selectBlock(Block *block, bool updateNeeded)
 
 void BlockGroup::deselect(Block *until, bool updateNeeded)
 {
-    if (selected != 0) {
+    if (selected != 0)
+    {
         selected->setShowing(false, until);
         selected = 0;
     }
+
     if (!updateNeeded) return;
+
     if (until != 0)
         until->update();
     else
@@ -261,36 +302,49 @@ void BlockGroup::keyTyped(QKeyEvent* event)
 void BlockGroup::splitLine(Block *block, int cursorPos)
 {
     if (block->parentBlock() == 0) return;
+
     Block *temp;
 
     // check what block should be splitted
-    if (cursorPos == 0) {
-        temp = block->getPrev();             // split previous block
-        if (temp->parentBlock() != 0) {        // it is not very first block
+    if (cursorPos == 0)
+    {
+        temp = block->getPrev();             //! split previous block
+        if (temp->parentBlock() != 0) //! it is not very first block
+        {
             cursorPos = -1;
             block = temp;
         }
-    } else if (cursorPos == -1 && block->getNextSibling() == 0) {   // -1 means end of text
-        temp = block->getAncestorWhereLast();// split ancestor
-        if (temp->parentBlock() != 0) {        // it is not very last block
+    }
+    else if (cursorPos == -1 && block->getNextSibling() == 0)   //! -1 means end of text
+    {
+        temp = block->getAncestorWhereLast();   //! split ancestor
+
+        if (temp->parentBlock() != 0) //! it is not very last block
+        {
             block = temp;
         }
     }
+
     smoothTextAnimation = true;
 
     // split this block
     QString text = "";
-    if (cursorPos >= 0) {   // leave some text in original block
+    if (cursorPos >= 0) //! leave some text in original block
+    {
         text = block->textItem()->toPlainText();
         block->textItem()->setPlainText(text.left(cursorPos));
         text.remove(0,cursorPos);
     }
+
     Block *next = block->getNext();
-    if (next->parentBlock() == 0) next = 0;        // block is not very last block
+
+    if (next->parentBlock() == 0) next = 0;        //! block is not very last block
+
     bool alreadyBreaking = !block->getElement()->setLineBreaking(true);
 
     // create new block (either with text or with newline)
-    if (!text.isEmpty() || alreadyBreaking || next == 0) {
+    if (!text.isEmpty() || alreadyBreaking || next == 0)
+    {
         next = block->getNextSibling();
         Block *newBlock = new Block(new TreeElement(text, 0, 0, alreadyBreaking),
                                     block->parentBlock());
@@ -299,13 +353,17 @@ void BlockGroup::splitLine(Block *block, int cursorPos)
         newBlock->updatePos(true);
         block->getElement()->setLineBreaking(true);
         newBlock->textItem()->setTextCursorPos(0);
+
         if (!text.isEmpty())
             newBlock->edited = true;
-    } else {
+    }
+    else
+    {
         next->getElement()->setSpaces(0);
         next->getFirstLeaf()->textItem()->setTextCursorPos(0);
         next->edited = true;
     }
+
     clearSearchResults();
     root->updateBlock();//updateAfter(true);
     smoothTextAnimation = false;
@@ -315,44 +373,72 @@ void BlockGroup::eraseChar(Block *block, int key)
 {
     clearSearchResults();
     Block *target = 0;
-    if (key == Qt::Key_Backspace) {             // move to previous block
+
+    if (key == Qt::Key_Backspace) //! move to previous block
+    {
         target = block->getAncestorWhereFirst();
-        if (target->getElement()->getSpaces() > 0) {
+
+        if (target->getElement()->getSpaces() > 0)
+        {
             target->getElement()->addSpaces(-1);
             target->updateGeometryAfter(false);
             target->edited = true;
-        } else {
+        }
+        else
+        {
             target = block->getPrev(true);
-            if (target->getLine() < block->getLine()) {          // jumped to previous line
-                while (!target->getElement()->isLineBreaking() && target->parentBlock() != 0) {
+
+            if (target->getLine() < block->getLine()) //! jumped to previous line
+            {
+                while (!target->getElement()->isLineBreaking() && target->parentBlock() != 0)
+                {
                     target = target->parentBlock();
                 }
+
                 target->getElement()->setLineBreaking(false);
-                root->updateBlock(); // todo more effective updater
-            } else if (target->getLine() > block->getLine()) {   // jumped to the end of file
+                root->updateBlock(); //! todo more effective updater
+            }
+            else if (target->getLine() > block->getLine()) //! jumped to the end of file
+            {
                 return;
-            } else {                            // on same line
+            }
+            else //! on same line
+            {
                 target->textItem()->removeCharAt(-1);
             }
         }
-    } else if (key == Qt::Key_Delete) {     // move to next block
+    } else if (key == Qt::Key_Delete) //! move to next block
+    {
         target = block->getNext();
-        if (target->getElement()->getSpaces() > 0) {
+
+        if (target->getElement()->getSpaces() > 0)
+        {
             target->getElement()->addSpaces(-1);
             target->updateGeometryAfter(false);
             target->edited = true;
-        } else {
+        }
+        else
+        {
             target = block->getNext(true);
-            if (target->getLine() > block->getLine()) {          // jumped to next line
+
+            if (target->getLine() > block->getLine()) //! jumped to next line
+            {
                 target = block;
-                while (!target->getElement()->isLineBreaking() && target->parentBlock() != 0) {
+
+                while (!target->getElement()->isLineBreaking() && target->parentBlock() != 0)
+                {
                     target = target->parentBlock();
                 }
+
                 target->getElement()->setLineBreaking(false);
-                root->updateBlock(); // todo more effective updater
-            } else if (target->getLine() < block->getLine()) {   // jumped to the beginning of file
+                root->updateBlock(); //! todo more effective updater
+            }
+            else if (target->getLine() < block->getLine()) //! jumped to the beginning of file
+            {
                 return;
-            } else {                            // on same line
+            }
+            else //! on same line
+            {
                 target->textItem()->removeCharAt(0);
             }
         }
@@ -363,6 +449,7 @@ void BlockGroup::moveFrom(Block *start, int key, int cursorPos)
 {
     Block *bl;
     time.restart();
+
     switch (key) {
     case Qt::Key_Up :
         moveCursorUpDown(start, true, cursorPos);
@@ -397,19 +484,26 @@ void BlockGroup::moveCursorLeftRight(Block *start, bool moveLeft)
 {
     Block *target = 0;
     int position;
-    if (moveLeft) {         // move to previous block
+
+    if (moveLeft) //! move to previous block
+    {
         target = start->getPrev(true);
         position = -2;
+
         if (target->getLine() != start->getLine() ||
             start->getAncestorWhereFirst()->getElement()->getSpaces() > 0)
             position = -1;
-    } else {                // move to next block
+    }
+    else    //! move to next block
+    {
         target = start->getNext(true);
         position = 1;
+
         if (target->getLine() != start->getLine() ||
             target->getAncestorWhereFirst()->getElement()->getSpaces() > 0)
             position = 0;
     }
+
     target->textItem()->setTextCursorPos(position);
     lastXPos = -1;
     selectBlock(target, true);
@@ -419,12 +513,16 @@ void BlockGroup::moveCursorUpDown(Block *start, bool moveUp, int from)
 {
     int y;
     int line = start->getLine();
-    if (moveUp) {            // move up
+
+    if (moveUp) //! move up
+    {
         if (line == 0)
             y = lastLine;
         else
             y = line - 1;
-    } else {                 // move down
+    }
+    else //! move down
+    {
         if (line == lastLine)
             y = 0;
         else
@@ -436,19 +534,25 @@ void BlockGroup::moveCursorUpDown(Block *start, bool moveUp, int from)
 
     scenePos.setY(firstInY->textItem()->scenePos().y() + CHAR_HEIGHT/2);
 
-    if (lastXPos < 0) {
+    if (lastXPos < 0)
+    {
         scenePos.setX(start->textItem()->scenePos().x()
                       + start->textItem()->MARGIN
                       + from * CHAR_WIDTH);
         lastXPos = scenePos.x();
-    } else {
+    }
+    else
+    {
         scenePos.setX(lastXPos);
     }
 
-    if (start->isEdited()) {
+    if (start->isEdited())
+    {
         reanalyze(start, scenePos);
+
         return;
     }
+
     docScene->time.restart();
     Block *target = addTextCursorAt(scenePos);
     selectBlock(target, true);
@@ -458,13 +562,20 @@ void BlockGroup::updateSize()
 {
     // need to be called manually whenever size or position of blocks in this group changes
     QRectF rect = QRect();
-    foreach (QGraphicsItem *item, childItems()) {
+
+    foreach (QGraphicsItem *item, childItems())
+    {
         if (!item->isVisible()) continue;
+
         Block *block;
-        if ((block = qgraphicsitem_cast<Block*>(item)) != 0) {
+
+        if ((block = qgraphicsitem_cast<Block*>(item)) != 0)
+        {
             if (block == root)
                 rect = rect.united(QRectF(block->idealPos(), block->idealSize()));
-        } else {
+        }
+        else
+        {
             rect = rect.united(QRectF(item->pos(), item->boundingRect().size()));
         }
     }
@@ -477,36 +588,48 @@ void BlockGroup::updateSize()
 
 void BlockGroup::showInsertLine(InsertLine type, QPointF scenePos)
 {
-    if (type == None) {
+    if (type == None)
+    {
         horizontalLine->setVisible(false);
         verticalLine->setVisible(false);
+
         return;
     }
     qreal x, y;
-    if (type == Horizontal) {                   // horizontal insert cue
+
+    if (type == Horizontal) //! horizontal insert cue
+    {
         verticalLine->setVisible(false);
         // determine line after scenePos
         int line = lineAt(scenePos + QPointF(0, CHAR_HEIGHT/2.0));
 
-        if (line <= lastLine) {
+        if (line <= lastLine)
+        {
             Block *block = getBlockIn(line);
             y = mapFromItem(block, 0, 0).y();
-        } else {
+        }
+        else
+        {
             y = root->idealPos().y() + root->idealSize().height();
         }
+
         x = root->idealPos().x();
         horizontalLine->setLine(x, y, x + root->idealSize().width(), y);
         horizontalLine->setVisible(true);
-    } else if (type == Vertical) {              // vertical insert cue
+    }
+    else if (type == Vertical) //! vertical insert cue
+    {
         horizontalLine->setVisible(false);
         QPair<Block*, bool> targetRight = root->findClosestLeaf(root->mapFromScene(scenePos));
         Block *target = targetRight.first;
         QRectF rect;
         rect = mapRectFromItem(target, target->idealRect());
+
         if (targetRight.second)
             x = rect.left();
         else
             x = rect.right();
+
         y = rect.bottom();
         verticalLine->setLine(x, y + 3, x, y - CHAR_HEIGHT - 3);
         verticalLine->setVisible(true);
@@ -527,6 +650,7 @@ QPainterPath BlockGroup::shape() const
     int half = width / 2;
 
     path.addRect(boundingRect().adjusted(-half, -half, half+mod, half+mod));
+
     return path;
 }
 
@@ -535,7 +659,8 @@ void BlockGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 {
     Q_UNUSED(widget);
 
-    if (docScene->selectedGroup() == this) {
+    if (docScene->selectedGroup() == this)
+    {
         painter->setPen(pen());
         painter->drawRect(rect().adjusted(2,2,-2,-2));
     }
@@ -543,9 +668,7 @@ void BlockGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 Block *BlockGroup::reanalyze(Block *block, QPointF cursorPos)
 {    
-    if (root == 0) {
-        return 0;
-    }
+    if (root == 0) return 0;
 
     selected = 0;
 
@@ -553,7 +676,8 @@ Block *BlockGroup::reanalyze(Block *block, QPointF cursorPos)
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
 //    QApplication::setOverrideCursor(Qt::CrossCursor);
-    if (!reanalyzeBlock(block)) {
+    if (!reanalyzeBlock(block))
+    {
         analyzeAll(root->getElement()->getText());
     }
 
@@ -563,7 +687,9 @@ Block *BlockGroup::reanalyze(Block *block, QPointF cursorPos)
     time.restart();
 
     Block *target = addTextCursorAt(cursorPos);
+
     if (target == 0) target = root;
+
     qDebug("add cursor to root: %d", time.restart());
 
     selectBlock(target);
@@ -578,28 +704,33 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 {
     qDebug("\nBlockGroup::analyzeBlock()");
     time.restart();
+
     if (block == 0) return false;
+
     // get closest analyzable ancestor
     TreeElement *analysedEl = analyzer->getAnalysableAncestor(block->getElement());
 
-    if (analysedEl == 0) {
-        return false;
-    }
+    if (analysedEl == 0) return false;
+
     // create reanalyzed element
     TreeElement *newEl = analyzer->analyzeElement(analysedEl);
     qDebug("text analysis: %d", time.restart());
 
     // find block of original analyzed element
     Block *analysedBl;
-    do {
+    do
+    {
         analysedBl = analysedEl->getBlock();
         analysedEl = (*analysedEl)[0];
-    } while (analysedBl == 0);
+    }
+    while (analysedBl == 0);
 
     // collect data from original block
     bool isPrevLB = false;
+
     if (analysedBl->prevSib != 0)
         isPrevLB = analysedBl->prevSib->getElement()->isLineBreaking();
+
     bool isAnalyzedLB = analysedBl->getElement()->isLineBreaking();
     Block *parentBl = analysedBl->parentBlock();
     Block *nextSib = analysedBl->getNextSibling();
@@ -613,28 +744,35 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
     // create new block
     Block *newBlock = new Block(newEl, parentBl);
+
     if (nextSib != 0)
         newBlock->setParentBlock(newBlock->parent, nextSib);
     // set data
     newBlock->getElement()->setLineBreaking(isAnalyzedLB);
+
     if (newBlock->prevSib != 0)
         newBlock->prevSib->getElement()->setLineBreaking(isPrevLB);
+
     newBlock->element->addSpaces(spaces);
     qDebug("block creation: %d", time.restart());
 
     // reset root (root is the same)
     setRoot(root);
     qDebug("root update: %d", time.restart());
+
     return true;
 }
 
 void BlockGroup::analyzeAll(QString text)
 {
     qDebug("\nBlockGroup::analyzeAll()");
-    if (text.isEmpty()) { // use snippet if text is empty
+
+    if (text.isEmpty()) //! use snippet if text is empty
+    {
         text = analyzer->getSnippet();
         qDebug("\nDefault snipped used");
         getStatusBar()->showMessage("File reset - default text used", 2000);
+
         if (text.isEmpty()) text = "    ";
     }
     time.restart();
@@ -660,40 +798,59 @@ QString BlockGroup::toText(bool noDocs) const
 QList<Block*> BlockGroup::blocklist_cast(QList<QGraphicsItem*> list)
 {
     QList<Block*> blocks;
-    foreach (QGraphicsItem *item, list) {
+
+    foreach (QGraphicsItem *item, list)
+    {
         Block *block = qgraphicsitem_cast<Block*>(item);
-        if (block != 0)
-            blocks << block;
+
+        if (block != 0) blocks << block;
+
     }
+
     return blocks;
 }
 
 QStatusBar *BlockGroup::getStatusBar()
 {
-    foreach (QWidget *widget, QApplication::topLevelWidgets()) {
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
         QMainWindow *mainWin = qobject_cast<QMainWindow *>(widget);
-        if (mainWin)
-            return mainWin->statusBar();
+
+        if (mainWin) return mainWin->statusBar();
+
     }
+
     Q_ASSERT(false);
+
     return 0;
 }
 
 void BlockGroup::keyPressEvent(QKeyEvent *event)
 {
-    if (event->modifiers() == Qt::ControlModifier) {
+    if (event->modifiers() == Qt::ControlModifier)
+    {
         switch (event->key()) {
         case Qt::Key_I :
-            for (int i = 0; i <= lastLine; i++) {
+            for (int i = 0; i <= lastLine; i++)
+            {
                 Block *block = getBlockIn(i);
+
                 if (block == 0) continue;
+
                 Block *prevBl = block->getPrevSibling();
-                if (!block->element->isSelectable() || prevBl == 0) {
+
+                if (!block->element->isSelectable() || prevBl == 0)
+                {
                     block->getElement()->setSpaces(0);
-                } else {
-                    if (prevBl->getElement()->isSelectable() || prevBl->element->getType().isEmpty()) {
+                }
+                else
+                {
+                    if (prevBl->getElement()->isSelectable() || prevBl->element->getType().isEmpty())
+                    {
                         block->getElement()->setSpaces(0);
-                    } else {
+                    }
+                    else
+                    {
                         block->getElement()->setSpaces(TAB_LENGTH);
                     }
                 }
@@ -702,13 +859,17 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
             docScene->update();
             break;
         case Qt::Key_Delete :
-            if (selected != 0) {
+            if (selected != 0)
+            {
                 selected->setVisible(false);
                 Block *next = selected->removeBlock(true);
-                if (next != 0) {
+
+                if (next != 0)
+                {
                     selectBlock(next);
                     next->getFirstLeaf()->textItem()->setTextCursorPos(0);
                 }
+
                 root->updateBlock();
             }
             break;
@@ -719,31 +880,41 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
 
 void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+    if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
+    {
         event->ignore();
         return;
     }
-    if (docScene->itemAt(event->scenePos()) == this) {  // clicked directly on group
+    if (docScene->itemAt(event->scenePos()) == this) //! clicked directly on group
+    {
         deselect();
         root->updateBlock();
         event->accept();
-        QGraphicsRectItem::mousePressEvent(event); // to ensure movement
-    } else {                                            // clicked on block/button inside group
+        QGraphicsRectItem::mousePressEvent(event); //! to ensure movement
+    }
+    else //! clicked on block/button inside group
+    {
         event->ignore();
     }
+
     docScene->selectGroup(this);
 }
 
 void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
 {
-    if (event->mimeData()->hasFormat(BLOCK_MIME)) {
+    if (event->mimeData()->hasFormat(BLOCK_MIME))
+    {
         showInsertLine(None, QPointF());
 
         Block *selected = docScene->selectedGroup()->selectedBlock();
-        if (selected == 0) {
+
+        if (selected == 0)
+        {
             event->accept();
+
             return;
         }
+
         qDebug("\nBlockGroup::dropEvent()");
         time.restart();
 
@@ -754,12 +925,15 @@ void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
         Block *target = 0;
 
         // find drop target
-        if (shiftMod) {
+        if (shiftMod)
+        {
             QPair<Block*, bool> targetRight = root->findClosestLeaf(
                     root->mapFromParent(event->pos()));
             target = targetRight.first;
             isRight = targetRight.second;
-        } else {
+        }
+        else
+        {
             int lineNo = lineAt(scenePos + QPointF(0, CHAR_HEIGHT/2.0));
             scenePos -= QPointF(0, CHAR_HEIGHT/2.0);
             target = getBlockIn(lineNo)->getFirstLeaf();
@@ -767,7 +941,8 @@ void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
 
         // test for possible recursion
         if (event->dropAction() != Qt::CopyAction &&
-            (selected == target->parent || selected->isAncestorOf(target->parent))) {
+            (selected == target->parent || selected->isAncestorOf(target->parent)))
+        {
             event->setDropAction(Qt::IgnoreAction);
             return;
         }
@@ -777,7 +952,9 @@ void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
         // clone block
 //        TreeElement *cloneEl = selected->element->clone();
         QString text = selected->element->getText();
+
         if (text.endsWith("\n")) text.chop(1);
+
         TreeElement *cloneEl = new TreeElement(text);
         // NOTE: deep clone is not needed here since it will be reanalyzed anyway
 
@@ -786,24 +963,30 @@ void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
         qDebug("cloned block created: %d", time.restart());
 
         // add clone to hierarchy
-        if (shiftMod) {
+        if (shiftMod)
+        {
             clone->element->setLineBreaking(false);
             Block* nextSibling = isRight ? target : target->nextSib;
             clone->setParentBlock(target->parent, nextSibling);
-        } else {
+        }
+        else
+        {
             clone->element->setLineBreaking(true);
             Block* nextSibling = lineNo <= lastLine ? target : 0;
             clone->setParentBlock(target->parent, nextSibling);
-            if (nextSibling == 0)
-                clone->prevSib->getElement()->setLineBreaking(true);
+
+            if (nextSibling == 0) clone->prevSib->getElement()->setLineBreaking(true);
         }
 
         // destroy original if needed (cannot remove before adding, layout would change)
-        if (event->dropAction() != Qt::CopyAction) {
+        if (event->dropAction() != Qt::CopyAction)
+        {
             selected->setVisible(false);
             BlockGroup *sourceGroup = selected->blockGroup();
             selected->removeBlock(true);
-            if (sourceGroup != this) {
+
+            if (sourceGroup != this)
+            {
                 sourceGroup->root->updateBlock();
             }
         }
@@ -811,60 +994,84 @@ void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
         reanalyze(clone, scenePos);
 
         event->accept();
-    } else {
+    }
+    else
+    {
         event->ignore();
     }
 }
 
 void BlockGroup::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    if (event->mimeData()->hasFormat(BLOCK_MIME)) {
+    if (event->mimeData()->hasFormat(BLOCK_MIME))
+    {
         event->acceptProposedAction();
-        if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) {
+
+        if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
+        {
             showInsertLine(Vertical, event->scenePos());
-        } else {
+        }
+        else
+        {
             showInsertLine(Horizontal, event->scenePos());
         }
-    } else {
+    }
+    else
+    {
         QGraphicsRectItem::dragEnterEvent(event);
     }
 }
 
 void BlockGroup::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    if (event->mimeData()->hasFormat(BLOCK_MIME)) {
+    if (event->mimeData()->hasFormat(BLOCK_MIME))
+    {
         event->acceptProposedAction();
-        if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) {
+
+        if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
+        {
             showInsertLine(Vertical, event->scenePos());
-        } else {
+        }
+        else
+        {
             showInsertLine(Horizontal, event->scenePos());
         }
         // scroll while dragging
         ensureVisible(event->pos().x(), event->pos().y(), 1, 1, 30, 30);
-    } else {
+    }
+    else
+    {
         QGraphicsRectItem::dragMoveEvent(event);
     }
 }
 
 void BlockGroup::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    if (event->mimeData()->hasFormat(BLOCK_MIME)) {
+    if (event->mimeData()->hasFormat(BLOCK_MIME))
+    {
         showInsertLine(None, QPointF());
-    } else {
+    }
+    else
+    {
         QGraphicsRectItem::dragLeaveEvent(event);
     }
 }
 
 void BlockGroup::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-    if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) {
+    if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
+    {
         event->ignore();
         return;
     }
-    if (docScene->itemAt(event->scenePos()) == this) {  // clicked directly on group
+
+    if (docScene->itemAt(event->scenePos()) == this) //! clicked directly on group
+    {
         setPos(30, 30);
         event->accept();
-    } else {                                            // clicked on block/button inside group
+    }
+    else //! clicked on block/button inside group
+    {
         event->ignore();
     }
     QGraphicsRectItem::mouseDoubleClickEvent(event);
@@ -888,11 +1095,14 @@ void BlockGroup::highlightLines(QSet<int> lines)
     color.setNamedColor("yellow");
     color.setAlpha(100);
 
-    foreach (int line, lines) {
+    foreach (int line, lines)
+    {
         if (highlightingRects.value(line, 0) != 0) continue;
 
         Block *bl = getBlockIn(line);
-        if (bl != 0) {
+
+        if (bl != 0)
+        {
             QPointF pos = mapFromItem(bl, 0, 0);
             QGraphicsRectItem *hRect = new QGraphicsRectItem(
                     pos.x(), pos.y() + offset,
@@ -908,25 +1118,34 @@ void BlockGroup::highlightLines(QSet<int> lines)
 
 bool BlockGroup::searchBlocks(QString searchStr, bool allowInner, bool exactMatch)
 {
-    if (searchStr.isEmpty())
-        return false;
+    if (searchStr.isEmpty()) return false;
 
     bool found = false;
     TreeElement *el = root->getElement();
     Block *bl;
+
     if (allowInner) searchStr.replace(" ", "_");
 
-    while (el->hasNext()) {
-        if (allowInner || el->isLeaf()) {
+    while (el->hasNext())
+    {
+        if (allowInner || el->isLeaf())
+        {
             if ((!exactMatch && el->getType().contains(searchStr)) ||
-                el->getType() == searchStr) {
+                el->getType() == searchStr)
+            {
                 TreeElement *foundEl = el;
-                do {
+                do
+                {
                     bl = foundEl->getBlock();
+
                     if (foundEl->isLeaf()) break;
+
                     foundEl = (*foundEl)[0];
-                } while (bl == 0);
-                if (bl != 0) {
+                }
+                while (bl == 0);
+
+                if (bl != 0)
+                {
                     bl->setYellow(true);
                     found = true;
                 }
@@ -934,28 +1153,34 @@ bool BlockGroup::searchBlocks(QString searchStr, bool allowInner, bool exactMatc
         }
         el = el->next();
     }
-    if (found)
-        searched = true;
+    if (found) searched = true;
+
     return found;
 }
 
 void BlockGroup::clearSearchResults()
 {
     if (!searched) return;
+
     searched = false;
 
     TreeElement *el = root->getElement();
     Block *bl;
-    while (el->hasNext()) {
+
+    while (el->hasNext())
+    {
         bl = el->getBlock();
-        if (bl != 0)
-            bl->setYellow(false);
+
+        if (bl != 0) bl->setYellow(false);
+
         el = el->next();
     }
 
-    foreach (QGraphicsRectItem *hRect, highlightingRects.values()) {
+    foreach (QGraphicsRectItem *hRect, highlightingRects.values())
+    {
         delete hRect;
     }
+
     highlightingRects.clear();
     qDebug("Search cleared");
 }

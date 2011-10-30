@@ -1,3 +1,9 @@
+/**
+ * language_manager.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class LanguageManager and it's funtions and identifiers
+ *
+ */
 #ifndef LANGUAGE_MANAGER_H
 #define LANGUAGE_MANAGER_H
 
@@ -19,8 +25,8 @@ public:
     QStringList getLanguages() const;
 
 private:
-    QHash<QString, Analyzer *> analyzers;       // <file_extension, analyzer>
-    QHash<QString, QString> languages;          // <language_name, file_extension>
+    QHash<QString, Analyzer *> analyzers;       //! <file_extension, analyzer>
+    QHash<QString, QString> languages;          //! <language_name, file_extension>
     Analyzer *defaultAnalyzer;
     QList<QPair<QString, QHash<QString, QString> > > configData;
 };
