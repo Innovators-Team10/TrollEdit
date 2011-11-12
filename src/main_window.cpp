@@ -19,9 +19,12 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     view->setScene(scene);
     setCentralWidget(view);
 
+    undoStack = new QUndoStack(this);
+
     createActions();
     createMenus();
     createToolBars();
+    createUndoView();
     statusBar();
 
     readSettings();
@@ -170,6 +173,12 @@ void MainWindow::createActions()
     printableAreaAction->setToolTip(tr("Show margins of printable area"));
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
+
+    undoAction = undoStack->createUndoAction(this, tr("&Undo"));
+    undoAction->setShortcuts(QKeySequence::Undo);
+
+    redoAction = undoStack->createRedoAction(this, tr("&Redo"));
+    redoAction->setShortcuts(QKeySequence::Redo);
 }
 
 void MainWindow::createMenus()
@@ -251,6 +260,14 @@ void MainWindow::createToolBars()
     formatToolBar->addWidget(searchLineEdit);
 
     formatToolBar->addAction(clearAction);
+}
+
+void MainWindow::createUndoView()
+{
+    undoView = new QUndoView(undoStack);
+    undoView->setWindowTitle(tr("Command List"));
+    undoView->show();
+    undoView->setAttribute(Qt::WA_QuitOnClose, false);
 }
 
 void MainWindow::setModified(bool flag)
@@ -581,3 +598,13 @@ void MainWindow::writeSettings()
     settings.setValue("size", size());
     settings.setValue("maximized", isMaximized());
 }
+
+/*void MainWindow::deleteItem()
+{
+    if (diagramScene->selectedItems().isEmpty())
+        return;
+
+    QUndoCommand *deleteCommand = new DeleteCommand(diagramScene);
+    undoStack->push(deleteCommand);
+}*/
+

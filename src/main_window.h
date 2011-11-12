@@ -18,6 +18,8 @@
 class DocumentScene;
 class LanguageManager;
 class BlockGroup;
+class QUndoStack;
+class QUndoView;
 
 class MainWindow : public QMainWindow
 {
@@ -86,6 +88,9 @@ private:
     QAction *textItalicAction;
     QAction *textUnderlineAction;
 
+    QAction *undoAction;
+    QAction *redoAction;
+
     QMenu *fileMenu;
     QMenu *editMenu;
     QMenu *optionsMenu;
@@ -106,10 +111,14 @@ private:
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
 
+    QUndoStack *undoStack;
+    QUndoView *undoView;
 
     void createActions();
     void createMenus();
     void createToolBars();
+    void createUndoView();
+
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
     void load(QString fileName);

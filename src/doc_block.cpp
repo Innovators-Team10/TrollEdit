@@ -6,6 +6,9 @@
 #include "document_scene.h"
 #include "block_group.h"
 #include "fold_button.h"
+#include "commands.h"
+#include <QUndoCommand>
+
 
 DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)    //! manual creation
     : Block(new TreeElement("doc_comment", true, true), 0, parentgroup)
@@ -236,6 +239,7 @@ void DocBlock::setContent(QString text)
     }
 }
 
+/*
 void DocBlock::addText(QString text)
 {
     myTextItem->setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
@@ -247,6 +251,12 @@ void DocBlock::addText(QString text)
 
     path = "";
     updateBlock(false);
+}*/
+
+void DocBlock::addText(QString text)
+{
+    QUndoCommand *addTextCommand = new AddTextCommand(text, &myTextItem, &docType, &arrow, &path);
+    undoStack->push(addTextCommand);
 }
 
 void DocBlock::addImage(const QImage &image, QString imagePath)
@@ -548,3 +558,4 @@ void DocBlock::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 {
     Block::paint(painter, option, widget);
 }
+
