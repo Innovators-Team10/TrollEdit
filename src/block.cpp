@@ -104,7 +104,7 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
                 childEl->deleteAllChildren();
                 new DocBlock(text, childEl, this, group);
             }
-        }        
+        }
     }
 
     // set highlighting

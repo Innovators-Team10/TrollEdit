@@ -9,6 +9,7 @@
 
 #include <QList>
 #include <QString>
+#include "analyzer.h"
 
 class Block;
 
@@ -81,6 +82,10 @@ public:
 
      TreeElement *clone() const;
 
+     QString type;
+
+     Analyzer* analyzer;
+
  protected:
      TreeElement *parent;
 
@@ -90,7 +95,7 @@ public:
      static const char *NEWLINE_EL;
 
      QList<TreeElement*> children;
-     QString type;
+
      Block *myBlock;
      TreeElement *pair;
      bool lineBreaking;

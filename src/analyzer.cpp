@@ -8,6 +8,8 @@
 #include "analyzer.h"
 #include "tree_element.h"
 
+#include <QDebug>
+
 const char *Analyzer::EXTENSIONS_FIELD = "extensions";
 const char *Analyzer::LANGUAGE_FIELD = "language";
 const char *Analyzer::MAIN_GRAMMAR_FIELD = "full_grammar";
@@ -23,6 +25,39 @@ const char *Analyzer::CONFIG_KEYS_FIELD = "cfg_keys";
 const QString Analyzer::TAB = "    ";
 
 QString exception;
+
+static void stackDump (lua_State *L) {
+    int i;
+    int top = lua_gettop(L);
+    qDebug("-------STACK--------|");
+    for (i = 1; i <= top; i++) { /* repeat for each level */
+        int t = lua_type(L, i);
+        switch (t) {
+        case LUA_TSTRING: { /* strings */
+            qDebug("%d. string: '%s'\t|", i, lua_tostring(L, i));
+            break;
+        }
+        case LUA_TBOOLEAN: { /* booleans */
+            qDebug("%d. %s\t|", i, lua_toboolean(L, i) ? "true" : "false");
+            break;
+        }
+        case LUA_TNUMBER: { /* numbers */
+            qDebug("%d. numbers %g\t|", i, lua_tonumber(L, i));
+            break;
+        }
+        case LUA_TFUNCTION: { /* numbers */
+            qDebug("%d. function %s\t|", i, lua_tostring(L, i) );
+            break;
+        }
+        default: { /* other values*/
+            qDebug("%d. other %s\t|", i, lua_typename(L, t));
+            break;
+        }
+        }
+  //          qDebug("--------------------|"); /* put a separator */
+    }
+    qDebug("");
+}
 
 /**
  * Analyzer class contructor, that initializes Lua and
@@ -272,10 +307,50 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 
     if(lua_istable(L, -1))
     {
-        root = createTreeFromLuaStack();
+       root = createTreeFromLuaStack();
+
+     TreeElement *iter = root->next();
+       int i =0;
+/*       while(iter->hasNext()){
+           i++;
+               QString string = iter->getType();//->getText(false);
+               qDebug() << i <<". TreeElement: " << string;
+               qDebug() << i <<". isLeaf...(): " << iter->isLeaf();
+               iter = iter->next();
+       }
+*/
+
+       qDebug() << "------------DYNAMIC--------------";
+       TreeElement *root1 = nextElementAST();
+//       root = root1;
+//       root->analyzer = this;
+    qDebug() <<". TreeElement: " << hasNextElementAST();
+      TreeElement *iter1 = root1;//root1->next();
+      int k =0;
+      while(hasNextElementAST() && iter->hasNext()){
+          k++;
+          stackDump(L);
+           iter1 = nextElementAST();                            //index pre pocet nextov
+           QString string = iter1->getType();//->getText(false);
+           qDebug() << k <<". TreeElement: " << string;
+//           qDebug() << k <<". trHasNext(): " << hasNextElementAST();
+           qDebug() << k <<". isLeaf...(): " << isLeafElementAST(iter1);
+
+           i++;
+               QString string1 = iter->getType();//->getText(false);
+               qDebug() << "__" << i <<". TreeElement: " << string1;
+               qDebug() << "__" << i <<". isLeaf...(): " << iter->isLeaf();
+               iter = iter->next();
+
+//           TreeElement *iter1P = parentElementAST();            //index - 1 z povodneho stavu a je to
+//           QString stringP = iter1P->getType();
+//           qDebug() << k <<". TreeElementP: " << stringP;
+//           stackDump(L);
+        }
+
     }
 
-    if (root != 0)
+    if(root != 0)
     {
         processWhites(root);
     }
@@ -401,6 +476,144 @@ TreeElement *Analyzer::createTreeFromLuaStack()
     return root;
 }
 
+TreeElement *Analyzer::nextElementAST()
+{
+  //  qDebug("nextElementAST()");
+  //  stackDump(L);
+
+    TreeElement *root = 0;
+    if(!lua_isnumber(L,-1) ){
+        lua_pushnil(L);               //! first key
+ //       qDebug("pushnil");
+ //       stackDump(L);
+    }
+
+    if(lua_next(L, -2) != 0)  //! uses 'key' (at index -2) and 'value' (at index -1)
+    {
+ //       qDebug("luanext");
+ //       stackDump(L);
+
+        if(!lua_isstring(L, -1)){
+            do{
+ //               qDebug("isTable()");
+ //               stackDump(L);
+                if(!lua_isnumber(L,-1)){
+                    lua_pushnil(L);               //! first key
+ //                   qDebug("pushnil");
+ //                   stackDump(L);
+                }
+            }while((lua_next(L, -2) != 0) && (lua_istable(L, -1))  );
+        }
+
+       // lua_pop(L,1);
+ //           qDebug("isString()");
+ //           stackDump(L);
+            QString nodeName = QString(lua_tostring(L, -1));
+            bool paired = false;
+
+            if (pairedTokens.indexOf(nodeName, 0) >= 0) //! pairing needed
+            {
+                paired = true;
+            }
+            root = new TreeElement(nodeName,
+                                   selectableTokens.contains(nodeName),
+                                   multiTextTokens.contains(nodeName),
+                                   false, paired);
+
+            if (floatingTokens.contains(nodeName))
+                root->setFloating(true);
+        lua_pop(L, 1); //! removes 'value'; keeps 'key' for next iteration
+    }else{
+        lua_pop(L, 1); //! removes 'value'; keeps 'key' for next iteration
+        root = nextElementAST();
+    }
+
+    return root;
+}
+
+bool Analyzer::hasNextElementAST()
+{
+//    qDebug("hasNextElementAST()");
+//    stackDump(L);
+int identifier = 0;
+    if( ( lua_gettop(L)>=10 ) == true ) //! ak je v zasobniku viac ako 10 prvkov, tak existuje element AST
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool Analyzer::isLeafElementAST(TreeElement* root)
+{
+/*    zistovanie ci je Leaf pomocou riadiacich identifikatorov - funguje, ked do selectable dodefinujeme dalsie identifikatory
+if((   selectableTokens.contains(root->getType())
+       || floatingTokens.contains(root->getType())
+       || multiTextTokens.contains(root->getType())
+       || ("nl" == root->getType())
+       || ("whites" == root->getType()) ) ){
+
+        return false;
+    }else{
+        return true;
+    }
+    */
+}
+
+TreeElement *Analyzer::parentElementAST()
+{
+    qDebug("getParentElementAST");
+    stackDump(L);
+
+    TreeElement *root = 0;
+    if(!lua_isnumber(L,-1)){
+        lua_pushnil(L);               //! first key
+        qDebug("pushnil");
+        stackDump(L);
+    }
+
+    if(lua_next(L, -2) != 0)  //! uses 'key' (at index -2) and 'value' (at index -1)
+    {
+        qDebug("luanext");
+        stackDump(L);
+        if(!lua_isstring(L, -1)){
+            do{
+                qDebug("isTable()");
+                stackDump(L);
+                if(!lua_isnumber(L,-1)){
+                    lua_pushnil(L);               //! first key
+                    qDebug("pushnil");
+                    stackDump(L);
+                }
+            }while((lua_next(L, -2) != 0) && (lua_istable(L, -1)) );
+        }
+       // lua_pop(L,1);
+            qDebug("isString()");
+            stackDump(L);
+            QString nodeName = QString(lua_tostring(L, -1));
+            bool paired = false;
+
+            if (pairedTokens.indexOf(nodeName, 0) >= 0) //! pairing needed
+            {
+                paired = true;
+            }
+            root = new TreeElement(nodeName,
+                                   selectableTokens.contains(nodeName),
+                                   multiTextTokens.contains(nodeName),
+                                   false, paired);
+
+            if (floatingTokens.contains(nodeName))
+                root->setFloating(true);
+        lua_pop(L, 1); //! removes 'value'; keeps 'key' for next iteration
+    }else{
+        lua_pop(L, 1); //! removes 'value'; keeps 'key' for next iteration
+        root = nextElementAST();
+    }
+
+    return root;
+}
 /**
  * Check the pairing of the element
  * @param closeEl input TreeElement
@@ -514,6 +727,7 @@ void Analyzer::processWhites(TreeElement* root)
             }
         }
     }
+
     // process other whites: shift left as far as possible, don't shift when in line-breaking element
     foreach (TreeElement *el, whites)
     {

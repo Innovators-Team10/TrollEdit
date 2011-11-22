@@ -138,6 +138,7 @@ void TreeElement::deleteAllChildren()
 bool TreeElement::isLeaf() const
 {
     return !(children.count());
+    //return parent->analyzer->isLeafElementAST();  //! new iterator
 }
 bool TreeElement::isImportant() const
 {
@@ -386,11 +387,12 @@ QString TreeElement::getType() const
 // returns all text in this element and it's descendants
 QString TreeElement::getText(bool noComments) const
 {
-    DocBlock *docBl = 0;
+     QString text;
+/*    DocBlock *docBl = 0;
 
     if (isFloating()) docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
 
-    QString text;
+
     QString spacesStr = QString().fill(' ', spaces);
 
     if (isLeaf())
@@ -424,7 +426,7 @@ QString TreeElement::getText(bool noComments) const
         if (docBl == 0 || !noComments)
             text.append("\n");                      //! add line break if needed
     }
-
+*/
     return text;
 }
 
@@ -446,6 +448,7 @@ bool TreeElement::hasNext(int index)
     if (parent == 0) return false;
 
     return parent->hasNext(this->index() + 1);
+//  return parent->analyzer->hasNextElementAST(); //! new iterator
 }
 
 TreeElement *TreeElement::next(int index)
@@ -456,6 +459,7 @@ TreeElement *TreeElement::next(int index)
     if (parent == 0) return 0;
 
     return parent->next(this->index() + 1);
+//  return parent->analyzer->nextElementAST();  //! new iterator
 }
 
 // operators
