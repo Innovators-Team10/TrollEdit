@@ -40,7 +40,8 @@ public:
     TreeElement* nextElementAST();
     bool hasNextElementAST();
     TreeElement* parentElementAST();
-    bool isLeafElementAST(TreeElement* root);
+    bool isLeafElementAST();
+    int getCountElementChildrenAST();
 
 private:
     static const char *EXTENSIONS_FIELD;

@@ -253,6 +253,7 @@ bool TreeElement::isPaired() const
 int TreeElement::childCount() const
 {
     return children.count();
+    //return this->analyzer->getCountElementChildrenAST();
 }
 
 int TreeElement::index() const

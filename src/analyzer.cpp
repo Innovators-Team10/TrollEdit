@@ -334,12 +334,33 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
            QString string = iter1->getType();//->getText(false);
            qDebug() << k <<". TreeElement: " << string;
 //           qDebug() << k <<". trHasNext(): " << hasNextElementAST();
-           qDebug() << k <<". isLeaf...(): " << isLeafElementAST(iter1);
+           qDebug() << k <<". isLeaf...(): " << isLeafElementAST();
 
            i++;
+
+                   qDebug() << k <<". getCountElementChildrenAST() " << getCountElementChildrenAST();
+
+/*           luaL_dofile(L, "C:\\Test\\test.lua");     //! load the script
+           stackDump(L);
+           lua_getfield(L, LUA_GLOBALSINDEX ,"table_lenght");                  // function to be called: 'lenght'
+           stackDump(L);
+           //lua_getfield(L, );
+           lua_insert(L, -3);
+           stackDump(L);
+           lua_insert(L, -3);
+           stackDump(L);
+           int err = lua_pcall(L, 1, 1, 0);            // call with 2 arguments and 1 result, no error function
+           stackDump(L);
+            if(lua_isnumber(L, -1)){
+                qDebug() << "lenght(): " << lua_tonumber(L, -1);
+            }
+*/
+
                QString string1 = iter->getType();//->getText(false);
                qDebug() << "__" << i <<". TreeElement: " << string1;
                qDebug() << "__" << i <<". isLeaf...(): " << iter->isLeaf();
+               qDebug() << "__" << i <<". children...(): " << iter->childCount();
+
                iter = iter->next();
 
 //           TreeElement *iter1P = parentElementAST();            //index - 1 z povodneho stavu a je to
@@ -546,20 +567,22 @@ int identifier = 0;
     }
 }
 
-bool Analyzer::isLeafElementAST(TreeElement* root)
+bool Analyzer::isLeafElementAST()
 {
-/*    zistovanie ci je Leaf pomocou riadiacich identifikatorov - funguje, ked do selectable dodefinujeme dalsie identifikatory
-if((   selectableTokens.contains(root->getType())
-       || floatingTokens.contains(root->getType())
-       || multiTextTokens.contains(root->getType())
-       || ("nl" == root->getType())
-       || ("whites" == root->getType()) ) ){
-
-        return false;
-    }else{
+    if(lua_istable(L,-2) && lua_objlen(L, -2)==1){
         return true;
+    }else{
+        return false;
     }
-    */
+}
+
+int Analyzer::getCountElementChildrenAST()
+{
+    if(lua_istable(L,-2)){
+        return lua_objlen(L, -2)-1;
+    }else{
+        return 0;
+    }
 }
 
 TreeElement *Analyzer::parentElementAST()
