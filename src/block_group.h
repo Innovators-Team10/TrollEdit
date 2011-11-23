@@ -1,3 +1,10 @@
+/**
+ * block_group.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class BlockGroup and it's funtions and identifiers
+ *
+ */
+
 #ifndef BLOCK_GROUP_H
 #define BLOCK_GROUP_H
 
@@ -24,7 +31,8 @@ public:
     ~BlockGroup();
 
     enum { Type = UserType + 2 };
-    enum InsertLine {
+    enum InsertLine
+    {
         None = 0, Horizontal = 1, Vertical = 2,
     };
 
@@ -75,7 +83,7 @@ public:
     // helpers
     static QStatusBar *getStatusBar();
     static QList<Block*> blocklist_cast(QList<QGraphicsItem*> list);
-    QTime time; // used for benchmarking
+    QTime time; //! used for benchmarking
 
     // constants
     static const QPointF OFFSET_IN_TL, OFFSET_IN_BR, OFFSET_OUT,
@@ -84,7 +92,7 @@ public:
     int TAB_LENGTH;
     qreal CHAR_HEIGHT, CHAR_WIDTH;
 
-    DocumentScene *docScene;    // my scene
+    DocumentScene *docScene;    //! my scene
 
 signals:
 
@@ -115,15 +123,15 @@ private:
     void computeTextSize();
 
     // fields
-    QString fileName;           // name of currently loaded file
-    Analyzer *analyzer;         // my analyzer
-    Block *root;                // main (root) block
-    Block *selected;            // currently selected block
-    QList<Block*> lineStarts;   // line starting blocks
-    int lastLine;               // curent last line
-    QSet<Block*> foldableBlocks;// foldable blocks, only 1 per line allowed
+    QString fileName;           //! name of currently loaded file
+    Analyzer *analyzer;         //! my analyzer
+    Block *root;                //! main (root) block
+    Block *selected;            //! currently selected block
+    QList<Block*> lineStarts;   //! line starting blocks
+    int lastLine;               //! curent last line
+    QSet<Block*> foldableBlocks;//! foldable blocks, only 1 per line allowed
     qreal lastXPos;
-    QGraphicsLineItem *horizontalLine, *verticalLine; // insertion cues
+    QGraphicsLineItem *horizontalLine, *verticalLine; //! insertion cues
     bool modified;
     QHash<int, QGraphicsRectItem*> highlightingRects;
     bool searched;

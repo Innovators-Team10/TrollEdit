@@ -1,3 +1,9 @@
+/**
+ * text_item.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class TextItem and it's funtions and identifiers
+ *
+ */
 #ifndef TEXT_ITEM_H
 #define TEXT_ITEM_H
 
@@ -16,7 +22,7 @@ public:
     int type() const {return Type;}
 
     bool setTextCursorPos(int i);
-    bool removeCharAt(int i);   // returns false if text is empty after removal
+    bool removeCharAt(int i);   //! returns false if text is empty after removal
 
     void setPos(const QPointF &pos);
     void setFont(const QFont &font);
@@ -26,7 +32,7 @@ public:
 
     void adaptToFloating();
 
-    qreal MARGIN;   // distance between QGraphicsTextItem bounding rect and actial text start
+    qreal MARGIN;   //! distance between QGraphicsTextItem bounding rect and actial text start
 
 protected:
     void keyPressEvent(QKeyEvent *event);

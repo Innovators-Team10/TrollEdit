@@ -28,9 +28,12 @@ void FoldButton::updatePos() {
     qreal x = 0;
     qreal y = myBlock->blockGroup()->CHAR_HEIGHT/2 - plus.size().height()/2;
 
-    if (!myBlock->getElement()->isFloating()) {
+    if (!myBlock->getElement()->isFloating())
+    {
         Block *lineStart = myBlock->blockGroup()->getBlockIn(myBlock->getLine());
-        if (myBlock->getAncestorWhereFirst() != lineStart) {
+
+        if (myBlock->getAncestorWhereFirst() != lineStart)
+        {
             x = myBlock->mapFromItem(lineStart, 0, 0).x();
         }
     }
@@ -67,13 +70,17 @@ void FoldButton::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 void FoldButton::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (myBlock->isFolded()) {
+    if (myBlock->isFolded())
+    {
         myBlock->setFolded(false);
         setPixmap(minus);
-    } else {
+    }
+    else
+    {
         myBlock->setFolded(true);
         setPixmap(plus);
     }
+
     event->accept();
 //    QGraphicsPixmapItem::mousePressEvent(event);
 }

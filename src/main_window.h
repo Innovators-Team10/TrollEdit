@@ -1,3 +1,9 @@
+/**
+ * main_window.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class MainWindow and it's funtions and identifiers
+ *
+ */
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
@@ -9,6 +15,10 @@
 #include <QPainter>
 #include <QList>
 
+typedef struct pokus
+{
+        int test;
+} POKUS;
 
 class DocumentScene;
 class LanguageManager;
@@ -47,7 +57,7 @@ protected:
 
 private:
     enum { MaxRecentFiles = 6 };
-    QActionGroup *groupActions;     // used to disable subset of actions when no group is selected
+    QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
 
     QAction *aboutQtAction;
     QAction *newAction;

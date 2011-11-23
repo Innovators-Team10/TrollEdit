@@ -1,3 +1,10 @@
+/**
+ * block.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class Block and it's funtions and identifiers
+ *
+ */
+
 #ifndef BLOCK_H
 #define BLOCK_H
 
@@ -23,7 +30,8 @@ public:
     ~Block();
 
     enum { Type = UserType + 1 };
-    enum OffsetType {
+    enum OffsetType
+    {
         InnnerTopLeft = 0, InnerBottomRight = 1, Outer = 2,
     };
 
@@ -77,7 +85,7 @@ public:
     QRectF idealRect() const {return QRectF(QPointF(), idealGeometry.size());}
     QRectF geometry() const;
     void setGeometry(QRectF geometry);
-    QRectF boundingRect() const; // currently same as QGraphicsRectItem::rect()
+    QRectF boundingRect() const; //! currently same as QGraphicsRectItem::rect()
     QPointF mapIdealToAncestor(Block* ancestor, QPointF pos) const;    
 
     // visualization
@@ -98,7 +106,7 @@ public:
 public slots:
     void textFocusChanged(QFocusEvent* event);
     virtual void textChanged();
-    void acceptHover(); // called by hover timer
+    void acceptHover(); //! called by hover timer
 
 signals:
     void visibilityChanged(bool flag);
@@ -127,32 +135,32 @@ protected:
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
 
-    bool folded;     // true when block is folded
-    bool moveStarted;// true while block is moving
-    bool edited;     // edited after last AST analysis
-    bool showing;    // true when block border is painted, block has inner and outer offset
-    int level;       // level of showing
-    bool moreSpace;  // true when dropping to this block's parent, block has outer offset
-    bool pointed;    // true if it is last hovered block
+    bool folded;     //! true when block is folded
+    bool moveStarted;//! true while block is moving
+    bool edited;     //! edited after last AST analysis
+    bool showing;    //! true when block border is painted, block has inner and outer offset
+    int level;       //! level of showing
+    bool moreSpace;  //! true when dropping to this block's parent, block has outer offset
+    bool pointed;    //! true if it is last hovered block
     bool repaintNeeded;
     bool isSearchResult;
 
-    TreeElement *element;       // my AST element
-    Block *parent;              // my parent
-    BlockGroup *group;          // my block group
-    TextItem *myTextItem;       // my text area (AST leafs only)
-    int line;                   // my line
-    QPropertyAnimation *animation; // assigned animation
-    QRectF idealGeometry;       // desired geometry (position + size)
+    TreeElement *element;       //! my AST element
+    Block *parent;              //! my parent
+    BlockGroup *group;          //! my block group
+    TextItem *myTextItem;       //! my text area (AST leafs only)
+    int line;                   //! my line
+    QPropertyAnimation *animation; //! assigned animation
+    QRectF idealGeometry;       //! desired geometry (position + size)
 
-    Block *nextSib, *prevSib, *firstChild;    // links
+    Block *nextSib, *prevSib, *firstChild;    //! links
 
     FoldButton *foldButton;
-    QTimer *timer;              // hover timer
+    QTimer *timer;              //! hover timer
 
-    QPair<QFont, QColor> highlightFormat; // format of my text (if any)
+    QPair<QFont, QColor> highlightFormat; //! format of my text (if any)
 
-    QPointF startDragPos; // used to determine drag start
+    QPointF startDragPos; //! used to determine drag start
 
     void removeLinks();
     void assignHighlighting(TreeElement* el);

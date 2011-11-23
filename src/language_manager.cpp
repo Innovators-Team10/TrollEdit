@@ -18,17 +18,25 @@ LanguageManager::LanguageManager(QString programPath)
     QFileInfo configFile(programPath + CONFIG_FILE);
     QFileInfo snippetFile(programPath + SNIPPET_FILE);
 
-    foreach (QFileInfo file, grammars) {
-        if (file != defaultGrammar && file != configFile && file != snippetFile) {
-            try {
+    foreach (QFileInfo file, grammars)
+    {
+        if (file != defaultGrammar && file != configFile && file != snippetFile)
+        {
+            try
+            {
                 Analyzer *a = new Analyzer(file.absoluteFilePath());
                 a->readSnippet(snippetFile.absoluteFilePath());
                 QStringList extensions = a->getExtensions();
-                foreach (QString ext, extensions) {
+
+                foreach (QString ext, extensions)
+                {
                     analyzers.insert(ext, a);
                 }
+
                 languages.insert(a->getLanguageName(), extensions.first());
-            } catch(...) {
+            }
+            catch(...)
+            {
                 // analyzer is not inserted, messages were already displayed in Analyzer class
             }
         }
@@ -73,5 +81,6 @@ QStringList LanguageManager::getLanguages() const
     lang.removeOne(defaultAnalyzer->getLanguageName());
     lang.sort();
     lang.append(defaultAnalyzer->getLanguageName());
+
     return lang;
 }
