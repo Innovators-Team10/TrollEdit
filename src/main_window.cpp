@@ -472,6 +472,27 @@ void MainWindow::openRecentFile()
 
 void MainWindow::about()
 {
+    //___experiment___//
+        lua_State *L = lua_open();
+
+        luaL_openlibs(L);
+
+        // make my_function() available to Lua programs
+       // lua_register(L, "my_function", my_function);
+
+//        std::cerr << "-- Loading file: " << file << std::endl;
+
+        int s = luaL_loadfile(L, "test.lua");
+
+        if ( s==0 ) {
+          // execute Lua program
+          s = lua_pcall(L, 0, LUA_MULTRET, 0);
+        }
+
+        lua_close(L);
+
+        //___end of experiment___//
+
     QMessageBox::about(this, tr("About TrollEdit"),
                        tr("<h2>TrollEdit 1.0</h2>"
                           "<p/>Team 5 - Ufopak"
@@ -505,7 +526,8 @@ QString MainWindow::strippedName(const QString &fullFileName)
 
 void MainWindow::help()
 {
-    QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"//doc//index.html"));
+//    QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"//doc//index.html"));
+    QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/../../data/doc/index.html"));
 }
 
 void MainWindow::settings()

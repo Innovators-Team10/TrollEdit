@@ -17,6 +17,39 @@ const QString Analyzer::TAB = "    ";
 
 QString exception;
 
+static void stackDump (lua_State *L) {
+int i;
+int top = lua_gettop(L);
+qDebug("-------STACK--------|");
+for (i = 1; i <= top; i++) { /* repeat for each level */
+int t = lua_type(L, i);
+switch (t) {
+case LUA_TSTRING: { /* strings */
+qDebug("%d. string: '%s'\t|", i, lua_tostring(L, i));
+break;
+}
+case LUA_TBOOLEAN: { /* booleans */
+qDebug("%d. %s\t|", i, lua_toboolean(L, i) ? "true" : "false");
+break;
+}
+case LUA_TNUMBER: { /* numbers */
+qDebug("%d. numbers %g\t|", i, lua_tonumber(L, i));
+break;
+}
+case LUA_TFUNCTION: { /* numbers */
+qDebug("%d. function %s\t|", i, lua_tostring(L, i) );
+break;
+}
+default: { /* other values*/
+qDebug("%d. other %s\t|", i, lua_typename(L, t));
+break;
+}
+}
+// qDebug("--------------------|"); /* put a separator */
+}
+qDebug("");
+}
+
 Analyzer::Analyzer(QString script)
 {
     msgBox = new QMessageBox();
@@ -25,6 +58,7 @@ Analyzer::Analyzer(QString script)
     luaL_openlibs(L);           // load Lua base libraries
     try {
         setupConstants();
+            stackDump(L);
     } catch (QString exMsg) {
         msgBox->critical(0, "Script error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
     }
@@ -218,7 +252,7 @@ TreeElement* Analyzer::analyzeFull(QString input)
         TreeElement *root = analyzeString(mainGrammar, input);
         root->setFloating();
         return root;
-    } catch(QString exMsg) {
+    } catch(QString exMsg){
         msgBox->critical(0, "Runtime error", exMsg,QMessageBox::Ok,QMessageBox::NoButton);
         return 0;
     }

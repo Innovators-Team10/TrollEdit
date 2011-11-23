@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QList>
 
+
 class DocumentScene;
 class LanguageManager;
 class BlockGroup;
