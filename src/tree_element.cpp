@@ -253,6 +253,7 @@ bool TreeElement::isPaired() const
 int TreeElement::childCount() const
 {
     return children.count();
+    //return this->analyzer->getCountElementChildrenAST();
 }
 
 int TreeElement::index() const
@@ -291,6 +292,7 @@ int TreeElement::indexOfBranch(const TreeElement *desc) const
 QList<TreeElement*> TreeElement::getChildren() const
 {
     return children;
+    //return parent->analyzer->getElementChildren();
 }
 
 QList<TreeElement*> TreeElement::getAncestors() const
