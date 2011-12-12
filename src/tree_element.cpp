@@ -292,6 +292,7 @@ int TreeElement::indexOfBranch(const TreeElement *desc) const
 QList<TreeElement*> TreeElement::getChildren() const
 {
     return children;
+    //return parent->analyzer->getElementChildren();
 }
 
 QList<TreeElement*> TreeElement::getAncestors() const

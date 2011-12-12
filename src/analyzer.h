@@ -37,11 +37,14 @@ public:
     void readSnippet(QString fileName);
     static const QString TAB;
 
-    TreeElement* nextElementAST();
-    bool hasNextElementAST();
-    TreeElement* parentElementAST();
-    bool isLeafElementAST();
-    int getCountElementChildrenAST();
+    TreeElement* nextElementAST();                  //! next()
+    bool hasNextElementAST();                       //! hasNext()
+    bool isLeafElementAST();                        //! isLeaf()
+    int getCountElementChildrenAST();               //!
+    QList<TreeElement*> getElementChildrenAST();    //!
+    QString getChildAST();                          //!
+    TreeElement* getParentElementAST();
+    QString getParentAST();
 
 private:
     static const char *EXTENSIONS_FIELD;
