@@ -32,6 +32,54 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
     setCurrentFile(0);
+
+    setStyleSheet(
+                "QMainWindow { "
+                "color: white;"
+                "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4D7094, stop: 0.1 #4D7094, stop: 0.49 #4D7094, stop: 0.5 #4D7094, stop: 1 #4D7094);"
+                "border-width: 3px;"
+                "border-color: #002447;"
+                "border-style: solid;"
+                "border-radius: 7;"
+                "padding: 3px;"
+                "font-size: 10px;"
+                "padding-left: 5px;"
+                "padding-right: 5px;"
+                "}"
+
+                "QMenu {"
+                "background-color: #24478F;"
+                "border: 1px solid black;"
+                "}"
+
+                "QMenu::item {"
+                "background-color: transparent;"
+                "}"
+
+                "QMenu::item:selected {"
+                "background-color: #00246B;"
+                "}"
+
+                "QMenuBar {"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 lightgray, stop:1 darkgray);"
+                "}"
+
+                "QMenuBar::item {"
+                "spacing: 3px;"
+                "padding: 1px 4px;"
+                "background: transparent;"
+                "border-radius: 4px;"
+                "}"
+
+                "QMenuBar::item:selected {"
+                "background: #a8a8a8;"
+                "}"
+
+                "QMenuBar::item:pressed {"
+                "background: #888888;"
+                "}"
+                );
+
 }
 
 void MainWindow::createActions()
