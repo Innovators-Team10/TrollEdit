@@ -36,7 +36,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     setStyleSheet(
                 "QMainWindow { "
                 "color: white;"
-                "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4D7094, stop: 0.1 #4D7094, stop: 0.49 #4D7094, stop: 0.5 #4D7094, stop: 1 #4D7094);"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #4e3d3d, stop:1 #271b1b);"
                 "border-width: 3px;"
                 "border-color: #002447;"
                 "border-style: solid;"
@@ -48,7 +48,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 "}"
 
                 "QMenu {"
-                "background-color: #24478F;"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #442c2c, stop:1 #4b2929);"
                 "border: 1px solid black;"
                 "}"
 
@@ -57,11 +57,12 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 "}"
 
                 "QMenu::item:selected {"
-                "background-color: #00246B;"
+                "background-color: #271b1b;"
                 "}"
 
                 "QMenuBar {"
-                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 lightgray, stop:1 darkgray);"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #442c2c, stop:1 #4b2929);"
+                "color: white;"
                 "}"
 
                 "QMenuBar::item {"
@@ -78,6 +79,38 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 "QMenuBar::item:pressed {"
                 "background: #888888;"
                 "}"
+
+                "QToolBar {"
+                "min-height: 40px;"
+                "}"
+
+                "QToolButton {"
+                "color: #333;"
+                "border: 2px solid #555;"
+                "border-radius: 5px;"
+                "padding: 2px;"
+                "background: qradialgradient(cx: 0.3, cy: -0.4,"
+                "fx: 0.3, fy: -0.4,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #888);"
+                "min-width: 40px;"
+                "}"
+
+                "QToolButton:hover {"
+                "background: qradialgradient(cx: 0.3, cy: -0.4,"
+                "fx: 0.3, fy: -0.4,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #bbb);"
+                "}"
+
+                "QToolButton:pressed {"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
+                "}"
+
+                "QStatusBar{ "
+                "color: white;"
+                "}"
+
                 );
 
 }
