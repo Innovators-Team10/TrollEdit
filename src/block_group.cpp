@@ -772,6 +772,10 @@ bool BlockGroup::reanalyzeBlock(Block *block)
     return true;
 }
 
+TreeElement* analazyAllInThread (Analyzer* analyzer, QString text) {
+    return analyzer->analyzeFull(text);
+}
+
 void BlockGroup::analyzeAll(QString text)
 {
     qDebug("\nBlockGroup::analyzeAll()");
@@ -809,10 +813,6 @@ void BlockGroup::analyzeAll(QString text)
     // set new root
     setRoot(newRoot);
     qDebug("root update: %d", time.restart());
-}
-
-TreeElement* analazyAllInThread (Analyzer* analyzer, QString text) {
-    return analyzer->analyzeFull(text);
 }
 
 
