@@ -1,4 +1,5 @@
 #include "block_group.h"
+#include "text_group.h"
 #include "block.h"
 #include "doc_block.h"
 #include "text_item.h"
@@ -17,6 +18,8 @@ BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
 {
     this->analyzer = analyzer;
     this->docScene = scene;
+
+    highlight = true;
 
     // create insert cues
     horizontalLine = new QGraphicsLineItem(this);
@@ -85,8 +88,8 @@ void BlockGroup::setRoot(Block *newRoot)
     // set new root
     root = newRoot;
     root->setPos(20, 0);
-    // select add cursor and update
 
+    // select add cursor and update
     if (docScene->selectedGroup() == this)
     {
         selectBlock(root);
@@ -116,12 +119,18 @@ void BlockGroup::setModified(bool flag)
 
 void BlockGroup::computeTextSize()
 {
-    TAB_LENGTH = analyzer->TAB.length();
+//    TAB_LENGTH = analyzer->TAB.length();
     Block *temp = new Block(new TreeElement("temp"), 0, this);
     QFontMetricsF *fm = new QFontMetricsF(temp->textItem()->font());
     CHAR_WIDTH = fm->width(' ');
     CHAR_HEIGHT = temp->textItem()->boundingRect().height();
     delete temp;
+//    CHAR_WIDTH = 10;
+//    CHAR_HEIGHT = 26;
+//    TAB_LENGTH = 4;
+//    qDebug()<<"CHAR_WIDTH: " << CHAR_WIDTH;     //10
+//    qDebug()<<"CHAR_HEIGHT: " << CHAR_HEIGHT;   //26
+//    qDebug()<<"TAB_LENGTH: " << TAB_LENGTH;     //4
 }
 
 Block *BlockGroup::getBlockIn(int line) const
@@ -778,7 +787,19 @@ void BlockGroup::analyzeAll(QString text)
     time.restart();
 
     // create new root element
-    TreeElement *rootEl = analyzer->analyzeFull(text);
+
+    //TreeElement *rootEl = analyzer->analyzeFull(text);
+
+//* Parallel processing via QtConcurrent only for AnalyzeFull.
+//  TODO UpdateBlocks should be put into thread too
+    QFuture<TreeElement*> future;
+    future = QtConcurrent::run(analazyAllInThread, analyzer, text);
+    QFutureWatcher<TreeElement*> watcher;
+    watcher.setFuture(future);
+    watcher.waitForFinished();
+
+    TreeElement *rootEl = watcher.result();
+
     qDebug("text analysis: %d", time.restart());
 
     // create new root
@@ -789,6 +810,11 @@ void BlockGroup::analyzeAll(QString text)
     setRoot(newRoot);
     qDebug("root update: %d", time.restart());
 }
+
+TreeElement* analazyAllInThread (Analyzer* analyzer, QString text) {
+    return analyzer->analyzeFull(text);
+}
+
 
 QString BlockGroup::toText(bool noDocs) const
 {
@@ -880,6 +906,17 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
 
 void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    if (event->button() == Qt::LeftButton){
+        if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
+        {
+            TextGroup *txt = new TextGroup(this, docScene);
+            docScene->addItem(txt);
+
+            this->setVisible(false);
+            event->accept();
+        }
+    }
+
     if ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
     {
         event->ignore();
@@ -1078,8 +1115,17 @@ void BlockGroup::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 }
 
+void BlockGroup::highlightON_OFF(){
+     if(highlight){
+        highlight = false;
+     }else{
+        highlight = true;
+     }
+}
+
 void BlockGroup::highlightLines(QSet<int> lines)
 {
+    if(highlight){
     if (lines.isEmpty()) return;
 
 //    foreach (QGraphicsRectItem *hRect, highlightingRects.values()) {
@@ -1113,6 +1159,9 @@ void BlockGroup::highlightLines(QSet<int> lines)
             highlightingRects.insert(line, hRect);
             searched = true;
         }
+    }
+    }else{
+
     }
 }
 
@@ -1158,6 +1207,7 @@ bool BlockGroup::searchBlocks(QString searchStr, bool allowInner, bool exactMatc
     return found;
 }
 
+// clear highlighted search results, if there are any
 void BlockGroup::clearSearchResults()
 {
     if (!searched) return;

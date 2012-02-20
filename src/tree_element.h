@@ -9,6 +9,7 @@
 
 #include <QList>
 #include <QString>
+#include "analyzer.h"
 
 class Block;
 
@@ -81,6 +82,9 @@ public:
 
      TreeElement *clone() const;
 
+     Analyzer* analyzer;
+
+
  protected:
      TreeElement *parent;
 
@@ -88,6 +92,7 @@ public:
      static const char *WHITE_EL;
      static const char *UNKNOWN_EL;
      static const char *NEWLINE_EL;
+     static const bool DYNAMIC;
 
      QList<TreeElement*> children;
      QString type;

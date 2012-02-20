@@ -90,6 +90,8 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
         myTextItem = 0;
         setToolTip(element->getType().replace("_", " "));
 
+        // zistime pocet deti tabulky, tolkokrat spravime next();
+
         for (int i = 0; i < element->childCount(); i++)
         {
             TreeElement *childEl = element->getChildren()[i];
@@ -104,7 +106,7 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
                 childEl->deleteAllChildren();
                 new DocBlock(text, childEl, this, group);
             }
-        }        
+        }
     }
 
     // set highlighting

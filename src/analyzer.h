@@ -11,6 +11,8 @@
 #include <QMessageBox>
 #include <QHash>
 #include <QList>
+#include <iostream>
+#include <QThreadPool>
 
 class TreeElement;
 
@@ -36,6 +38,17 @@ public:
     QList<QPair<QString, QHash<QString, QString> > > readConfig(QString fileName);
     void readSnippet(QString fileName);
     static const QString TAB;
+
+    TreeElement* nextElementAST();                  //! next()
+    bool hasNextElementAST();                       //! hasNext()
+    bool isLeafElementAST();                        //! isLeaf()
+    int getCountElementChildrenAST();               //!
+    QList<TreeElement*> getElementChildrenAST();    //!
+    QString getChildAST();                          //!
+    TreeElement* getParentElementAST();
+    QString getParentAST();
+
+
 
 private:
     static const char *EXTENSIONS_FIELD;
