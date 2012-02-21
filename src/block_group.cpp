@@ -894,6 +894,7 @@ void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
         {
             TextGroup *txt = new TextGroup(this, docScene);
             docScene->addItem(txt);
+            txt->setFocus();
 
             this->setVisible(false);
             event->accept();

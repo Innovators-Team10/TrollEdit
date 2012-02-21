@@ -42,9 +42,10 @@ public:
     bool isLeafElementAST();                        //! isLeaf()
     int getCountElementChildrenAST();               //!
     QList<TreeElement*> getElementChildrenAST();    //!
-    QString getChildAST();                          //!
-    TreeElement* getParentElementAST();
-    QString getParentAST();
+    TreeElement* getParentElementAST();             //!
+    void resetAST();                                //!
+    TreeElement* setIndexAST(int index);            //!
+    int glob_index;                                 //! uchovanie aktualnej pozicie v zasobniku
 
 private:
     static const char *EXTENSIONS_FIELD;
@@ -80,6 +81,9 @@ private:
     void checkPairing(TreeElement *element);
 
     void processWhites(TreeElement *root); //! move all whites as high as possible without changing tree text
+
+    QString getChildAST();                          //! child of current element in AST
+    QString getParentAST();                         //! parent of current element in AST
 
     QMessageBox *msgBox; //! for (error) mesasage
 };
