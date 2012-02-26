@@ -15,6 +15,11 @@
 #include <QPainter>
 #include <QList>
 
+typedef struct pokus
+{
+        int test;
+} POKUS;
+
 class DocumentScene;
 class LanguageManager;
 class BlockGroup;

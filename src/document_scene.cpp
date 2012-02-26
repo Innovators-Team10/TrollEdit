@@ -1,6 +1,7 @@
 #include "document_scene.h"
 #include "main_window.h"
 #include "block_group.h"
+#include "text_group.h"
 #include "analyzer.h"
 #include "block.h"
 #include "text_item.h"
@@ -481,6 +482,28 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
             }
         }
     }
+
+//*** experiment
+    if (currentGroup != 0)
+//    if (event->button() == Qt::LeftButton){
+//        if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
+//        {
+//            TextGroup *txt = new TextGroup(currentGroup, this);
+
+//            this->addItem(txt);
+            /*
+            QGraphicsTextItem *txt = new QGraphicsTextItem(currentGroup->toText(), currentGroup);
+            //txt->setText(currentGroup->toText());
+            txt->setScale(currentGroup->scale());
+            txt->setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsMovable);
+            txt->setTextInteractionFlags(Qt::TextEditorInteraction);
+            this->addItem(txt);
+            */
+
+//            event->accept();
+//        }
+//    }
+
 //*** DEBUGING & TESTING
     if (currentGroup != 0)
 
@@ -552,6 +575,12 @@ void DocumentScene::wheelEvent(QGraphicsSceneWheelEvent *event)
     {
         qreal delta = event->delta() / 100.0;
 
+        //QSyntaxHighlighter  *highlighter = new QSyntaxHighlighter(txt->document());
+        //currentGroup->setVisible(false);
+        currentGroup->highlightON_OFF();
+        qDebug()<< "highlightON_OFF()";
+        update();
+
         if (delta > 0)
             currentGroup->setScale(currentGroup->scale() * delta);
 
@@ -573,6 +602,7 @@ void DocumentScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         && event->button() == Qt::MidButton)
     {
         currentGroup->setScale(1.0);
+
         event->accept();
     }
     else
