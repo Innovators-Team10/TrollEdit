@@ -9,6 +9,7 @@
 
 #include <QList>
 #include <QString>
+#include "analyzer.h"
 
 class Block;
 
@@ -16,6 +17,8 @@ class TreeElement
 {
 public:
      int spaces;
+     int local_index;                         //! pozicia tohto elementu v zasobniku
+     static const bool DYNAMIC;       //! dynamicke spracovanie AST - don't work
 
      TreeElement(QString type = "", bool selectable = false,
                  bool multiText = false, bool lineBreaking = false, bool paired = false);
@@ -81,13 +84,16 @@ public:
 
      TreeElement *clone() const;
 
+     Analyzer* analyzer;
+
+
  protected:
      TreeElement *parent;
 
  private:
      static const char *WHITE_EL;
      static const char *UNKNOWN_EL;
-     static const char *NEWLINE_EL;
+     static const char *NEWLINE_EL;     
 
      QList<TreeElement*> children;
      QString type;
