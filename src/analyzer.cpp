@@ -428,7 +428,6 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 //               qDebug() << "__" << i <<". childAST.(): " << iter->childCount();
                qDebug() << "__" << i <<". getParent(): " << iter->getParent()->getType();
 //             qDebug() << "__" << i <<". listChild(): " << iter->getChildren();
-<<<<<<< HEAD
 //               for(int a = 0 ; a < iter->childCount(); a++){
 //                  qDebug() << "__" << a <<". ChildElement: " <<  iter->getChildren()[a]->getType();
 //               }
@@ -444,11 +443,9 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 //           stackDump(L);
         }
 =======
-=======
                for(int a = 0 ; a < iter->childCount(); a++){
                   qDebug() << "__" << a <<". ChildElement: " <<  iter->getChildren()[a]->getType();
                }
->>>>>>> 108904fbc2dbcb9c050f90eb584c3e238205f605
         }*/
 //>>>>>>> bf28cfd8b3c2a64f6cba55646b8c30cd8a0fdc57
 

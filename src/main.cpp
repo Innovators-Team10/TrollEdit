@@ -56,14 +56,11 @@ int main(int argc, char *argv[])
     MainWindow w(path);
     w.show();
 
-<<<<<<< HEAD
     // open all files given as parameters
-=======
 //    w.newFile();
 //    w.open("../input/in.c"); // TEMP
 
 // open all files given as parameters
->>>>>>> 108904fbc2dbcb9c050f90eb584c3e238205f605
     for (int i = 1; i < argc; i++)
         w.open(argv[i]);
 

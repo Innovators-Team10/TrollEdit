@@ -23,7 +23,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     createMenus();
     createToolBars();
     statusBar();
-    createTabs();
+  //  createTabs();
 
     readSettings();
 
