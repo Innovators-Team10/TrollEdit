@@ -91,6 +91,7 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
         setToolTip(element->getType().replace("_", " "));
 
         // zistime pocet deti tabulky, tolkokrat spravime next();
+        // zistime pocet deti tabulky, tolkokrat spravime next();
 
         for (int i = 0; i < element->childCount(); i++)
         {
@@ -1092,7 +1093,7 @@ void Block::updateGeometryAfter(bool doAnimation)
             animate();
 
         group->updateSize(); // root updates group size
-        qDebug("   Geometry updated");
+        qDebug("   Geometry updated"); ////////////////////////////
     }
 }
 
@@ -1137,6 +1138,7 @@ void Block::updatePos(bool updateReal)
                 if (prevSib->showing || lastLeaf->moreSpace)
                 {
                     pos.rx() = prevSib->idealPos().x() + prevSib->idealSize().width();
+
                     //                    offs = prevSib->getOffset(Outer);
                 } //else {
                 //                    offs = lastLeaf->getOffset(Outer);

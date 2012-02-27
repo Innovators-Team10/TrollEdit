@@ -31,6 +31,7 @@ class BlockGroup : public QObject, public QGraphicsRectItem
 
 public:
     BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene);
+
     ~BlockGroup();
 
     enum { Type = UserType + 2 };
@@ -65,6 +66,7 @@ public:
     DocBlock *addDocBlock(QPointF scenePos);
     QList<DocBlock*> docBlocks() const;
     void highlightLines(QSet<int> lines);
+    void highlightON_OFF();
     void highlightON_OFF();
     bool searchBlocks(QString searchStr, bool allowInner, bool exactMatch);
     void clearSearchResults();

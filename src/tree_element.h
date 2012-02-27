@@ -17,6 +17,11 @@ class TreeElement
 {
 public:
      int spaces;
+<<<<<<< HEAD
+=======
+     int local_index;                         //! pozicia tohto elementu v zasobniku
+     static const bool DYNAMIC;       //! dynamicke spracovanie AST - don't work
+>>>>>>> a656903511e7967b68d32cde482fb73ce612c427
 
      TreeElement(QString type = "", bool selectable = false,
                  bool multiText = false, bool lineBreaking = false, bool paired = false);
@@ -91,8 +96,12 @@ public:
  private:
      static const char *WHITE_EL;
      static const char *UNKNOWN_EL;
+<<<<<<< HEAD
      static const char *NEWLINE_EL;
      static const bool DYNAMIC;
+=======
+     static const char *NEWLINE_EL;     
+>>>>>>> a656903511e7967b68d32cde482fb73ce612c427
 
      QList<TreeElement*> children;
      QString type;
