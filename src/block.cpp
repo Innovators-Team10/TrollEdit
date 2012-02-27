@@ -1092,7 +1092,7 @@ void Block::updateGeometryAfter(bool doAnimation)
             animate();
 
         group->updateSize(); // root updates group size
-        qDebug("   Geometry updated");
+        qDebug("   Geometry updated"); ////////////////////////////
     }
 }
 
@@ -1137,6 +1137,7 @@ void Block::updatePos(bool updateReal)
                 if (prevSib->showing || lastLeaf->moreSpace)
                 {
                     pos.rx() = prevSib->idealPos().x() + prevSib->idealSize().width();
+
                     //                    offs = prevSib->getOffset(Outer);
                 } //else {
                 //                    offs = lastLeaf->getOffset(Outer);

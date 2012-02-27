@@ -97,6 +97,8 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
+    QTabBar *tabBar;
+    QSplashScreen *ico;
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
     QLabel *searchLabel;
@@ -114,6 +116,7 @@ private:
 
     void createActions();
     void createMenus();
+    void createTabs();
     void createToolBars();
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();

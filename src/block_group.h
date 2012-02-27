@@ -28,6 +28,7 @@ class BlockGroup : public QObject, public QGraphicsRectItem
 
 public:
     BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene);
+
     ~BlockGroup();
 
     enum { Type = UserType + 2 };

@@ -23,6 +23,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     createMenus();
     createToolBars();
     statusBar();
+    createTabs();
 
     readSettings();
 
@@ -54,10 +55,16 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 
                 "QMenu::item {"
                 "background-color: transparent;"
+                "color: white;"
                 "}"
 
                 "QMenu::item:selected {"
                 "background-color: #271b1b;"
+                "}"
+
+                "QMenu::item:disabled {"
+                "background-color: #271b1b;"
+                "color:gray;"
                 "}"
 
                 "QMenuBar {"
@@ -76,6 +83,10 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 "background: #a8a8a8;"
                 "}"
 
+                "QMenuBar::item:disabled {"
+                "background: #000000;"
+                "}"
+
                 "QMenuBar::item:pressed {"
                 "background: #888888;"
                 "}"
@@ -91,7 +102,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 "padding: 2px;"
                 "background: qradialgradient(cx: 0.3, cy: -0.4,"
                 "fx: 0.3, fy: -0.4,"
-                "radius: 1.35, stop: 0 #fff, stop: 1 #888);"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
                 "min-width: 40px;"
                 "}"
 
@@ -105,6 +116,12 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 "background: qradialgradient(cx: 0.4, cy: -0.1,"
                 "fx: 0.4, fy: -0.1,"
                 "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
+                "}"
+
+                "QToolButton:disabled {"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #777, stop: 1 #333);"
                 "}"
 
                 "QStatusBar{ "
@@ -257,7 +274,7 @@ void MainWindow::createMenus()
 {
     // file menu
     fileMenu = menuBar()->addMenu(tr("&File"));
-     fileMenu->addAction(newAction);
+    fileMenu->addAction(newAction);
     fileMenu->addAction(openAction);
     fileMenu->addAction(revertAction);
     fileMenu->addSeparator();
@@ -278,6 +295,9 @@ void MainWindow::createMenus()
         fileMenu->addAction(recentFileActions[i]);
 
     fileMenu->addSeparator();
+
+
+
     fileMenu->addAction(exitAction);
 
     // edit menu
@@ -301,7 +321,10 @@ void MainWindow::createMenus()
 void MainWindow::createToolBars()
 {
     // format toolbar
+
     formatToolBar = addToolBar(tr("Format"));
+  //  formatToolBar->setFloatable(false);
+  //  formatToolBar->setMovable(false);
     formatToolBar->addAction(newAction);
     formatToolBar->addAction(openAction);
     formatToolBar->addAction(saveAction);
@@ -332,7 +355,15 @@ void MainWindow::createToolBars()
     formatToolBar->addWidget(searchLineEdit);
 
     formatToolBar->addAction(clearAction);
+
 }
+
+void MainWindow::createTabs()
+{
+    tabBar = new QTabBar(this);
+    tabBar->addTab("test");
+}
+
 
 void MainWindow::setModified(bool flag)
 {

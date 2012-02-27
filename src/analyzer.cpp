@@ -418,7 +418,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
         }
 =======
         }*/
->>>>>>> bf28cfd8b3c2a64f6cba55646b8c30cd8a0fdc57
+//>>>>>>> bf28cfd8b3c2a64f6cba55646b8c30cd8a0fdc57
 
     }
 

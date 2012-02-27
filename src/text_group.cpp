@@ -40,6 +40,9 @@ void TextGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
             this->setVisible(false);
             block->setVisible(true);
+
+            block->updateSize();
+
             scene->update();
             event->accept();
         }
