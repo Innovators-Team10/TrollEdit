@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QErrorMessage>
 #include <QMessageBox>
+#include <QDebug>
 
 const QString GRAMMAR_DIR = "/../share/trolledit/grammars";
 const QString DEFAULT_GRAMMAR = "/../share/trolledit/grammars/default_grammar.lua";
@@ -67,6 +68,7 @@ Analyzer *LanguageManager::getAnalyzerFor(QString suffix) const
 
 Analyzer *LanguageManager::getAnalyzerForLang(QString language) const
 {
+    qDebug() << "getAnalyzerForLang";
     return getAnalyzerFor(languages.value(language));
 }
 

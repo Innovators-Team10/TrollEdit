@@ -18,11 +18,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/TrollEdit CACHE PATH "Installation Destination" FORCE)
 endif()
 
-# Apple compilation fix
-if (APPLE)
-  set ( CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000" )
-endif ()
-
 # Build lua and lpeg libs if needed
 if (USE_BUILTIN_LUA)
   set ( LUA_LIBRARY liblua )

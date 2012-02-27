@@ -19,13 +19,11 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     view->setScene(scene);
     setCentralWidget(view);
 
-    undoStack = new QUndoStack(this);
-
     createActions();
     createMenus();
     createToolBars();
-    createUndoView();
     statusBar();
+  //  createTabs();
 
     readSettings();
 
@@ -35,6 +33,103 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
     setCurrentFile(0);
+
+    setStyleSheet(
+                "QMainWindow { "
+                "color: white;"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #4e3d3d, stop:1 #271b1b);"
+                "border-width: 3px;"
+                "border-color: #002447;"
+                "border-style: solid;"
+                "border-radius: 7;"
+                "padding: 3px;"
+                "font-size: 10px;"
+                "padding-left: 5px;"
+                "padding-right: 5px;"
+                "}"
+
+                "QMenu {"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #442c2c, stop:1 #4b2929);"
+                "border: 1px solid black;"
+                "}"
+
+                "QMenu::item {"
+                "background-color: transparent;"
+                "color: white;"
+                "}"
+
+                "QMenu::item:selected {"
+                "background-color: #271b1b;"
+                "}"
+
+                "QMenu::item:disabled {"
+                "background-color: #271b1b;"
+                "color:gray;"
+                "}"
+
+                "QMenuBar {"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #442c2c, stop:1 #4b2929);"
+                "color: white;"
+                "}"
+
+                "QMenuBar::item {"
+                "spacing: 3px;"
+                "padding: 1px 4px;"
+                "background: transparent;"
+                "border-radius: 4px;"
+                "}"
+
+                "QMenuBar::item:selected {"
+                "background: #a8a8a8;"
+                "}"
+
+                "QMenuBar::item:disabled {"
+                "background: #000000;"
+                "}"
+
+                "QMenuBar::item:pressed {"
+                "background: #888888;"
+                "}"
+
+                "QToolBar {"
+                "min-height: 40px;"
+                "}"
+
+                "QToolButton {"
+                "color: #333;"
+                "border: 2px solid #555;"
+                "border-radius: 5px;"
+                "padding: 2px;"
+                "background: qradialgradient(cx: 0.3, cy: -0.4,"
+                "fx: 0.3, fy: -0.4,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
+                "min-width: 40px;"
+                "}"
+
+                "QToolButton:hover {"
+                "background: qradialgradient(cx: 0.3, cy: -0.4,"
+                "fx: 0.3, fy: -0.4,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #bbb);"
+                "}"
+
+                "QToolButton:pressed {"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
+                "}"
+
+                "QToolButton:disabled {"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #777, stop: 1 #333);"
+                "}"
+
+                "QStatusBar{ "
+                "color: white;"
+                "}"
+
+                );
+
 }
 
 void MainWindow::createActions()
@@ -173,19 +268,13 @@ void MainWindow::createActions()
     printableAreaAction->setToolTip(tr("Show margins of printable area"));
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
-
-    undoAction = undoStack->createUndoAction(this, tr("&Undo"));
-    undoAction->setShortcuts(QKeySequence::Undo);
-
-    redoAction = undoStack->createRedoAction(this, tr("&Redo"));
-    redoAction->setShortcuts(QKeySequence::Redo);
 }
 
 void MainWindow::createMenus()
 {
     // file menu
     fileMenu = menuBar()->addMenu(tr("&File"));
-     fileMenu->addAction(newAction);
+    fileMenu->addAction(newAction);
     fileMenu->addAction(openAction);
     fileMenu->addAction(revertAction);
     fileMenu->addSeparator();
@@ -206,6 +295,9 @@ void MainWindow::createMenus()
         fileMenu->addAction(recentFileActions[i]);
 
     fileMenu->addSeparator();
+
+
+
     fileMenu->addAction(exitAction);
 
     // edit menu
@@ -229,7 +321,10 @@ void MainWindow::createMenus()
 void MainWindow::createToolBars()
 {
     // format toolbar
+
     formatToolBar = addToolBar(tr("Format"));
+  //  formatToolBar->setFloatable(false);
+  //  formatToolBar->setMovable(false);
     formatToolBar->addAction(newAction);
     formatToolBar->addAction(openAction);
     formatToolBar->addAction(saveAction);
@@ -260,15 +355,15 @@ void MainWindow::createToolBars()
     formatToolBar->addWidget(searchLineEdit);
 
     formatToolBar->addAction(clearAction);
+
 }
 
-void MainWindow::createUndoView()
+void MainWindow::createTabs()
 {
-    undoView = new QUndoView(undoStack);
-    undoView->setWindowTitle(tr("Command List"));
-    undoView->show();
-    undoView->setAttribute(Qt::WA_QuitOnClose, false);
+    tabBar = new QTabBar(this);
+    tabBar->addTab("test");
 }
+
 
 void MainWindow::setModified(bool flag)
 {
@@ -598,13 +693,3 @@ void MainWindow::writeSettings()
     settings.setValue("size", size());
     settings.setValue("maximized", isMaximized());
 }
-
-/*void MainWindow::deleteItem()
-{
-    if (diagramScene->selectedItems().isEmpty())
-        return;
-
-    QUndoCommand *deleteCommand = new DeleteCommand(diagramScene);
-    undoStack->push(deleteCommand);
-}*/
-

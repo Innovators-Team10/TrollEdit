@@ -15,11 +15,14 @@
 #include <QPainter>
 #include <QList>
 
+typedef struct pokus
+{
+        int test;
+} POKUS;
+
 class DocumentScene;
 class LanguageManager;
 class BlockGroup;
-class QUndoStack;
-class QUndoView;
 
 class MainWindow : public QMainWindow
 {
@@ -88,15 +91,14 @@ private:
     QAction *textItalicAction;
     QAction *textUnderlineAction;
 
-    QAction *undoAction;
-    QAction *redoAction;
-
     QMenu *fileMenu;
     QMenu *editMenu;
     QMenu *optionsMenu;
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
+    QTabBar *tabBar;
+    QSplashScreen *ico;
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
     QLabel *searchLabel;
@@ -111,14 +113,11 @@ private:
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
 
-    QUndoStack *undoStack;
-    QUndoView *undoView;
 
     void createActions();
     void createMenus();
+    void createTabs();
     void createToolBars();
-    void createUndoView();
-
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
     void load(QString fileName);

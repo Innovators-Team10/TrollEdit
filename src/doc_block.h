@@ -8,6 +8,8 @@
 #ifndef DOC_BLOCK_H
 #define DOC_BLOCK_H
 
+#include <QObject>
+
 #include "block.h"
 
 class TreeElement;
