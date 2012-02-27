@@ -40,7 +40,10 @@ void TextGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
             this->setVisible(false);
             block->setVisible(true);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 108904fbc2dbcb9c050f90eb584c3e238205f605
             block->updateSize();
 
             scene->update();
