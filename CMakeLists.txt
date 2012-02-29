@@ -23,6 +23,13 @@ if (APPLE)
   set ( CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000" )
 endif ()
 
+# RPath functionality (relative paths to libraries)
+set ( CMAKE_SKIP_BUILD_RPATH FALSE )
+set ( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
+set ( CMAKE_INSTALL_RPATH $ORIGIN/../lib )
+set ( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
+set ( CMAKE_INSTALL_NAME_DIR @executable_path/../lib )
+
 # Build lua and lpeg libs if needed
 if (USE_BUILTIN_LUA)
   set ( LUA_LIBRARY liblua )
@@ -59,4 +66,3 @@ target_link_libraries(trolledit ${QT_LIBRARIES} ${LUA_LIBRARY})
 # Install
 install(TARGETS trolledit DESTINATION ${INSTALL_BIN})
 install(DIRECTORY data/ DESTINATION ${INSTALL_DATA})
-
