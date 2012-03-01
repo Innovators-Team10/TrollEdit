@@ -13,6 +13,10 @@
 #include <QSet>
 #include <QTime>
 #include <QStatusBar>
+#include <QtConcurrentRun>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QSharedMemory>
 
 #include "analyzer.h"
 
@@ -28,6 +32,7 @@ class BlockGroup : public QObject, public QGraphicsRectItem
 
 public:
     BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene);
+
     ~BlockGroup();
 
     enum { Type = UserType + 2 };
@@ -35,6 +40,8 @@ public:
     {
         None = 0, Horizontal = 1, Vertical = 2,
     };
+
+    QFutureWatcher<TreeElement*> *watcher2;    
 
     // main properties
     int type() const { return Type; }
@@ -62,6 +69,7 @@ public:
     DocBlock *addDocBlock(QPointF scenePos);
     QList<DocBlock*> docBlocks() const;
     void highlightLines(QSet<int> lines);
+    void highlightON_OFF();
     bool searchBlocks(QString searchStr, bool allowInner, bool exactMatch);
     void clearSearchResults();
 
@@ -69,9 +77,10 @@ public:
     void setAnalyzer(Analyzer *newAnalyzer) {analyzer = newAnalyzer;}
     Analyzer *getAnalyzer() const {return analyzer;}
     Block *reanalyze(Block* block = 0, QPointF cursorPos = QPointF());
+    TreeElement* anal (QString text);
     void analyzeAll(QString text);
     bool reanalyzeBlock(Block* block);
-    QString toText(bool noDocs = false) const;
+    QString toText(bool noDocs = false) const;        
 
     // visualization
     void showInsertLine(InsertLine type, QPointF scenePos);
@@ -93,6 +102,7 @@ public:
     qreal CHAR_HEIGHT, CHAR_WIDTH;
 
     DocumentScene *docScene;    //! my scene
+    bool highlight;
 
 signals:
 
@@ -103,6 +113,8 @@ public slots:
     void eraseChar(Block *block, int key);
     void moveFrom(Block *block, int key, int cursorPos);
     void updateSize();
+
+    void updateAnalyzedStructure();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

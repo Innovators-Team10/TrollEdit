@@ -11,6 +11,8 @@
 #include <QMessageBox>
 #include <QHash>
 #include <QList>
+#include <iostream>
+#include <QThreadPool>
 
 class TreeElement;
 
@@ -37,8 +39,17 @@ public:
     void readSnippet(QString fileName);
     static const QString TAB;
 
-private:
-    static const char *EXTENSIONS_FIELD;
+    TreeElement* nextElementAST();                  //! next()
+    bool hasNextElementAST();                       //! hasNext()
+    bool isLeafElementAST();                        //! isLeaf()
+    int getCountElementChildrenAST();               //!
+    QList<TreeElement*> getElementChildrenAST();    //!
+    TreeElement* getParentElementAST();             //!
+    void resetAST();                                //!
+    TreeElement* setIndexAST(int index);            //!
+    int glob_index;                                 //! uchovanie aktualnej pozicie v zasobniku
+
+private:    static const char *EXTENSIONS_FIELD;
     static const char *LANGUAGE_FIELD;
     static const char *MAIN_GRAMMAR_FIELD;
     static const char *SUB_GRAMMARS_FIELD;
@@ -71,6 +82,9 @@ private:
     void checkPairing(TreeElement *element);
 
     void processWhites(TreeElement *root); //! move all whites as high as possible without changing tree text
+
+    QString getChildAST();                          //! child of current element in AST
+    QString getParentAST();                         //! parent of current element in AST
 
     QMessageBox *msgBox; //! for (error) mesasage
 };
