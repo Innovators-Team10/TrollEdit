@@ -120,14 +120,14 @@ void BlockGroup::setModified(bool flag)
 void BlockGroup::computeTextSize()
 {
 //    TAB_LENGTH = analyzer->TAB.length();
-    Block *temp = new Block(new TreeElement("temp"), 0, this);
-    QFontMetricsF *fm = new QFontMetricsF(temp->textItem()->font());
-    CHAR_WIDTH = fm->width(' ');
-    CHAR_HEIGHT = temp->textItem()->boundingRect().height();
-    delete temp;
-//    CHAR_WIDTH = 10;
-//    CHAR_HEIGHT = 26;
-//    TAB_LENGTH = 4;
+//    Block *temp = new Block(new TreeElement("temp"), 0, this);
+//    QFontMetricsF *fm = new QFontMetricsF(temp->textItem()->font());
+//    CHAR_WIDTH = fm->width(' ');
+//    CHAR_HEIGHT = temp->textItem()->boundingRect().height();
+//    delete temp;
+    CHAR_WIDTH = 10;
+    CHAR_HEIGHT = 26;
+    TAB_LENGTH = 4;
 //    qDebug()<<"CHAR_WIDTH: " << CHAR_WIDTH;     //10
 //    qDebug()<<"CHAR_HEIGHT: " << CHAR_HEIGHT;   //26
 //    qDebug()<<"TAB_LENGTH: " << TAB_LENGTH;     //4

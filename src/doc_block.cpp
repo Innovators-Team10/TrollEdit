@@ -80,7 +80,7 @@ DocBlock::DocBlock(QString text, TreeElement* el, Block* parentBlock, BlockGroup
 
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
-    myTextItem->setTextInteractionFlags(Qt::NoTextInteraction);
+//    myTextItem->setTextInteractionFlags(Qt::NoTextInteraction); //preco to pada?
     setAcceptDrops(false);
     setZValue(1);
     backup = 0;
@@ -238,8 +238,8 @@ void DocBlock::setContent(QString text)
 
 void DocBlock::addText(QString text)
 {
-    myTextItem->setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
-    myTextItem->setPlainText(text);
+//    myTextItem->setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
+//    myTextItem->setPlainText(text);
     docType = Text;
 
     if (arrow != 0)
