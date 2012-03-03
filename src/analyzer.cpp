@@ -1310,3 +1310,4 @@ void Analyzer::processWhites(TreeElement* root)
     }
     root->adjustSpaces(0);
 }
+}

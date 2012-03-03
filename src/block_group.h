@@ -16,7 +16,6 @@
 #include <QtConcurrentRun>
 #include <QFuture>
 #include <QFutureWatcher>
-#include <QSharedMemory>
 
 #include "analyzer.h"
 
@@ -40,8 +39,6 @@ public:
     {
         None = 0, Horizontal = 1, Vertical = 2,
     };
-
-    QFutureWatcher<TreeElement*> *watcher2;    
 
     // main properties
     int type() const { return Type; }
@@ -69,6 +66,7 @@ public:
     DocBlock *addDocBlock(QPointF scenePos);
     QList<DocBlock*> docBlocks() const;
     void highlightLines(QSet<int> lines);
+    void highlightON_OFF();
     void highlightON_OFF();
     bool searchBlocks(QString searchStr, bool allowInner, bool exactMatch);
     void clearSearchResults();
@@ -113,8 +111,6 @@ public slots:
     void eraseChar(Block *block, int key);
     void moveFrom(Block *block, int key, int cursorPos);
     void updateSize();
-
-    void updateAnalyzedStructure();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
