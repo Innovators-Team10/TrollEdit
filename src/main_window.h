@@ -30,6 +30,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QString programPath, QWidget *parent = 0);
+    QTabWidget* getWidget();
 
 public slots:
     void open(QString fileName);
@@ -41,6 +42,7 @@ signals:
 
 private slots:
     void newFile();
+    void newTab();
     void open();
     void openRecentFile();
     void about();
@@ -61,6 +63,7 @@ private:
 
     QAction *aboutQtAction;
     QAction *newAction;
+    QAction *newTabAction;
     QAction *openAction;
     QAction *revertAction;
     QAction *saveAction;
@@ -97,7 +100,7 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
-    QTabBar *tabBar;
+    QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
@@ -113,7 +116,7 @@ private:
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
 
-
+    QGraphicsView* createView();
     void createActions();
     void createMenus();
     void createTabs();
