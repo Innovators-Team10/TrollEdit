@@ -387,13 +387,6 @@ QGraphicsView* MainWindow::createView()
     return view;
 }
 
-/*
-QTabWidget* MainWindow::getWidget()
-{
-    return this->tabWidget;
-}
-*/
-
 void MainWindow::newTab()
 {
     qDebug("newTab()");
@@ -422,14 +415,21 @@ void MainWindow::newFile()
     }
 }
 
+void MainWindow::closeTab(int position){
+    if(tabWidget->count()==1){
+        return;
+    }
+    tabWidget->removeTab(position);
+}
+
 void MainWindow::createTabs()
 {
     tabWidget = new QTabWidget(this);
 
     tabWidget->setDocumentMode(true);
     tabWidget->setMovable(true);
-//    tabWidget->setTabShape(QTabWidget::Rounded);
     tabWidget->setTabsClosable(true);
+    connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
     QIcon addTabIcon(":/plus.png");
     QPushButton *m_addButton = new QPushButton(addTabIcon,"", this);

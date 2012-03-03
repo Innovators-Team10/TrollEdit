@@ -30,7 +30,6 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QString programPath, QWidget *parent = 0);
-    QTabWidget* getWidget();
 
 public slots:
     void open(QString fileName);
@@ -43,6 +42,7 @@ signals:
 private slots:
     void newFile();
     void newTab();
+    void closeTab(int );
     void open();
     void openRecentFile();
     void about();
