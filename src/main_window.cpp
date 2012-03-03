@@ -38,20 +38,29 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 "padding-right: 5px;"
                 "}"
 
-                "QMainWindow->centralWidget()"
-                "background-color: white;"
+                "QTabWidget::pane {"
+                "border-top: 0px;"
                 "}"
 
-                "QTabWidget::item {"
-                "background-color: white;"
+                "QPushButton{"
+                "color: white;"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #777, stop: 1 #333);"
                 "}"
 
-                "QTabWidget{"
-                "background-color: white;"
+                "QTabBar{"
+                "color: white;"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #777, stop: 1 #333);"
                 "}"
 
-                "QTabBar::item {"
-                "background-color: white;"
+                "QTabBar::tab:selected {"
+                "color: black;"
+                "background: qradialgradient(cx: 0.3, cy: -0.4,"
+                "fx: 0.3, fy: -0.4,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
                 "}"
 
                 "QMenu {"
@@ -378,10 +387,12 @@ QGraphicsView* MainWindow::createView()
     return view;
 }
 
+/*
 QTabWidget* MainWindow::getWidget()
 {
     return this->tabWidget;
 }
+*/
 
 void MainWindow::newTab()
 {
@@ -414,6 +425,11 @@ void MainWindow::newFile()
 void MainWindow::createTabs()
 {
     tabWidget = new QTabWidget(this);
+
+    tabWidget->setDocumentMode(true);
+    tabWidget->setMovable(true);
+//    tabWidget->setTabShape(QTabWidget::Rounded);
+    tabWidget->setTabsClosable(true);
 
     QIcon addTabIcon(":/plus.png");
     QPushButton *m_addButton = new QPushButton(addTabIcon,"", this);
