@@ -88,8 +88,8 @@ void BlockGroup::setRoot(Block *newRoot)
     // set new root
     root = newRoot;
     root->setPos(20, 0);
-
     // select add cursor and update
+
     if (docScene->selectedGroup() == this)
     {
         selectBlock(root);
@@ -772,10 +772,6 @@ bool BlockGroup::reanalyzeBlock(Block *block)
     return true;
 }
 
-TreeElement* analazyAllInThread (Analyzer* analyzer, QString text) {
-    return analyzer->analyzeFull(text);
-}
-
 void BlockGroup::analyzeAll(QString text)
 {
     qDebug("\nBlockGroup::analyzeAll()");
@@ -791,19 +787,7 @@ void BlockGroup::analyzeAll(QString text)
     time.restart();
 
     // create new root element
-
-    //TreeElement *rootEl = analyzer->analyzeFull(text);
-
-//* Parallel processing via QtConcurrent only for AnalyzeFull.
-//  TODO UpdateBlocks should be put into thread too
-    QFuture<TreeElement*> future;
-    future = QtConcurrent::run(analazyAllInThread, analyzer, text);
-    QFutureWatcher<TreeElement*> watcher;
-    watcher.setFuture(future);
-    watcher.waitForFinished();
-
-    TreeElement *rootEl = watcher.result();
-
+    TreeElement *rootEl = analyzer->analyzeFull(text);
     qDebug("text analysis: %d", time.restart());
 
     // create new root
@@ -814,7 +798,6 @@ void BlockGroup::analyzeAll(QString text)
     setRoot(newRoot);
     qDebug("root update: %d", time.restart());
 }
-
 
 QString BlockGroup::toText(bool noDocs) const
 {
@@ -1208,7 +1191,6 @@ bool BlockGroup::searchBlocks(QString searchStr, bool allowInner, bool exactMatc
     return found;
 }
 
-// clear highlighted search results, if there are any
 void BlockGroup::clearSearchResults()
 {
     if (!searched) return;

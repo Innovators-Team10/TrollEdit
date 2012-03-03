@@ -11,8 +11,6 @@
 #include <QMessageBox>
 #include <QHash>
 #include <QList>
-#include <iostream>
-#include <QThreadPool>
 
 class TreeElement;
 
@@ -49,17 +47,8 @@ public:
     TreeElement* setIndexAST(int index);            //!
     int glob_index;                                 //! uchovanie aktualnej pozicie v zasobniku
 
-    TreeElement* nextElementAST();                  //! next()
-    bool hasNextElementAST();                       //! hasNext()
-    bool isLeafElementAST();                        //! isLeaf()
-    int getCountElementChildrenAST();               //!
-    QList<TreeElement*> getElementChildrenAST();    //!
-    QString getChildAST();                          //!
-    TreeElement* getParentElementAST();
-    QString getParentAST();
-
-
-private:    static const char *EXTENSIONS_FIELD;
+private:
+    static const char *EXTENSIONS_FIELD;
     static const char *LANGUAGE_FIELD;
     static const char *MAIN_GRAMMAR_FIELD;
     static const char *SUB_GRAMMARS_FIELD;

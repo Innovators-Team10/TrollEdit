@@ -13,9 +13,6 @@
 #include <QSet>
 #include <QTime>
 #include <QStatusBar>
-#include <QtConcurrentRun>
-#include <QFuture>
-#include <QFutureWatcher>
 
 #include "analyzer.h"
 
@@ -67,7 +64,6 @@ public:
     QList<DocBlock*> docBlocks() const;
     void highlightLines(QSet<int> lines);
     void highlightON_OFF();
-    void highlightON_OFF();
     bool searchBlocks(QString searchStr, bool allowInner, bool exactMatch);
     void clearSearchResults();
 
@@ -75,10 +71,9 @@ public:
     void setAnalyzer(Analyzer *newAnalyzer) {analyzer = newAnalyzer;}
     Analyzer *getAnalyzer() const {return analyzer;}
     Block *reanalyze(Block* block = 0, QPointF cursorPos = QPointF());
-    TreeElement* anal (QString text);
     void analyzeAll(QString text);
     bool reanalyzeBlock(Block* block);
-    QString toText(bool noDocs = false) const;        
+    QString toText(bool noDocs = false) const;
 
     // visualization
     void showInsertLine(InsertLine type, QPointF scenePos);

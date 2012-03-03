@@ -91,7 +91,6 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
         setToolTip(element->getType().replace("_", " "));
 
         // zistime pocet deti tabulky, tolkokrat spravime next();
-        // zistime pocet deti tabulky, tolkokrat spravime next();
 
         for (int i = 0; i < element->childCount(); i++)
         {

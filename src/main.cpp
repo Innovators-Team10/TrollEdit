@@ -53,29 +53,6 @@ int main(int argc, char *argv[])
     QFileInfo program(argv[0]);
     QString path = program.absoluteDir().path();
 
-
-/*
-    //Experimenty//FFI
-       lua_State *L;
-       POKUS *pokus;
-       pokus = (POKUS*)malloc(sizeof(POKUS)*1);
-
-       pokus->test = 10;
-       printf("Qt pokus %d\n", pokus->test);
-
-       L = luaL_newstate();
-       luaL_openlibs(L);
-
-       int status = luaL_dofile(L, "C:\\TEST\\test.lua");
-       //lua_touserdata(L, (int)pokus );
-       stackDump(L);
-
-       lua_close(L);
-       exit(1);
-       //end of experimenty//
-*/
-
-
     MainWindow w(path);
     w.show();
 
