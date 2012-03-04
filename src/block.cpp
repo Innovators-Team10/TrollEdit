@@ -13,6 +13,7 @@
 #include "tree_element.h"
 #include "document_scene.h"
 
+#include <QDebug>
 /**
  * Block class contructor, that creates a block from a specified element
  * as a child of a specified parent to the specified block group
@@ -92,9 +93,17 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
 
         // zistime pocet deti tabulky, tolkokrat spravime next();
 
-        for (int i = 0; i < element->childCount(); i++)
+        int child_count = element->childCount();
+        QList<TreeElement*> children = element->getChildren();
+       // for (int i = 0; i < child_count; i++)children.size()
+       for (int i = 0; i < children.size(); i++)
         {
-            TreeElement *childEl = element->getChildren()[i];
+            qDebug() << "child_count " << child_count <<"  size() "<< children.size() << " par:"<< element->getType();
+            TreeElement *childEl = children[i];//element->next();
+//            if( childEl->local_index != childEl->analyzer->glob_index){ //!
+//                childEl->analyzer->resetAST();
+//                childEl->analyzer->setIndexAST(childEl->local_index);
+//            }
 
             if (!childEl->isFloating()) //! create block from child element
             {
@@ -102,9 +111,9 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
             }
             else //! create docblock form child element
             {
-                QString text = childEl->getText();
-                childEl->deleteAllChildren();
-                new DocBlock(text, childEl, this, group);
+//                QString text = childEl->getText();
+//                childEl->deleteAllChildren();
+//                new DocBlock(text, childEl, this, group);
             }
         }
     }
@@ -1092,7 +1101,7 @@ void Block::updateGeometryAfter(bool doAnimation)
             animate();
 
         group->updateSize(); // root updates group size
-        qDebug("   Geometry updated"); ////////////////////////////
+        qDebug("   Geometry updated");
     }
 }
 
@@ -1137,7 +1146,6 @@ void Block::updatePos(bool updateReal)
                 if (prevSib->showing || lastLeaf->moreSpace)
                 {
                     pos.rx() = prevSib->idealPos().x() + prevSib->idealSize().width();
-
                     //                    offs = prevSib->getOffset(Outer);
                 } //else {
                 //                    offs = lastLeaf->getOffset(Outer);
