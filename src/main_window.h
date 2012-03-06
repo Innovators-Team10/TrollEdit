@@ -14,11 +14,13 @@
 #include <QPrintPreviewDialog>
 #include <QPainter>
 #include <QList>
+#include <QTableView>
 
 typedef struct pokus
 {
         int test;
 } POKUS;
+
 
 class DocumentScene;
 class LanguageManager;
@@ -55,6 +57,8 @@ private slots:
 
     void printPdf();
     void showPrintableArea();
+    void setShort();
+    void savedShortcuts();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -91,6 +95,7 @@ private:
 
     QAction *helpAction;
     QAction *aboutAction;
+	QAction *shortAction;
 
     QAction *textBoldAction;
     QAction *textItalicAction;

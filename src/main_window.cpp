@@ -157,24 +157,20 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 "}"
 
                 );
+}
 
 void MainWindow::createActions()
 {
     groupActions = new QActionGroup(this);
-    QFile file("shortcuts.txt");
+	
+	QFile file("shortcuts.txt");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
     }
     QString textstring;
     //QString textstring = file.readLine();
-
-}
-
-void MainWindow::createActions()
-{
-    groupActions = new QActionGroup(this);
-
+	
     // new
     QIcon newIcon(":/m/new"); newIcon.addFile(":/s/new");
     newAction = new QAction(newIcon, tr("&New"), this);
@@ -375,6 +371,7 @@ void MainWindow::createMenus()
     helpMenu->addAction(aboutAction);
     helpMenu->addAction(aboutQtAction);
 }
+
 void MainWindow::setShort()
 {
     QDialog *set_shortcuts = new QDialog(0);
