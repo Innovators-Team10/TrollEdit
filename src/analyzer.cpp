@@ -416,7 +416,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 
     if(root != 0)
     {
-//        processWhites(root);
+        processWhites(root);
     }
     else
     {

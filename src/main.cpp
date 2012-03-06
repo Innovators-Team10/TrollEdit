@@ -49,13 +49,21 @@ int main(int argc, char *argv[])
     app.setApplicationName("TrollEdit");
     app.setStartDragDistance(app.startDragDistance() * 2);
 
+//  QPixmap pixmap(":/m/logo");
+    QPixmap pixmap(":/m/logo2");
+    QSplashScreen splashScreen(pixmap,Qt::WindowStaysOnTopHint);
     // find the directory of the program
     QFileInfo program(argv[0]);
     QString path = program.absoluteDir().path();
 
     MainWindow w(path);
+    w.setWindowOpacity(0);
+    
+    splashScreen.show();
     w.show();
 
+    QTimer::singleShot(2000, &splashScreen, SLOT(close()));
+    QTimer::singleShot(1000, &w, SLOT(wInit()));
     // open all files given as parameters
 //    w.newFile();
 //    w.open("../input/in.c"); // TEMP
@@ -66,3 +74,8 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+
+void MainWindow::wInit()
+ {
+ setWindowOpacity(1);
+ }

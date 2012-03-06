@@ -60,6 +60,7 @@ private slots:
     void showPrintableArea();
     void setShort();
     void savedShortcuts();
+	void wInit();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -108,6 +109,7 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
+	QTabBar *tabBar;
     QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;

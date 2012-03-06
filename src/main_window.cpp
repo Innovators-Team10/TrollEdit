@@ -828,10 +828,16 @@ void MainWindow::openRecentFile()
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About TrollEdit"),
-                       tr("<h2>TrollEdit 1.0</h2>"
-                          "<p/>Team 5 - Ufopak"
-                          "<p/>This is a prototype of novel text editor "
-                          "which is being developed for Team project course."));
+                       tr("<h2>TrollEdit 1.2</h2>"
+                          "<p/>Team 5 - Ufopak - 2008"
+                          "<p/>Team 10 - Innovators - 2012"
+                          "<p/>This is a prototype of text editor enriched with graphical elemenets "
+                          "which is being developed for Team project course."
+                          "<p/>"
+                          "<img src=\":logo2.png\" aling=\"center\" width=\"\"/>"
+                          "<p/>"
+                          "<a href=\"mailto:tp-team-10@googlegroups.com\">Send Feedback</a>"
+                          ));
 }
 
 void MainWindow::updateRecentFileActions()
