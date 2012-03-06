@@ -43,6 +43,7 @@ private slots:
     void newFile();
     void newTab();
     void closeTab(int );
+    void tabChanged(int );
     void open();
     void openRecentFile();
     void about();

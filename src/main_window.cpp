@@ -415,11 +415,34 @@ void MainWindow::newFile()
     }
 }
 
+void MainWindow::load(QString fileName)
+{
+    Analyzer *analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
+    QGraphicsView* view=(QGraphicsView *) tabWidget->currentWidget();
+    DocumentScene* dScene=(DocumentScene *) view->scene();
+    if(dScene==0){
+        qDebug("newFile() Error: dScene = null");
+        scene->loadGroup(fileName, analyzer);
+        return;
+    }else{
+        dScene->newGroup(langManager->getAnalyzerForLang(scriptsBox->currentText())); // CHECK
+    }
+}
+
+void MainWindow::langChanged(QString newLang) // FIX
+{
+    scene->setGroupLang(langManager->getAnalyzerForLang(newLang));
+}
+
 void MainWindow::closeTab(int position){
     if(tabWidget->count()==1){
         return;
     }
     tabWidget->removeTab(position);
+}
+
+void MainWindow::tabChanged(int position){
+    qDebug("tabChanged()");
 }
 
 void MainWindow::createTabs()
@@ -430,6 +453,7 @@ void MainWindow::createTabs()
     tabWidget->setMovable(true);
     tabWidget->setTabsClosable(true);
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+    connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
     QIcon addTabIcon(":/plus.png");
     QPushButton *m_addButton = new QPushButton(addTabIcon,"", this);
@@ -530,17 +554,6 @@ void MainWindow::open(QString fileName)
         updateRecentFileActions();
         load(fileName);
     }
-}
-
-void MainWindow::load(QString fileName)
-{
-    Analyzer *analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
-    scene->loadGroup(fileName, analyzer);
-}
-
-void MainWindow::langChanged(QString newLang)
-{
-    scene->setGroupLang(langManager->getAnalyzerForLang(newLang));
 }
 
 void MainWindow::search()
