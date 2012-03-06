@@ -23,6 +23,8 @@ typedef struct pokus
 class DocumentScene;
 class LanguageManager;
 class BlockGroup;
+class QTableWidget;
+class QTableWidgetItem;
 
 class MainWindow : public QMainWindow
 {
@@ -117,6 +119,7 @@ private:
     QList<QGraphicsLineItem *> list;
 
     QGraphicsView* createView();
+	QTableWidget *m_table;
     void createActions();
     void createMenus();
     void createTabs();
@@ -132,6 +135,7 @@ private:
 
     void readSettings();
     void writeSettings();
+//  set_shortcuts *setCustomShortcuts(this Qt::Window);
 };
 
 #endif // MAIN_WINDOW_H
