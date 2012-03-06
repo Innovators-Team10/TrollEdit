@@ -14,14 +14,14 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 	QGraphicsView *view = new QGraphicsView();
 
     createTabs();
-    scene = new DocumentScene(this);
+   /* scene = new DocumentScene(this);
     scene->setHighlighting(langManager->getConfigData());
     connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
     connect(scene, SIGNAL(fileSelected(BlockGroup*)),
             this, SLOT(setCurrentFile(BlockGroup*)));
 
     view->setScene(scene);
-    setCentralWidget(view);
+    setCentralWidget(view);*/
 
     createActions();
     createMenus();
