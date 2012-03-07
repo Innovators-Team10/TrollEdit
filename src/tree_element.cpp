@@ -6,6 +6,7 @@
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
 const char *TreeElement::NEWLINE_EL = "nl";
+const bool TreeElement::DYNAMIC = false;        //! dynamicke spracovanie AST - don't work
 
 TreeElement::TreeElement(QString type, bool selectable,
                          bool multiText, bool lineBreaking, bool paired)
@@ -20,10 +21,16 @@ TreeElement::TreeElement(QString type, bool selectable,
     myBlock = 0;
     pair = 0;
     floating = false;
+
+    local_index = 1;
+    analyzer = 0;
 }
 
 TreeElement::~TreeElement()
 {
+    if(DYNAMIC){
+                                            //! todo dopracuj zmazanie pri dynamickom spracovani
+    }else{
     if (pair != 0)
     {
         pair->setPair(0);
@@ -33,12 +40,14 @@ TreeElement::~TreeElement()
     if (!isLeaf())
         removeAllChildren();
 
-    if (parent != 0)
+    if (getParent() != 0)
     {
-        if (!parent->isImportant())
-            delete parent;
+        if (!getParent()->isImportant())
+            //delete parent;
+            delete getParent();             //! todo otestuj mazanie
         else
-            parent->removeChild(this);
+            getParent()->removeChild(this);
+    }
     }
 }
 
@@ -70,7 +79,7 @@ TreeElement *TreeElement::getPair() const
 void TreeElement::appendChild(TreeElement *child)
 {
     children.append(child);
-    child->parent = this;
+    child->parent = this;                           //! prerob cez funkciu napriklad setParent(this)
 }
 
 void TreeElement::appendChildren(QList<TreeElement*> children)
@@ -78,13 +87,14 @@ void TreeElement::appendChildren(QList<TreeElement*> children)
     foreach (TreeElement *child, children)
     {
         appendChild(child);
+        child->parent = this;
     }
 }
 
 void TreeElement::insertChild(int index, TreeElement *child)
 {
-    children.insert(index, child);
-    child->parent = this;
+    children.insert(index, child);                 //! prerob aby fungovalo cez funkciu
+    child->parent = this;                          //! prerob cez funkciu napriklad setParent(this)
 }
 
 void TreeElement::insertChildren(int index, QList<TreeElement*> children)
@@ -97,19 +107,18 @@ void TreeElement::insertChildren(int index, QList<TreeElement*> children)
 
 bool TreeElement::removeChild(TreeElement *child)
 {
-    child->parent = 0;
+    child->parent = 0;                            //! prerob cez funkciu napriklad setParent(this)
     return children.removeOne(child);
 }
 
-bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
-
+bool TreeElement::removeDescendant(TreeElement *desc) { //! not used?
     if (removeChild(desc))
     {
         return true;
     }
     else
     {
-        foreach (TreeElement *el, children)
+        foreach (TreeElement *el, getChildren())
         {
             if (el->removeDescendant(desc)) return true;
 
@@ -119,25 +128,41 @@ bool TreeElement::removeDescendant(TreeElement *desc) { // not used?
     return false;
 }
 
-bool TreeElement::removeAllChildren()
+bool TreeElement::removeAllChildren()           //! todo otestuj mazanie
 {
-    if (children.isEmpty()) return false;
+    if (getChildren().isEmpty()) return false;
 
-    foreach (TreeElement *child, children)
+    foreach (TreeElement *child, getChildren())
         removeChild(child);
 
     return true;
 }
 
-void TreeElement::deleteAllChildren()
+void TreeElement::deleteAllChildren()           //! todo otestuj mazanie
 {
-    qDeleteAll(children);
-    children.clear();
+    if(DYNAMIC){
+        qDebug() << "deleteAllChildren()";
+    }else{
+    qDeleteAll(getChildren());
+    getChildren().clear();
+    }
 }
 
 bool TreeElement::isLeaf() const
 {
-    return !(children.count());
+    if(DYNAMIC){
+        qDebug() << "isLeaf() " << this->local_index;
+        if( this->analyzer != 0 ){
+            if( this->local_index != this->analyzer->glob_index) //!
+                this->analyzer->setIndexAST(this->local_index);
+            return this->analyzer->isLeafElementAST();  //! new iterator
+        }else{
+            qDebug() << "isLeaf() false";
+            return true;
+        }
+    }else{
+        return !(children.count());
+    }
 }
 bool TreeElement::isImportant() const
 {
@@ -145,11 +170,11 @@ bool TreeElement::isImportant() const
 }
 bool TreeElement::isNewline() const
 {
-    return (parent != 0 && parent->getType() == NEWLINE_EL);
+    return (getParent() != 0 && getParent()->getType() == NEWLINE_EL);
 }
 bool TreeElement::isWhite() const
 {
-    return (parent != 0 && parent->getType() == WHITE_EL);
+    return (getParent() != 0 && getParent()->getType() == WHITE_EL);
 }
 bool TreeElement::isUnknown() const
 {
@@ -157,8 +182,8 @@ bool TreeElement::isUnknown() const
 }
 bool TreeElement::hasSiblings() const
 {
-    if (parent != 0)
-        return parent->childCount() != 1;
+    if (getParent() != 0)
+        return getParent()->childCount() != 1;
     else
         return false;
 }
@@ -181,7 +206,7 @@ void TreeElement::adjustSpaces(int offset)
     bool lb = false;
     offset += spaces;
 
-    foreach (TreeElement *child, children)
+    foreach (TreeElement *child, getChildren())
     {
         lb = child->isLineBreaking();
 
@@ -238,8 +263,8 @@ bool TreeElement::isSelectable() const
 
 bool TreeElement::allowsParagraphs() const
 {
-    if (parent != 0)
-        return paragraphsAllowed || parent->allowsParagraphs();
+    if (getParent() != 0)
+        return paragraphsAllowed || getParent()->allowsParagraphs();
     else
         return paragraphsAllowed;
 }
@@ -251,20 +276,37 @@ bool TreeElement::isPaired() const
 
 int TreeElement::childCount() const
 {
-    return children.count();
+    if(DYNAMIC){
+        qDebug() << "TreeElement->childCount() " << this->local_index;
+        if( this->analyzer != 0 ){
+            if( this->local_index != this->analyzer->glob_index){ //!
+                this->analyzer->resetAST();
+                this->analyzer->setIndexAST(this->local_index);
+                qDebug() << "childCount()-> setIndexAST()";
+            }
+//            qDebug() << "getCountElementChildrenAST()";
+
+            return this->analyzer->getCountElementChildrenAST();
+        }else{
+            qDebug() << "chlidCount() null";
+            return 0;
+        }
+    }else{
+        return children.count();
+    }
 }
 
 int TreeElement::index() const
 {
-    if (parent == 0)
+    if (getParent() == 0)
         return -1;
     else
-        return parent->indexOfChild(this);
+        return getParent()->indexOfChild(this);
 }
 
 int TreeElement::indexOfChild(const TreeElement *child) const
 {
-    int p = children.indexOf(const_cast<TreeElement*>(child), 0);
+    int p = getChildren().indexOf(const_cast<TreeElement*>(child), 0);
     return p;
 }
 
@@ -278,9 +320,9 @@ int TreeElement::indexOfBranch(const TreeElement *desc) const
     }
     else
     {
-        for (i = 0; i < children.size(); i++)
+        for (i = 0; i < getChildren().size(); i++)
         {
-            if (children[i]->indexOfBranch(desc) > -1) return i;
+            if (getChildren()[i]->indexOfBranch(desc) > -1) return i;
         }
     }
 
@@ -289,13 +331,21 @@ int TreeElement::indexOfBranch(const TreeElement *desc) const
 
 QList<TreeElement*> TreeElement::getChildren() const
 {
-    return children;
+    if(DYNAMIC){
+        if( this->local_index != this->analyzer->glob_index) //!
+            this->analyzer->setIndexAST(this->local_index);
+
+        qDebug() << "TreeElement->getChildren() local" << this->local_index;
+        return this->analyzer->getElementChildrenAST();
+    }else{
+        return children;
+    }
 }
 
 QList<TreeElement*> TreeElement::getAncestors() const
 {
     QList<TreeElement*> list;
-    TreeElement *e = parent;
+    TreeElement *e = getParent();
 
     while (e != 0)
     {
@@ -310,7 +360,7 @@ QList<TreeElement*> TreeElement::getDescendants() const
 {
     QList<TreeElement*> list;
 
-    foreach (TreeElement *child, children)
+    foreach (TreeElement *child, getChildren())
     {
         list << child;
         list << child->getDescendants();
@@ -323,7 +373,7 @@ QList<TreeElement*> TreeElement::getAllLeafs() const
 {
     QList<TreeElement*> list;
 
-    foreach (TreeElement *child, children)
+    foreach (TreeElement *child, getChildren())
     {
         if (child->isLeaf())
             list << child;
@@ -340,11 +390,11 @@ TreeElement *TreeElement::getAncestorWhereFirst() const
 
     if (el->isFloating()) return el;
 
-    while (el->parent != 0 && el->parent->indexOfChild(el) == 0)
-        el = el->parent;
+    while (el->getParent() != 0 && el->getParent()->indexOfChild(el) == 0)
+        el = el->getParent();
 
     while (!el->isImportant())
-        el = el->children[0];
+        el = el->getChildren()[0];
 
     return el;
 }
@@ -355,11 +405,11 @@ TreeElement *TreeElement::getAncestorWhereLast() const
 
     if (el->isFloating()) return el;
 
-    while (el->parent != 0 && el->parent->indexOfChild(el) == el->parent->childCount()-1)
-        el = el->parent;
+    while (el->getParent() != 0 && el->getParent()->indexOfChild(el) == el->getParent()->childCount()-1)
+        el = el->getParent();
 
     while (!el->isImportant())
-        el = el->children[el->childCount()-1];
+        el = el->getChildren()[el->childCount()-1];
 
     return el;
 }
@@ -367,15 +417,31 @@ TreeElement *TreeElement::getAncestorWhereLast() const
 
 TreeElement *TreeElement::getRoot()
 {
-    if (parent == 0)
+    if (getParent() == 0)
         return this;
     else
-        return parent->getRoot();
+        return getParent()->getRoot();
 }
 
 TreeElement *TreeElement::getParent() const
 {
-    return parent;
+    if(DYNAMIC){
+        if(this != 0){
+        qDebug() << "TreeElement->getParent() " << this->local_index << " anlzr " <<  this->analyzer;
+            if( this->analyzer != 0 ){
+                if( this->local_index != this->analyzer->glob_index) //!
+                    this->analyzer->setIndexAST(this->local_index);
+
+                return this->analyzer->getParentElementAST();
+            }else{
+                return 0;
+            }
+        }else{
+            return 0;
+        }
+    }else{
+        return parent;
+    }
 }
 
 QString TreeElement::getType() const
@@ -386,11 +452,12 @@ QString TreeElement::getType() const
 // returns all text in this element and it's descendants
 QString TreeElement::getText(bool noComments) const
 {
+    QString text;
     DocBlock *docBl = 0;
 
     if (isFloating()) docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
 
-    QString text;
+
     QString spacesStr = QString().fill(' ', spaces);
 
     if (isLeaf())
@@ -409,7 +476,7 @@ QString TreeElement::getText(bool noComments) const
         if (docBl != 0 && !noComments)
             text.append(docBl->convertToText());    //! get text of docblock
 
-        foreach (TreeElement *e, children)
+        foreach (TreeElement *e, getChildren())
         {
             text.append(e->getText(noComments));          //! get child texts
         }
@@ -441,21 +508,50 @@ TreeElement *TreeElement::next()
 
 bool TreeElement::hasNext(int index)
 {
-    if (index < childCount()) return true;
+    if(DYNAMIC){
+        qDebug() << "TreeElement->hasNext()";
+        if(this != 0){
+            if( this->local_index != this->analyzer->glob_index) //!
+                this->analyzer->setIndexAST(this->local_index);
 
-    if (parent == 0) return false;
-
-    return parent->hasNext(this->index() + 1);
+            for(int i = 0; i < index; i++){
+                this->analyzer->nextElementAST();
+            }
+            //return getParent()->analyzer->hasNextElementAST(); //! new iterator
+            return this->analyzer->hasNextElementAST(); //! new iterator
+        }else{
+            return false;
+        }
+    }else{
+        if (index < childCount()) return true;
+        if (getParent() == 0) return false;
+        return getParent()->hasNext(this->index() + 1);
+    }
 }
 
 TreeElement *TreeElement::next(int index)
 {
-    if (index < childCount())
-        return children.at(index);
+    if(DYNAMIC){
 
-    if (parent == 0) return 0;
+        if( this->local_index != this->analyzer->glob_index) //!
+            this->analyzer->setIndexAST(this->local_index);
+        for(int i = 0; i < index; i++){
+            this->analyzer->nextElementAST();
+        }
+        qDebug() << "TreeElement->next() local" << this->local_index;
 
-    return parent->next(this->index() + 1);
+        if(getParent() == 0)
+            return 0;
+
+         return this->analyzer->nextElementAST();  //! new iterator
+
+    }else{
+        if (index < childCount())
+            return getChildren().at(index);
+        if (getParent() == 0) return 0;
+
+        return getParent()->next(this->index() + 1);
+    }
 }
 
 // operators
@@ -471,7 +567,7 @@ TreeElement *TreeElement::operator<<(QList<TreeElement *> children)
 }
 TreeElement *TreeElement::operator[](int index)
 {
-    return children[index];
+    return getChildren()[index];
 }
 int TreeElement::operator[](TreeElement* child)
 {
@@ -505,31 +601,31 @@ TreeElement *TreeElement::clone() const
     }
 
     // resolve pairing:
-    for (int i = 0; i < children.size(); i++) //! iterate through original children
+    for (int i = 0; i < getChildren().size(); i++) //! iterate through original children
     {
         TreeElement *child;
-        TreeElement *origPair = children[i]->pair;
+        TreeElement *origPair = getChildren()[i]->pair;
 
         if (origPair == 0)                   //! if original has no pair continue
             continue;
 
-        if (el->children[i]->getPair() != 0) //! if clone has pair already set continue
+        if (el->getChildren()[i]->getPair() != 0) //! if clone has pair already set continue
             continue;
 
         int j = i;
         // otherwise find pair-of-original's index j
         do
         {
-            child = children[j];
+            child = getChildren()[j];
             j++;
         }
-        while (child != origPair && j < children.size());
+        while (child != origPair && j < getChildren().size());      //refacktoruj na chlidCount?!?
 
-        if (child != origPair || j >= children.size())
+        if (child != origPair || j >= getChildren().size())
             continue;
 
-        el->children[i]->setPair(el->children[j]); //! set pair of clone to clone at index j
-        el->children[j]->setPair(el->children[i]); //! and vice versa
+        el->getChildren()[i]->setPair(el->getChildren()[j]); //! set pair of clone to clone at index j
+        el->getChildren()[j]->setPair(el->getChildren()[i]); //! and vice versa
     }
 
     return el;

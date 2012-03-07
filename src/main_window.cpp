@@ -4,20 +4,15 @@
 #include "language_manager.h"
 #include "analyzer.h"
 #include "block_group.h"
-
+#include <QTableWidget>
+#include <QFont>
+#include <QPushButton>
+#include <QtGui>
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
     langManager = new LanguageManager(programPath);
-    QGraphicsView *view = new QGraphicsView();
 
-    scene = new DocumentScene(this);
-    scene->setHighlighting(langManager->getConfigData());
-    connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
-    connect(scene, SIGNAL(fileSelected(BlockGroup*)),
-            this, SLOT(setCurrentFile(BlockGroup*)));
-
-    view->setScene(scene);
-    setCentralWidget(view);
+    createTabs();
 
     createActions();
     createMenus();
@@ -32,16 +27,147 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
     setCurrentFile(0);
+
+    setStyleSheet(
+                "QMainWindow { "
+                "color: white;"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #4e3d3d, stop:1 #271b1b);"
+                "border-width: 3px;"
+                "border-color: #002447;"
+                "border-style: solid;"
+                "border-radius: 7;"
+                "padding: 3px;"
+                "font-size: 10px;"
+                "padding-left: 5px;"
+                "padding-right: 5px;"
+                "}"
+
+                "QTabWidget::pane {"
+                "border-top: 0px;"
+                "}"
+
+                "QPushButton{"
+                "color: white;"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #777, stop: 1 #333);"
+                "}"
+
+                "QTabBar{"
+                "color: white;"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #777, stop: 1 #333);"
+                "}"
+
+                "QTabBar::tab:selected {"
+                "color: black;"
+                "background: qradialgradient(cx: 0.3, cy: -0.4,"
+                "fx: 0.3, fy: -0.4,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
+                "}"
+
+                "QMenu {"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #442c2c, stop:1 #4b2929);"
+                "border: 1px solid black;"
+                "}"
+
+                "QMenu::item {"
+                "background-color: transparent;"
+                "color: white;"
+                "}"
+
+                "QMenu::item:selected {"
+                "background-color: #271b1b;"
+                "}"
+
+                "QMenu::item:disabled {"
+                "background-color: #271b1b;"
+                "color:gray;"
+                "}"
+
+                "QMenuBar {"
+                "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 #442c2c, stop:1 #4b2929);"
+                "color: white;"
+                "}"
+
+                "QMenuBar::item {"
+                "spacing: 3px;"
+                "padding: 1px 4px;"
+                "background: transparent;"
+                "border-radius: 4px;"
+                "}"
+
+                "QMenuBar::item:selected {"
+                "background: #a8a8a8;"
+                "}"
+
+                "QMenuBar::item:disabled {"
+                "background: #000000;"
+                "}"
+
+                "QMenuBar::item:pressed {"
+                "background: #888888;"
+                "}"
+
+                "QToolBar {"
+                "min-height: 40px;"
+                "}"
+
+                "QToolButton {"
+                "color: #333;"
+                "border: 2px solid #555;"
+                "border-radius: 5px;"
+                "padding: 2px;"
+                "background: qradialgradient(cx: 0.3, cy: -0.4,"
+                "fx: 0.3, fy: -0.4,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
+                "min-width: 40px;"
+                "}"
+
+                "QToolButton:hover {"
+                "background: qradialgradient(cx: 0.3, cy: -0.4,"
+                "fx: 0.3, fy: -0.4,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #bbb);"
+                "}"
+
+                "QToolButton:pressed {"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
+                "}"
+
+                "QToolButton:disabled {"
+                "background: qradialgradient(cx: 0.4, cy: -0.1,"
+                "fx: 0.4, fy: -0.1,"
+                "radius: 1.35, stop: 0 #777, stop: 1 #333);"
+                "}"
+
+                "QStatusBar{ "
+                "color: white;"
+                "}"
+
+                );
 }
 
 void MainWindow::createActions()
 {
     groupActions = new QActionGroup(this);
 
+        QFile file("shortcuts.txt");
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QMessageBox::information(0,"error",file.errorString());
+    }
+    QString textstring;
+    //QString textstring = file.readLine();
+
     // new
     QIcon newIcon(":/m/new"); newIcon.addFile(":/s/new");
     newAction = new QAction(newIcon, tr("&New"), this);
-    newAction->setShortcut(tr("CTRL+N"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    newAction->setShortcut((textstring));
     newAction->setToolTip(tr("Create a new file"));
     connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
     addAction(newAction);
@@ -49,72 +175,84 @@ void MainWindow::createActions()
     // open
     QIcon openIcon(":/m/open"); openIcon.addFile(":/s/open");
     openAction = new QAction(openIcon, tr("&Open..."), this);
-    openAction->setShortcut(tr("CTRL+O"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    openAction->setShortcut((textstring));
     openAction->setToolTip(tr("Open an existing file"));
     connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
     // revert
 //    QIcon revertIcon(":/m/open"); openIcon.addFile(":/s/open");
     revertAction = new QAction(tr("&Revert"), this);
-    revertAction->setShortcut(tr("CTRL+R"));
+        textstring = file.readLine();
+    textstring.remove(6,1);
+    revertAction->setShortcut((textstring));
     revertAction->setToolTip(tr("Revert to last save"));
-    connect(revertAction, SIGNAL(triggered()), scene, SLOT(revertGroup()));
+    connect(revertAction, SIGNAL(triggered()), tabWidget, SLOT(revertGroup()));
     groupActions->addAction(revertAction);
 
     // save
     QIcon saveIcon(":/m/save"); saveIcon.addFile(":/s/save");
     saveAction = new QAction(saveIcon, tr("&Save"), this);
-    saveAction->setShortcut(tr("CTRL+S"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    saveAction->setShortcut((textstring));
     saveAction->setToolTip(tr("Save file"));
-    connect(saveAction, SIGNAL(triggered()), scene, SLOT(saveGroup()));
+    connect(saveAction, SIGNAL(triggered()), tabWidget, SLOT(saveGroup()));
     groupActions->addAction(saveAction);
 
     // save as
     QIcon saveAsIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as");
     saveAsAction = new QAction(saveAsIcon, tr("Save &As..."), this);
     saveAsAction->setToolTip(tr("Save file as..."));
-    connect(saveAsAction, SIGNAL(triggered()), scene, SLOT(saveGroupAs()));
+    connect(saveAsAction, SIGNAL(triggered()), tabWidget, SLOT(saveGroupAs()));
     groupActions->addAction(saveAsAction);
 
     // save as
 //    QIcon saveAsNoDocIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as");
     saveAsNoDocAction = new QAction(tr("Save Without Comments"), this);
     saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
-    connect(saveAsNoDocAction, SIGNAL(triggered()), scene, SLOT(saveGroupAsWithoutDoc()));
+    connect(saveAsNoDocAction, SIGNAL(triggered()), tabWidget, SLOT(saveGroupAsWithoutDoc()));
     groupActions->addAction(saveAsNoDocAction);
 
     // save all
     saveAllAction = new QAction(tr("Save All"), this);
     saveAllAction->setToolTip(tr("Save all files"));
-    connect(saveAllAction, SIGNAL(triggered()), scene, SLOT(saveAllGroups()));
+    connect(saveAllAction, SIGNAL(triggered()), tabWidget, SLOT(saveAllGroups()));
 
     // close
     QIcon closeIcon(":/m/close"); closeIcon.addFile(":/s/close");
     closeAction = new QAction(closeIcon, tr("&Close File"), this);
-    closeAction->setShortcut(tr("CTRL+Q"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    closeAction->setShortcut((textstring));
     closeAction->setToolTip(tr("Close file"));
-    connect(closeAction, SIGNAL(triggered()), scene, SLOT(closeGroup()));
+    connect(closeAction, SIGNAL(triggered()), tabWidget, SLOT(closeGroup()));
     groupActions->addAction(closeAction);
 
     // close all
     closeAllAction = new QAction(tr("Close All"), this);
     closeAllAction->setToolTip(tr("Close all files"));
-    connect(closeAllAction, SIGNAL(triggered()), scene, SLOT(closeAllGroups()));
+    connect(closeAllAction, SIGNAL(triggered()), tabWidget, SLOT(closeAllGroups()));
 
     // print pdf
     QIcon printIcon(":/m/print"); printIcon.addFile(":/s/print");
     printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
-    printPdfAction->setShortcut(tr("CTRL+P"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    printPdfAction->setShortcut((textstring));
     printPdfAction->setToolTip(tr("Print scene to PDF"));
     connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
-	groupActions->addAction(printPdfAction);
+        groupActions->addAction(printPdfAction);
 
     // show plain text editor
     QIcon editIcon(":/m/edit"); printIcon.addFile(":/s/edit");
     plainEditAction = new QAction(editIcon, tr("&Edit Plain Text"), this);
-    plainEditAction->setShortcut(tr("CTRL+E"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    plainEditAction->setShortcut((textstring));
     plainEditAction->setToolTip(tr("Edit file as plain text"));
-    connect(plainEditAction, SIGNAL(triggered()), scene, SLOT(showPreview()));
+    connect(plainEditAction, SIGNAL(triggered()), tabWidget, SLOT(showPreview()));
     groupActions->addAction(plainEditAction);
 
     // clear search results
@@ -123,7 +261,7 @@ void MainWindow::createActions()
     clearAction->icon().addFile(":/m/save.png");
 //    clearAction->setShortcut(tr("CTRL+S"));
     clearAction->setToolTip(tr("Clean search results"));
-    connect(clearAction, SIGNAL(triggered()), scene, SLOT(cleanGroup()));
+    connect(clearAction, SIGNAL(triggered()), tabWidget, SLOT(cleanGroup()));
     groupActions->addAction(clearAction);
 
     // recent files
@@ -161,22 +299,27 @@ void MainWindow::createActions()
 
     // about Qt
     aboutQtAction = new QAction(tr("About &Qt"), this);
-    aboutQtAction->setStatusTip(tr("Show the Qt library’s About box"));
+    aboutQtAction->setStatusTip(tr("Show the Qt library?s About box"));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
+    // shortcuts
+    shortAction = new QAction(tr("Shortcuts"), this);
+    shortAction->setStatusTip(tr("Setting shortcuts"));
+    connect(shortAction, SIGNAL(triggered()), this, SLOT(setShort()));
     // show printable area
     QIcon areaIcon(":/m/area"); areaIcon.addFile(":/s/area");
     printableAreaAction = new QAction(areaIcon, tr("Show Printable Area"), this);
     printableAreaAction->setToolTip(tr("Show margins of printable area"));
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
+        file.close();
 }
 
 void MainWindow::createMenus()
 {
     // file menu
     fileMenu = menuBar()->addMenu(tr("&File"));
-     fileMenu->addAction(newAction);
+    fileMenu->addAction(newAction);
     fileMenu->addAction(openAction);
     fileMenu->addAction(revertAction);
     fileMenu->addSeparator();
@@ -197,6 +340,9 @@ void MainWindow::createMenus()
         fileMenu->addAction(recentFileActions[i]);
 
     fileMenu->addSeparator();
+
+
+
     fileMenu->addAction(exitAction);
 
     // edit menu
@@ -207,8 +353,8 @@ void MainWindow::createMenus()
     editMenu->addAction(deleteAction);*/
 
     // options menu
-    /* optionsMenu = menuBar()->addMenu(tr("&Options"));
-    optionsMenu->addAction(stylesAction);*/
+    optionsMenu = menuBar()->addMenu(tr("&Options"));
+    optionsMenu->addAction(shortAction);
 
     // help menu
     helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -217,10 +363,92 @@ void MainWindow::createMenus()
     helpMenu->addAction(aboutQtAction);
 }
 
+void MainWindow::setShort()
+{
+    QDialog *set_shortcuts = new QDialog(0);
+    QPushButton *Savebutton = new QPushButton("OK", set_shortcuts);
+    QPushButton *Closebutton = new QPushButton("Close", set_shortcuts);
+
+    m_table = new QTableWidget(7, 2, set_shortcuts);
+
+    m_table->setHorizontalHeaderItem(0, new QTableWidgetItem("Funkcia"));
+    m_table->setHorizontalHeaderItem(1, new QTableWidgetItem("Skratka"));
+    m_table->setItem(0,0, new QTableWidgetItem("New"));
+    m_table->setItem(1,0, new QTableWidgetItem("Open"));
+    m_table->setItem(2,0, new QTableWidgetItem("Revert"));
+    m_table->setItem(3,0, new QTableWidgetItem("Save"));
+    m_table->setItem(4,0, new QTableWidgetItem("Close"));
+    m_table->setItem(5,0, new QTableWidgetItem("Print"));
+    m_table->setItem(6,0, new QTableWidgetItem("Edit plain text"));
+
+
+    QFile file("shortcuts.txt");
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QMessageBox::information(0,"error",file.errorString());
+    }
+
+    QString textstring;
+    for(int row=0; row < m_table->rowCount(); row++)
+    {
+        QString textstring = file.readLine();
+        textstring.remove(6,1);
+        m_table->setItem(row,1, new QTableWidgetItem(textstring));
+    }
+    file.close();
+    //m_table->resizeColumnsToContents();
+    //m_table->resizeRowsToContents();
+    m_table->resize(220,240);
+
+    set_shortcuts->resize(225,290);
+    Savebutton->move(20,250);
+    Closebutton->move(130,250);
+    set_shortcuts->show();
+
+    QObject::connect(Savebutton, SIGNAL(clicked()),this,SLOT(savedShortcuts()));
+    set_shortcuts->exec();
+}
+
+void MainWindow::savedShortcuts()
+{
+    QFile file("shortcuts.txt");
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QMessageBox::information(0,"error",file.errorString());
+    }
+    QString textstring;
+
+    for(int row=0; row < m_table->rowCount(); row++)
+    {
+         textstring = m_table->item(row,1)->text();
+         QTextStream out(&file);
+         out << textstring << endl;
+    }
+    file.close();
+    textstring = m_table->item(0,1)->text();
+    newAction->setShortcut((textstring));
+    textstring = m_table->item(1,1)->text();
+    openAction->setShortcut((textstring));
+    textstring = m_table->item(2,1)->text();
+    revertAction->setShortcut((textstring));
+    textstring = m_table->item(3,1)->text();
+    saveAction->setShortcut((textstring));
+    textstring = m_table->item(4,1)->text();
+    closeAction->setShortcut((textstring));
+    textstring = m_table->item(5,1)->text();
+    printPdfAction->setShortcut((textstring));
+    textstring = m_table->item(6,1)->text();
+    plainEditAction->setShortcut((textstring));
+    //MainWindow::createMenus();
+}
+
 void MainWindow::createToolBars()
 {
     // format toolbar
+
     formatToolBar = addToolBar(tr("Format"));
+  //  formatToolBar->setFloatable(false);
+  //  formatToolBar->setMovable(false);
     formatToolBar->addAction(newAction);
     formatToolBar->addAction(openAction);
     formatToolBar->addAction(saveAction);
@@ -239,7 +467,7 @@ void MainWindow::createToolBars()
     connect(scriptsBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(langChanged(QString)));
     formatToolBar->addWidget(scriptsBox);
     formatToolBar->addSeparator();
-	
+
     searchLabel = new QLabel();
 //    searchLabel->setText(" Search ");
     searchLabel->setPixmap(QPixmap(":/m/search"));
@@ -251,7 +479,104 @@ void MainWindow::createToolBars()
     formatToolBar->addWidget(searchLineEdit);
 
     formatToolBar->addAction(clearAction);
+
 }
+
+QGraphicsView* MainWindow::createView()
+{
+    QGraphicsView *view = new QGraphicsView();
+
+    DocumentScene *scene = new DocumentScene(this);
+    scene->setHighlighting(langManager->getConfigData());
+    connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
+    connect(scene, SIGNAL(fileSelected(BlockGroup*)),
+            this, SLOT(setCurrentFile(BlockGroup*)));
+
+    view->setScene(scene);
+    return view;
+}
+
+DocumentScene* MainWindow::getScene()
+{
+    QGraphicsView* view=(QGraphicsView *) tabWidget->currentWidget();
+    DocumentScene* dScene=(DocumentScene *) view->scene();
+    return dScene;
+}
+
+void MainWindow::newTab()
+{
+    qDebug("newTab()");
+    int count=tabWidget->count();
+    QString* name=new QString("tab");
+    QString* numb=new QString("");
+    numb->setNum(count);
+    name->append(numb);
+    QWidget* widget=createView(); // get QGraphicView
+    tabWidget->addTab(widget, *name);
+    tabWidget->setCurrentWidget(widget); // focus on new tab
+    return;
+}
+
+void MainWindow::newFile()
+{
+    qDebug("newFile()");
+    DocumentScene* dScene=getScene();
+    if(dScene==0){ // this should not ever happen
+        qDebug("newFile() Error: dScene = null");
+        return;
+    }else{
+        dScene->newGroup(langManager->getAnalyzerForLang(scriptsBox->currentText()));
+    }
+}
+
+void MainWindow::load(QString fileName)
+{
+    Analyzer *analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
+    DocumentScene* dScene=getScene();
+    if(dScene==0){ // this should not ever happen
+        qDebug("newFile() Error: dScene = null");
+        return;
+    }else{
+        dScene->loadGroup(fileName, analyzer);
+    }
+}
+
+void MainWindow::langChanged(QString newLang)
+{
+    getScene()->setGroupLang(langManager->getAnalyzerForLang(newLang));
+}
+
+void MainWindow::closeTab(int position){
+    if(tabWidget->count()==1){
+        return;
+    }
+    tabWidget->removeTab(position);
+}
+
+void MainWindow::tabChanged(int position){
+    qDebug("tabChanged()");
+}
+
+void MainWindow::createTabs()
+{
+    tabWidget = new QTabWidget(this);
+
+    tabWidget->setDocumentMode(true);
+    tabWidget->setMovable(true);
+    tabWidget->setTabsClosable(true);
+    connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+    connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+
+    QIcon addTabIcon(":/plus.png");
+    QPushButton *m_addButton = new QPushButton(addTabIcon,"", this);
+    m_addButton->setObjectName("addButton");
+    connect(m_addButton, SIGNAL(clicked()), this, SLOT(newTab()));
+    tabWidget->setCornerWidget(m_addButton, Qt::TopLeftCorner);
+    tabWidget->addTab(createView(), "tab0");
+
+    this->setCentralWidget(tabWidget);
+}
+
 
 void MainWindow::setModified(bool flag)
 {
@@ -316,16 +641,11 @@ void MainWindow::setCurrentFile(BlockGroup *group)
     }
 }
 
-void MainWindow::newFile()
-{
-    scene->newGroup(langManager->getAnalyzerForLang(scriptsBox->currentText()));
-}
-
 void MainWindow::open()
 {
     QString fileFilters = tr("All files (*)");
     QString dir = QFileInfo(windowFilePath()).absoluteDir().absolutePath();
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), dir, fileFilters);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), dir, fileFilters); // CHECK
     open(fileName);
 }
 
@@ -348,22 +668,11 @@ void MainWindow::open(QString fileName)
     }
 }
 
-void MainWindow::load(QString fileName)
-{
-    Analyzer *analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
-    scene->loadGroup(fileName, analyzer);
-}
-
-void MainWindow::langChanged(QString newLang)
-{
-    scene->setGroupLang(langManager->getAnalyzerForLang(newLang));
-}
-
 void MainWindow::search()
 {
     QString searchText = searchLineEdit->text();
-    scene->findText(searchText);
-    
+    getScene()->findText(searchText);
+
 }
 
 void MainWindow::printPdf()
@@ -386,6 +695,7 @@ void MainWindow::printPdf()
     rect.setWidth(printer.pageRect().width() - (printer.paperRect().width() - printer.pageRect().width()));
 
     int endCondition;
+    DocumentScene *scene=getScene();
 
     if (selectedGroup == 0)
     {
@@ -452,6 +762,8 @@ void MainWindow::showPrintableArea()
     int pagelength = 1200;
     int endpage = 0;
 
+    DocumentScene *scene=getScene();
+
     if(printableAreaAction->isChecked())
     {
         line = new QGraphicsLineItem(0);
@@ -491,13 +803,13 @@ void MainWindow::showPrintableArea()
 void MainWindow::showArea()
 {
     for(int i=0; i<list.size(); i++)
-        scene->addItem(list.at(i));
+        getScene()->addItem(list.at(i));
 }
 
 void MainWindow::hideArea()
 {
     for(int i=0; i<list.size(); i++)
-        scene->removeItem(list.at(i));
+        getScene()->removeItem(list.at(i));
 }
 
 void MainWindow::openRecentFile()
@@ -513,10 +825,16 @@ void MainWindow::openRecentFile()
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About TrollEdit"),
-                       tr("<h2>TrollEdit 1.0</h2>"
-                          "<p/>Team 5 - Ufopak"
-                          "<p/>This is a prototype of novel text editor "
-                          "which is being developed for Team project course."));
+                       tr("<h2>TrollEdit 1.2</h2>"
+                          "<p/>Team 5 - Ufopak - 2008"
+                          "<p/>Team 10 - Innovators - 2012"
+                          "<p/>This is a prototype of text editor enriched with graphical elemenets "
+                          "which is being developed for Team project course."
+                          "<p/>"
+                          "<img src=\":logo2.png\" aling=\"center\" width=\"\"/>"
+                          "<p/>"
+                          "<a href=\"mailto:tp-team-10@googlegroups.com\">Send Feedback</a>"
+                          ));
 }
 
 void MainWindow::updateRecentFileActions()
@@ -557,7 +875,7 @@ void MainWindow::settings()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    scene->closeAllGroups();
+    getScene()->closeAllGroups();
     writeSettings();
     event->accept();
 }

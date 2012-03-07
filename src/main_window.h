@@ -14,10 +14,19 @@
 #include <QPrintPreviewDialog>
 #include <QPainter>
 #include <QList>
+#include <QTableView>
+
+typedef struct pokus
+{
+        int test;
+} POKUS;
+
 
 class DocumentScene;
 class LanguageManager;
 class BlockGroup;
+class QTableWidget;
+class QTableWidgetItem;
 
 class MainWindow : public QMainWindow
 {
@@ -36,6 +45,9 @@ signals:
 
 private slots:
     void newFile();
+    void newTab();
+    void closeTab(int );
+    void tabChanged(int );
     void open();
     void openRecentFile();
     void about();
@@ -46,6 +58,9 @@ private slots:
 
     void printPdf();
     void showPrintableArea();
+    void setShort();
+    void savedShortcuts();
+        void wInit();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -56,6 +71,7 @@ private:
 
     QAction *aboutQtAction;
     QAction *newAction;
+    QAction *newTabAction;
     QAction *openAction;
     QAction *revertAction;
     QAction *saveAction;
@@ -81,6 +97,7 @@ private:
 
     QAction *helpAction;
     QAction *aboutAction;
+        QAction *shortAction;
 
     QAction *textBoldAction;
     QAction *textItalicAction;
@@ -92,12 +109,15 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
+    QTabBar *tabBar;
+    QTabWidget *tabWidget;
+    QSplashScreen *ico;
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
     QLabel *searchLabel;
 
     LanguageManager *langManager;
-    DocumentScene *scene;
+ //   DocumentScene *scene;
     QHash<QString, QPair<QFont, QColor> > *highlightFormats;
 
     QPrinter *printer;
@@ -106,9 +126,12 @@ private:
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
 
-
+    QGraphicsView* createView();
+    QTableWidget *m_table;
     void createActions();
     void createMenus();
+    void createTabs();
+    DocumentScene* getScene();
     void createToolBars();
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
@@ -116,11 +139,12 @@ private:
 
     void showArea();
     void hideArea();
-	QPointF startPoint;
+        QPointF startPoint;
     BlockGroup *selectedGroup;
 
     void readSettings();
     void writeSettings();
+//  set_shortcuts *setCustomShortcuts(this Qt::Window);
 };
 
 #endif // MAIN_WINDOW_H

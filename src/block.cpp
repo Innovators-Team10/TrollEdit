@@ -13,6 +13,7 @@
 #include "tree_element.h"
 #include "document_scene.h"
 
+#include <QDebug>
 /**
  * Block class contructor, that creates a block from a specified element
  * as a child of a specified parent to the specified block group
@@ -90,21 +91,28 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
         myTextItem = 0;
         setToolTip(element->getType().replace("_", " "));
 
-        for (int i = 0; i < element->childCount(); i++)
+        int child_count = element->childCount();
+        QList<TreeElement*> children = element->getChildren();
+       // for (int i = 0; i < child_count; i++)children.size()
+       for (int i = 0; i < children.size(); i++)
         {
-            TreeElement *childEl = element->getChildren()[i];
-
+            qDebug() << "child_count " << child_count <<"  size() "<< children.size() << " element:"<< element->getType();
+            TreeElement *childEl = children[i];
             if (!childEl->isFloating()) //! create block from child element
             {
                 new Block(childEl, this);
             }
             else //! create docblock form child element
             {
-                QString text = childEl->getText();
-                childEl->deleteAllChildren();
-                new DocBlock(text, childEl, this, group);
+                if(TreeElement::DYNAMIC){
+                    //! zisti ako to reprezentovat z AST-cka
+                }else{
+                    QString text = childEl->getText();
+                    childEl->deleteAllChildren();
+                    new DocBlock(text, childEl, this, group);
+                }
             }
-        }        
+        }
     }
 
     // set highlighting
