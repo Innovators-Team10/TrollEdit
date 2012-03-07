@@ -11,8 +11,15 @@
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
     langManager = new LanguageManager(programPath);
+	QGraphicsView *view = new QGraphicsView();
+//	QGraphicsView *view = new QGraphicsView();
 
     createTabs();
+  /*  scene = new DocumentScene(this);
+    scene->setHighlighting(langManager->getConfigData());
+    connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
+    connect(scene, SIGNAL(fileSelected(BlockGroup*)),
+            this, SLOT(setCurrentFile(BlockGroup*)));
 
     createActions();
     createMenus();
@@ -898,4 +905,5 @@ void MainWindow::writeSettings()
     settings.setValue("pos", pos());
     settings.setValue("size", size());
     settings.setValue("maximized", isMaximized());
+}
 }
