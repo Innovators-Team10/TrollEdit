@@ -11,15 +11,8 @@
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
     langManager = new LanguageManager(programPath);
-	QGraphicsView *view = new QGraphicsView();
-//	QGraphicsView *view = new QGraphicsView();
 
     createTabs();
-  /*  scene = new DocumentScene(this);
-    scene->setHighlighting(langManager->getConfigData());
-    connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
-    connect(scene, SIGNAL(fileSelected(BlockGroup*)),
-            this, SLOT(setCurrentFile(BlockGroup*)));
 
     createActions();
     createMenus();
@@ -160,15 +153,15 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 void MainWindow::createActions()
 {
     groupActions = new QActionGroup(this);
-	
-	QFile file("shortcuts.txt");
+
+        QFile file("shortcuts.txt");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
     }
     QString textstring;
     //QString textstring = file.readLine();
-	
+
     // new
     QIcon newIcon(":/m/new"); newIcon.addFile(":/s/new");
     newAction = new QAction(newIcon, tr("&New"), this);
@@ -191,7 +184,7 @@ void MainWindow::createActions()
     // revert
 //    QIcon revertIcon(":/m/open"); openIcon.addFile(":/s/open");
     revertAction = new QAction(tr("&Revert"), this);
-	textstring = file.readLine();
+        textstring = file.readLine();
     textstring.remove(6,1);
     revertAction->setShortcut((textstring));
     revertAction->setToolTip(tr("Revert to last save"));
@@ -250,7 +243,7 @@ void MainWindow::createActions()
     printPdfAction->setShortcut((textstring));
     printPdfAction->setToolTip(tr("Print scene to PDF"));
     connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
-	groupActions->addAction(printPdfAction);
+        groupActions->addAction(printPdfAction);
 
     // show plain text editor
     QIcon editIcon(":/m/edit"); printIcon.addFile(":/s/edit");
@@ -306,7 +299,7 @@ void MainWindow::createActions()
 
     // about Qt
     aboutQtAction = new QAction(tr("About &Qt"), this);
-    aboutQtAction->setStatusTip(tr("Show the Qt library’s About box"));
+    aboutQtAction->setStatusTip(tr("Show the Qt library?s About box"));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     // shortcuts
@@ -319,7 +312,7 @@ void MainWindow::createActions()
     printableAreaAction->setToolTip(tr("Show margins of printable area"));
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
-	file.close();
+        file.close();
 }
 
 void MainWindow::createMenus()
@@ -474,7 +467,7 @@ void MainWindow::createToolBars()
     connect(scriptsBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(langChanged(QString)));
     formatToolBar->addWidget(scriptsBox);
     formatToolBar->addSeparator();
-	
+
     searchLabel = new QLabel();
 //    searchLabel->setText(" Search ");
     searchLabel->setPixmap(QPixmap(":/m/search"));
@@ -679,7 +672,7 @@ void MainWindow::search()
 {
     QString searchText = searchLineEdit->text();
     getScene()->findText(searchText);
-    
+
 }
 
 void MainWindow::printPdf()
@@ -905,5 +898,4 @@ void MainWindow::writeSettings()
     settings.setValue("pos", pos());
     settings.setValue("size", size());
     settings.setValue("maximized", isMaximized());
-}
 }

@@ -60,7 +60,7 @@ private slots:
     void showPrintableArea();
     void setShort();
     void savedShortcuts();
-	void wInit();
+        void wInit();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -97,7 +97,7 @@ private:
 
     QAction *helpAction;
     QAction *aboutAction;
-	QAction *shortAction;
+        QAction *shortAction;
 
     QAction *textBoldAction;
     QAction *textItalicAction;
@@ -139,7 +139,7 @@ private:
 
     void showArea();
     void hideArea();
-	QPointF startPoint;
+        QPointF startPoint;
     BlockGroup *selectedGroup;
 
     void readSettings();
