@@ -63,7 +63,7 @@ private slots:
     void showPrintableArea();
     void setShort();
     void savedShortcuts();
-	void wInit();
+        void wInit();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -100,7 +100,7 @@ private:
 
     QAction *helpAction;
     QAction *aboutAction;
-	QAction *shortAction;
+        QAction *shortAction;
 
     QAction *textBoldAction;
     QAction *textItalicAction;
@@ -112,7 +112,7 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
-	QTabBar *tabBar;
+    QTabBar *tabBar;
     QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;
@@ -121,7 +121,7 @@ private:
     QDialog *set_shortcuts;
 
     LanguageManager *langManager;
-    DocumentScene *scene;
+ //   DocumentScene *scene;
     QHash<QString, QPair<QFont, QColor> > *highlightFormats;
 
     QPrinter *printer;
@@ -131,10 +131,11 @@ private:
     QList<QGraphicsLineItem *> list;
 
     QGraphicsView* createView();
-	QTableWidget *m_table;
+    QTableWidget *m_table;
     void createActions();
     void createMenus();
     void createTabs();
+    DocumentScene* getScene();
     void createToolBars();
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
@@ -142,7 +143,7 @@ private:
 
     void showArea();
     void hideArea();
-	QPointF startPoint;
+        QPointF startPoint;
     BlockGroup *selectedGroup;
 
     void readSettings();
