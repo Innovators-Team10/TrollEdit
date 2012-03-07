@@ -10,6 +10,7 @@
         <file alias="weblink">weblink.png</file>
     </qresource>
     <qresource prefix="/m">
+        <file alias="logo">logo.png</file>
         <file alias="area">area22.png</file>
         <file alias="close">close22.png</file>
         <file alias="new">new22.png</file>
@@ -22,6 +23,7 @@
         <file alias="edit">text-editor22.png</file>
         <file alias="clear">clean22.png</file>
         <file alias="search">search22.png</file>
+        <file alias="logo2">logo2.png</file>
     </qresource>
     <qresource prefix="/s">
         <file alias="area">area16.png</file>
