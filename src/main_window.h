@@ -109,7 +109,7 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
-	QTabBar *tabBar;
+    QTabBar *tabBar;
     QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;
@@ -117,7 +117,7 @@ private:
     QLabel *searchLabel;
 
     LanguageManager *langManager;
-    DocumentScene *scene;
+ //   DocumentScene *scene;
     QHash<QString, QPair<QFont, QColor> > *highlightFormats;
 
     QPrinter *printer;
@@ -127,10 +127,11 @@ private:
     QList<QGraphicsLineItem *> list;
 
     QGraphicsView* createView();
-	QTableWidget *m_table;
+    QTableWidget *m_table;
     void createActions();
     void createMenus();
     void createTabs();
+    DocumentScene* getScene();
     void createToolBars();
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
