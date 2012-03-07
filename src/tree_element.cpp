@@ -87,6 +87,7 @@ void TreeElement::appendChildren(QList<TreeElement*> children)
     foreach (TreeElement *child, children)
     {
         appendChild(child);
+        child->parent = this;
     }
 }
 
@@ -283,7 +284,7 @@ int TreeElement::childCount() const
                 this->analyzer->setIndexAST(this->local_index);
                 qDebug() << "childCount()-> setIndexAST()";
             }
-            qDebug() << "getCountElementChildrenAST()";
+//            qDebug() << "getCountElementChildrenAST()";
 
             return this->analyzer->getCountElementChildrenAST();
         }else{
