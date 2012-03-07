@@ -63,6 +63,7 @@ private slots:
     void showPrintableArea();
     void setShort();
     void savedShortcuts();
+    void closeShortcuts();
         void wInit();
 
 protected:
@@ -148,7 +149,6 @@ private:
 
     void readSettings();
     void writeSettings();
-//  set_shortcuts *setCustomShortcuts(this Qt::Window);
 };
 
 #endif // MAIN_WINDOW_H

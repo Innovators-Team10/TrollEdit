@@ -407,6 +407,7 @@ void MainWindow::setShort()
 
 
     QObject::connect(Savebutton, SIGNAL(clicked()),this,SLOT(savedShortcuts()));
+    QObject::connect(Closebutton, SIGNAL(clicked()),this,SLOT(closeShortcuts()));
 }
 
 void MainWindow::savedShortcuts()
@@ -441,6 +442,11 @@ void MainWindow::savedShortcuts()
     plainEditAction->setShortcut((textstring));
     set_shortcuts->close();
 }
+
+    void MainWindow::closeShortcuts()
+{
+    set_shortcuts->close();
+    }
 
 void MainWindow::createToolBars()
 {
