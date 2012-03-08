@@ -154,7 +154,7 @@ void MainWindow::createActions()
 {
     groupActions = new QActionGroup(this);
 
-        QFile file("shortcuts.txt");
+        QFile file("shortcuts.ini");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -382,7 +382,7 @@ void MainWindow::setShort()
     m_table->setItem(6,0, new QTableWidgetItem("Edit plain text"));
 
 
-    QFile file("shortcuts.txt");
+    QFile file("shortcuts.ini");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -412,7 +412,7 @@ void MainWindow::setShort()
 
 void MainWindow::savedShortcuts()
 {
-    QFile file("shortcuts.txt");
+    QFile file("shortcuts.ini");
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
