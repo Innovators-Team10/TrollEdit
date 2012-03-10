@@ -779,7 +779,7 @@ void BlockGroup::analyzeAll(QString text)
     if (text.isEmpty()) //! use snippet if text is empty
     {
         text = analyzer->getSnippet();
-        qDebug("\nDefault snipped used");
+        qDebug("\nDefault snippet used");
         getStatusBar()->showMessage("File reset - default text used", 2000);
 
         if (text.isEmpty()) text = "    ";

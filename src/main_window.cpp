@@ -14,7 +14,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 
     createTabs();
 
-    createActions();
+//    createActions();
     createMenus();
     createToolBars();
     statusBar();
@@ -150,20 +150,20 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 );
 }
 
-void MainWindow::createActions()
+void MainWindow::createActions(DocumentScene *scene)
 {
     groupActions = new QActionGroup(this);
-	
-	QFile file("shortcuts.txt");
+
+        QFile file("shortcuts.txt");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
     }
     QString textstring;
     //QString textstring = file.readLine();
-	
+
     // new
-    QIcon newIcon(":/m/new"); newIcon.addFile(":/s/new");
+    QIcon newIcon(":/m/new"); newIcon.addFile(":/s/new"); // works
     newAction = new QAction(newIcon, tr("&New"), this);
     textstring = file.readLine();
     textstring.remove(6,1);
@@ -173,7 +173,7 @@ void MainWindow::createActions()
     addAction(newAction);
 
     // open
-    QIcon openIcon(":/m/open"); openIcon.addFile(":/s/open");
+    QIcon openIcon(":/m/open"); openIcon.addFile(":/s/open"); // works
     openAction = new QAction(openIcon, tr("&Open..."), this);
     textstring = file.readLine();
     textstring.remove(6,1);
@@ -182,58 +182,57 @@ void MainWindow::createActions()
     connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
     // revert
-//    QIcon revertIcon(":/m/open"); openIcon.addFile(":/s/open");
-    revertAction = new QAction(tr("&Revert"), this);
-	textstring = file.readLine();
+    revertAction = new QAction(tr("&Revert"), this); // ??? is this used ???
+        textstring = file.readLine();
     textstring.remove(6,1);
     revertAction->setShortcut((textstring));
     revertAction->setToolTip(tr("Revert to last save"));
-    connect(revertAction, SIGNAL(triggered()), tabWidget, SLOT(revertGroup()));
+    connect(revertAction, SIGNAL(triggered()), scene, SLOT(revertGroup()));
     groupActions->addAction(revertAction);
 
     // save
-    QIcon saveIcon(":/m/save"); saveIcon.addFile(":/s/save");
+    QIcon saveIcon(":/m/save"); saveIcon.addFile(":/s/save"); // works (only for 1 scene)
     saveAction = new QAction(saveIcon, tr("&Save"), this);
     textstring = file.readLine();
     textstring.remove(6,1);
     saveAction->setShortcut((textstring));
     saveAction->setToolTip(tr("Save file"));
-    connect(saveAction, SIGNAL(triggered()), tabWidget, SLOT(saveGroup()));
+    connect(saveAction, SIGNAL(triggered()), scene, SLOT(saveGroup()));
     groupActions->addAction(saveAction);
 
     // save as
-    QIcon saveAsIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as");
+    QIcon saveAsIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as"); // probably same as saveAction
     saveAsAction = new QAction(saveAsIcon, tr("Save &As..."), this);
     saveAsAction->setToolTip(tr("Save file as..."));
-    connect(saveAsAction, SIGNAL(triggered()), tabWidget, SLOT(saveGroupAs()));
+    connect(saveAsAction, SIGNAL(triggered()), scene, SLOT(saveGroupAs()));
     groupActions->addAction(saveAsAction);
 
     // save as
 //    QIcon saveAsNoDocIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as");
-    saveAsNoDocAction = new QAction(tr("Save Without Comments"), this);
+    saveAsNoDocAction = new QAction(tr("Save Without Comments"), this); // ??? is this used ???
     saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
-    connect(saveAsNoDocAction, SIGNAL(triggered()), tabWidget, SLOT(saveGroupAsWithoutDoc()));
+    connect(saveAsNoDocAction, SIGNAL(triggered()), scene, SLOT(saveGroupAsWithoutDoc()));
     groupActions->addAction(saveAsNoDocAction);
 
     // save all
-    saveAllAction = new QAction(tr("Save All"), this);
+    saveAllAction = new QAction(tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
     saveAllAction->setToolTip(tr("Save all files"));
-    connect(saveAllAction, SIGNAL(triggered()), tabWidget, SLOT(saveAllGroups()));
+    connect(saveAllAction, SIGNAL(triggered()), scene, SLOT(saveAllGroups()));
 
     // close
-    QIcon closeIcon(":/m/close"); closeIcon.addFile(":/s/close");
-    closeAction = new QAction(closeIcon, tr("&Close File"), this);
+    QIcon closeIcon(":/m/close"); closeIcon.addFile(":/s/close"); // works
+    closeAction = new QAction(closeIcon, tr("&Close File"), scene);
     textstring = file.readLine();
     textstring.remove(6,1);
     closeAction->setShortcut((textstring));
     closeAction->setToolTip(tr("Close file"));
-    connect(closeAction, SIGNAL(triggered()), tabWidget, SLOT(closeGroup()));
+    connect(closeAction, SIGNAL(triggered()), scene, SLOT(closeGroup()));
     groupActions->addAction(closeAction);
 
     // close all
     closeAllAction = new QAction(tr("Close All"), this);
     closeAllAction->setToolTip(tr("Close all files"));
-    connect(closeAllAction, SIGNAL(triggered()), tabWidget, SLOT(closeAllGroups()));
+    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroups()));
 
     // print pdf
     QIcon printIcon(":/m/print"); printIcon.addFile(":/s/print");
@@ -252,7 +251,7 @@ void MainWindow::createActions()
     textstring.remove(6,1);
     plainEditAction->setShortcut((textstring));
     plainEditAction->setToolTip(tr("Edit file as plain text"));
-    connect(plainEditAction, SIGNAL(triggered()), tabWidget, SLOT(showPreview()));
+    connect(plainEditAction, SIGNAL(triggered()), scene, SLOT(showPreview()));
     groupActions->addAction(plainEditAction);
 
     // clear search results
@@ -261,7 +260,7 @@ void MainWindow::createActions()
     clearAction->icon().addFile(":/m/save.png");
 //    clearAction->setShortcut(tr("CTRL+S"));
     clearAction->setToolTip(tr("Clean search results"));
-    connect(clearAction, SIGNAL(triggered()), tabWidget, SLOT(cleanGroup()));
+    connect(clearAction, SIGNAL(triggered()), scene, SLOT(cleanGroup()));
     groupActions->addAction(clearAction);
 
     // recent files
@@ -312,7 +311,7 @@ void MainWindow::createActions()
     printableAreaAction->setToolTip(tr("Show margins of printable area"));
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
-	file.close();
+        file.close();
 }
 
 void MainWindow::createMenus()
@@ -490,7 +489,7 @@ QGraphicsView* MainWindow::createView()
     scene->setHighlighting(langManager->getConfigData());
     connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
     connect(scene, SIGNAL(fileSelected(BlockGroup*)),
-            this, SLOT(setCurrentFile(BlockGroup*)));
+            this, SLOT(setCurrentFile(BlockGroup*))); // CHECK
 
     view->setScene(scene);
     return view;
@@ -512,6 +511,13 @@ void MainWindow::newTab()
     numb->setNum(count);
     name->append(numb);
     QWidget* widget=createView(); // get QGraphicView
+
+    QGraphicsView* view=(QGraphicsView *) widget;
+    DocumentScene* dScene=(DocumentScene *) view->scene();
+    dScene->main=this;
+
+    createActions(dScene);
+
     tabWidget->addTab(widget, *name);
     tabWidget->setCurrentWidget(widget); // focus on new tab
     return;
@@ -534,9 +540,11 @@ void MainWindow::load(QString fileName)
     Analyzer *analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
     DocumentScene* dScene=getScene();
     if(dScene==0){ // this should not ever happen
-        qDebug("newFile() Error: dScene = null");
+        qDebug("load() Error: dScene = null");
         return;
     }else{
+        qDebug() << "load() filename=" << fileName;
+     //   qDebug(fileName);
         dScene->loadGroup(fileName, analyzer);
     }
 }
@@ -555,6 +563,8 @@ void MainWindow::closeTab(int position){
 
 void MainWindow::tabChanged(int position){
     qDebug("tabChanged()");
+//    getScene()->selectGroup(getScene()->selectedGroup()); nejde
+//    setCurrentFile(getScene()->selectedGroup()); nejde
 }
 
 void MainWindow::createTabs()
@@ -572,7 +582,15 @@ void MainWindow::createTabs()
     m_addButton->setObjectName("addButton");
     connect(m_addButton, SIGNAL(clicked()), this, SLOT(newTab()));
     tabWidget->setCornerWidget(m_addButton, Qt::TopLeftCorner);
-    tabWidget->addTab(createView(), "tab0");
+
+    QWidget* widget=createView(); // get QGraphicView
+    QGraphicsView* view=(QGraphicsView *) widget;
+    DocumentScene* dScene=(DocumentScene *) view->scene();
+    dScene->main=this;
+    createActions(dScene);
+
+    tabWidget->addTab(widget, "*tab0");
+    tabWidget->setCurrentWidget(widget); // focus on new tab
 
     this->setCentralWidget(tabWidget);
 }

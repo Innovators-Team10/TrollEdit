@@ -210,6 +210,7 @@ Analyzer::~Analyzer()
  */
 void Analyzer::readSnippet(QString fileName)
 {
+    qDebug("reading snippet...");
     try
     {
         if (luaL_loadfile(L, qPrintable(fileName)) || lua_pcall(L, 0, 0, 0))
@@ -323,7 +324,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 //      root = iter1;
       TreeElement *iter = root;
 
-      TreeElement* parent = getParentElementAST();
+      TreeElement* parent = getParentElementAST(); // CHECK
       if( parent != 0 ){
           qDebug() << "Parent: " << parent->getText();
       }else{
@@ -434,6 +435,7 @@ TreeElement* Analyzer::analyzeFull(QString input)
 {
     try
     {
+        qDebug() << "input=" << input;
         TreeElement *root = analyzeString(mainGrammar, input);
         root->setFloating();
         return root;
