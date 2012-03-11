@@ -9,13 +9,25 @@ This repository contains a fork of the project which I modified to use CMake bas
 instead of the default qmake. Other modifications include statically linked in lpeg and reordered
 project file structure.
 
+
+__________________________________________________________________________________________
+Links
+
+Slovak University of Technology:
+http://www.fiit.stuba.sk/generate_page.php?page_id=749
+
 Students project page (in Slovak):
 http://labss2.fiit.stuba.sk/TeamProject/2011/team10is-si/plan.html
 
+Project page (English):
+innovators-team10.github.com
 
-Setting up in QTCreator (2.0 Beta recomended)
-- Open CMakeLists.txt in project browse dialog.
-- Configure CMake with no additional args.
-- Add argument "install" to build step "make", this will install builds to [path_to_project]/TrollEdit with all resources
-- Add custom executable pointing to [path_to_project]/TrollEdit/trolledit with workdir set to [path_to_project]/TrollEdit
-- Build/Debug/Code as needed
+Install instructions:
+https://github.com/Innovators-Team10/TrollEdit/wiki/Install-instructions
+__________________________________________________________________________________________
+
+
+
+Contact
+tp-team-10@googlegroups.com 
+
