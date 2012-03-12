@@ -22,7 +22,7 @@ TextItem::TextItem(const QString &text, Block *parentBlock, bool multiText, bool
         connect(this, SIGNAL(focusChanged(QFocusEvent*)), myBlock, SLOT(textFocusChanged(QFocusEvent*)));
 
     connect(document(), SIGNAL(contentsChanged()), myBlock, SLOT(textChanged()));
-    
+
     connect(this, SIGNAL(keyPressed(QKeyEvent*)), myBlock->blockGroup(), SLOT(keyTyped(QKeyEvent*)));
     connect(this, SIGNAL(enterPressed(Block*, int)), myBlock->blockGroup(), SLOT(splitLine(Block*, int)));
     connect(this, SIGNAL(erasePressed(Block*, int)), myBlock->blockGroup(), SLOT(eraseChar(Block*, int)));
@@ -95,7 +95,7 @@ void TextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     QGraphicsTextItem::paint(painter, opt, widget);
 }
 
-void TextItem::keyPressEvent(QKeyEvent *event) 
+void TextItem::keyPressEvent(QKeyEvent *event)
 {
 //    myBlock->blockGroup()->keyTyped(event);
     emit keyPressed(event);
@@ -204,5 +204,5 @@ void TextItem::focusOutEvent(QFocusEvent *event)
 
 void TextItem::adaptToFloating()
 {
-    disconnect(this, 0, myBlock->blockGroup(), 0);
+//    disconnect(this, 0, myBlock->blockGroup(), 0); //zisti presne co to robi
 }

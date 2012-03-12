@@ -40,6 +40,7 @@ public slots:
     void cleanGroup(BlockGroup *group = 0);
 
 public:
+    MainWindow *main;
     DocumentScene(MainWindow *parent);
     void update(const QRectF &rect = QRectF());
     void selectGroup(BlockGroup *group = 0);
@@ -54,6 +55,7 @@ public:
     void print(QString text) const;
 
     static QTime time;
+    ~DocumentScene();
 
     MainWindow *getWindow() const {return window;}
 
@@ -74,6 +76,7 @@ private:
     QHash<QString, QPair<QFont, QColor> > highlighting;
 
     void adjustSceneRect();
+    BlockGroup* getBlockGroup();
     bool toBool(QString textBool);
 };
 

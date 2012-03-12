@@ -9,7 +9,7 @@
 
 DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)    //! manual creation
     : Block(new TreeElement("doc_comment", true, true), 0, parentgroup)
-{    
+{
     element->setFloating(true);
 
     // find arrow target
@@ -80,7 +80,7 @@ DocBlock::DocBlock(QString text, TreeElement* el, Block* parentBlock, BlockGroup
 
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
-    myTextItem->setTextInteractionFlags(Qt::NoTextInteraction);
+//    myTextItem->setTextInteractionFlags(Qt::NoTextInteraction); //preco to pada?
     setAcceptDrops(false);
     setZValue(1);
     backup = 0;
@@ -238,8 +238,8 @@ void DocBlock::setContent(QString text)
 
 void DocBlock::addText(QString text)
 {
-    myTextItem->setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
-    myTextItem->setPlainText(text);
+//    myTextItem->setTextInteractionFlags(Qt::TextEditable | Qt::TextSelectableByKeyboard);
+//    myTextItem->setPlainText(text);
     docType = Text;
 
     if (arrow != 0)
@@ -277,13 +277,13 @@ void DocBlock::addLink(QUrl url)
     QImage image(provider->icon(info).pixmap(16, 16).toImage());
     cursor.document()->setPlainText(" ");
     cursor.insertImage(image);
-	
+
     if (str.lastIndexOf("/") > -1)
         str = str.right(str.size() - str.lastIndexOf("/") - 1);
 
     QString html = "<a href=\""+path+"\">"+str+"</a>";
     cursor.insertHtml(html);
-	
+
     if (arrow != 0) arrow->setColor(getHoverColor());
 
     updateBlock(false);
@@ -392,7 +392,7 @@ QString DocBlock::convertToText() const //TODO ak nie je multiline support, upra
             returnText += commentTokens["line"].value(1);
         }
         break;
-    case Image :        
+    case Image :
     case Link :
     case WebLink :
         returnText = commentTokens["multiline"].value(0) + " ";
@@ -458,7 +458,7 @@ Block *DocBlock::removeBlock(bool deleteThis)
         }
         else group->deselect();
     }
-    
+
     if (deleteThis)
     {
         group->removeFoldable(this);

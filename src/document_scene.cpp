@@ -20,6 +20,10 @@ DocumentScene::DocumentScene(MainWindow *parent)
 //    setItemIndexMethod(QGraphicsScene::NoIndex);
 }
 
+DocumentScene::~DocumentScene(){
+    main=0;
+}
+
 void DocumentScene::newGroup(Analyzer *analyzer)
 {
     loadGroup("", analyzer);
@@ -51,7 +55,7 @@ void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
         content = in.readAll();
     }
 
-    selectGroup();
+    selectGroup(getBlockGroup());
     loadingFinished = false;
 
     if (groups.size() == 0)
@@ -88,12 +92,7 @@ void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
 
 void DocumentScene::revertGroup(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QString fileName = group->getFilePath();
 
@@ -125,12 +124,7 @@ void DocumentScene::revertGroup(BlockGroup *group)
 
 void DocumentScene::saveGroup(QString fileName, BlockGroup *group, bool noDocs)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QFile file;
 
@@ -178,12 +172,7 @@ void DocumentScene::saveGroup(QString fileName, BlockGroup *group, bool noDocs)
 
 void DocumentScene::saveGroupAs(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QString dir = QFileInfo(window->windowFilePath()).absoluteDir().absolutePath();
 
@@ -196,12 +185,7 @@ void DocumentScene::saveGroupAs(BlockGroup *group)
 
 void DocumentScene::saveGroupAsWithoutDoc(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QString fileName = QFileDialog::getSaveFileName((QWidget*)parent());
 
@@ -219,12 +203,8 @@ void DocumentScene::saveAllGroups()
 
 void DocumentScene::closeGroup(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
+    if(group==0) return;
 
     if (group->isModified())
     {
@@ -278,12 +258,7 @@ void DocumentScene::findText(QString searchStr, BlockGroup *group)
 {
     if (searchStr.isEmpty()) return;
 
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     bool ret = false;
     group->clearSearchResults();
@@ -341,24 +316,14 @@ void DocumentScene::findText(QString searchStr, BlockGroup *group)
 
 void DocumentScene::cleanGroup(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
     group->clearSearchResults();
     group->update();
 }
 
 void DocumentScene::setGroupLang(Analyzer *newAnalyzer, BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QString content = group->toText();
     group->setAnalyzer(newAnalyzer);
@@ -379,7 +344,7 @@ void DocumentScene::selectGroup(BlockGroup *group)
     }
     if (currentGroup != group)
     {
-        currentGroup = group;        
+        currentGroup = group;
         updateNedded = true;
     }
     if (currentGroup != 0)
@@ -402,14 +367,20 @@ void DocumentScene::groupWasModified(BlockGroup *group)
         emit modified(group->isModified());
 }
 
+BlockGroup *DocumentScene::getBlockGroup()
+{
+    if(main->getScene()->currentGroup!=0){
+        qDebug("scene->currentGroup !=0");
+        return main->getScene()->currentGroup;
+    } else{
+        qDebug("current=0");
+        return 0;
+    }
+}
+
 void DocumentScene::showPreview(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QDialog *dialog = new QDialog(window);
     QLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom, dialog);

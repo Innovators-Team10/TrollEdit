@@ -2,7 +2,7 @@ cfg_keys = {"text_style", "comment_style", "keyword",
 "line_comment", "multiline_comment", "doc_comment", "string_constant", "character_constant", 
 "number_constant", "label", "header_file", "funct_call", 
 "assignment_operator", "binary_operator", "prefix_operator", "postfix_operator", 
-"markup_tag", "attribute_key", "attribute_value",  "funct_definition"}
+"markup_tag", "attribute_key", "attribute_value",  "funct_definition", "done", "undone", "todo_list"}
 
 text_style = {family="courier", size="12", color="black", bold="false", italic="false", underline="false"}
 comment_style = {base="text_style", family="verdana", italic="true", color="teal"}
@@ -26,3 +26,6 @@ markup_tag = {base="text_style", color="brown"}
 attribute_key = {base="text_style", color="red"}
 attribute_value = {base="text_style", color="blue"}
 funct_definition = {base="text_style", bold="true"}
+done = {family="courier", size="12", color="green", bold="false", italic="false", underline="true"}
+undone = {family="courier", size="12", color="red", bold="false", italic="false", underline="true"}
+todo_list = {family="courier", size="12", color="black", bold="false", italic="false", underline="true"}
