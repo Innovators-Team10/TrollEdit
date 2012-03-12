@@ -154,7 +154,7 @@ void MainWindow::createActions()
 {
     groupActions = new QActionGroup(this);
 
-        QFile file("shortcuts.txt");
+        QFile file("shortcuts.ini");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -365,7 +365,7 @@ void MainWindow::createMenus()
 
 void MainWindow::setShort()
 {
-    QDialog *set_shortcuts = new QDialog(0);
+    set_shortcuts = new QDialog();
     QPushButton *Savebutton = new QPushButton("OK", set_shortcuts);
     QPushButton *Closebutton = new QPushButton("Close", set_shortcuts);
 
@@ -382,7 +382,7 @@ void MainWindow::setShort()
     m_table->setItem(6,0, new QTableWidgetItem("Edit plain text"));
 
 
-    QFile file("shortcuts.txt");
+    QFile file("shortcuts.ini");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -405,13 +405,14 @@ void MainWindow::setShort()
     Closebutton->move(130,250);
     set_shortcuts->show();
 
+
     QObject::connect(Savebutton, SIGNAL(clicked()),this,SLOT(savedShortcuts()));
-    set_shortcuts->exec();
+    QObject::connect(Closebutton, SIGNAL(clicked()),this,SLOT(closeShortcuts()));
 }
 
 void MainWindow::savedShortcuts()
 {
-    QFile file("shortcuts.txt");
+    QFile file("shortcuts.ini");
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -439,8 +440,13 @@ void MainWindow::savedShortcuts()
     printPdfAction->setShortcut((textstring));
     textstring = m_table->item(6,1)->text();
     plainEditAction->setShortcut((textstring));
-    //MainWindow::createMenus();
+    set_shortcuts->close();
 }
+
+    void MainWindow::closeShortcuts()
+{
+    set_shortcuts->close();
+    }
 
 void MainWindow::createToolBars()
 {
