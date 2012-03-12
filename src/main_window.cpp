@@ -154,7 +154,8 @@ void MainWindow::createActions(DocumentScene *scene)
 {
     groupActions = new QActionGroup(this);
 
-        QFile file("shortcuts.txt");
+        QFile file("shortcuts.ini");
+
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -183,6 +184,9 @@ void MainWindow::createActions(DocumentScene *scene)
 
     // revert
     revertAction = new QAction(tr("&Revert"), this); // ??? is this used ???
+        textstring = file.readLine();
+//    QIcon revertIcon(":/m/open"); openIcon.addFile(":/s/open");
+    revertAction = new QAction(tr("&Revert"), this);
         textstring = file.readLine();
     textstring.remove(6,1);
     revertAction->setShortcut((textstring));
@@ -242,7 +246,7 @@ void MainWindow::createActions(DocumentScene *scene)
     printPdfAction->setShortcut((textstring));
     printPdfAction->setToolTip(tr("Print scene to PDF"));
     connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
-	groupActions->addAction(printPdfAction);
+        groupActions->addAction(printPdfAction);
 
     // show plain text editor
     QIcon editIcon(":/m/edit"); printIcon.addFile(":/s/edit");
@@ -298,7 +302,7 @@ void MainWindow::createActions(DocumentScene *scene)
 
     // about Qt
     aboutQtAction = new QAction(tr("About &Qt"), this);
-    aboutQtAction->setStatusTip(tr("Show the Qt library’s About box"));
+    aboutQtAction->setStatusTip(tr("Show the Qt library?s About box"));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     // shortcuts
@@ -364,7 +368,7 @@ void MainWindow::createMenus()
 
 void MainWindow::setShort()
 {
-    QDialog *set_shortcuts = new QDialog(0);
+    set_shortcuts = new QDialog();
     QPushButton *Savebutton = new QPushButton("OK", set_shortcuts);
     QPushButton *Closebutton = new QPushButton("Close", set_shortcuts);
 
@@ -381,7 +385,7 @@ void MainWindow::setShort()
     m_table->setItem(6,0, new QTableWidgetItem("Edit plain text"));
 
 
-    QFile file("shortcuts.txt");
+    QFile file("shortcuts.ini");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -404,13 +408,14 @@ void MainWindow::setShort()
     Closebutton->move(130,250);
     set_shortcuts->show();
 
+
     QObject::connect(Savebutton, SIGNAL(clicked()),this,SLOT(savedShortcuts()));
-    set_shortcuts->exec();
+    QObject::connect(Closebutton, SIGNAL(clicked()),this,SLOT(closeShortcuts()));
 }
 
 void MainWindow::savedShortcuts()
 {
-    QFile file("shortcuts.txt");
+    QFile file("shortcuts.ini");
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -438,8 +443,13 @@ void MainWindow::savedShortcuts()
     printPdfAction->setShortcut((textstring));
     textstring = m_table->item(6,1)->text();
     plainEditAction->setShortcut((textstring));
-    //MainWindow::createMenus();
+    set_shortcuts->close();
 }
+
+    void MainWindow::closeShortcuts()
+{
+    set_shortcuts->close();
+    }
 
 void MainWindow::createToolBars()
 {
@@ -466,7 +476,7 @@ void MainWindow::createToolBars()
     connect(scriptsBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(langChanged(QString)));
     formatToolBar->addWidget(scriptsBox);
     formatToolBar->addSeparator();
-	
+
     searchLabel = new QLabel();
 //    searchLabel->setText(" Search ");
     searchLabel->setPixmap(QPixmap(":/m/search"));
@@ -690,7 +700,7 @@ void MainWindow::search()
 {
     QString searchText = searchLineEdit->text();
     getScene()->findText(searchText);
-    
+
 }
 
 void MainWindow::printPdf()

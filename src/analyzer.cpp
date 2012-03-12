@@ -310,8 +310,8 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 
     if(lua_istable(L, -1))
     {
-      qDebug() << "before--DYNAMIC";
       bool DYNAMIC =  TreeElement::DYNAMIC;
+      qDebug() << "DYNAMIC " << DYNAMIC ;
       if(DYNAMIC){
           root = nextElementAST();
           root->analyzer = this;
@@ -320,8 +320,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
       }else{
           root = createTreeFromLuaStack();
 
-      TreeElement *iter1;// = nextElementAST();
-//      root = iter1;
+      TreeElement *iter1 = nextElementAST();
       TreeElement *iter = root;
 
       TreeElement* parent = getParentElementAST(); // CHECK
@@ -334,8 +333,6 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
       TreeElement* ped;
       int i =0;
       int k =0;
-      stackDump(L);
-      iter1 = nextElementAST();
       qDebug() << "------------ " << hasNextElementAST() << " ----- " << iter->hasNext();
       while(hasNextElementAST() && iter->hasNext()){
           k++;
@@ -361,21 +358,6 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
            resetAST();
            setIndexAST(iter1->local_index);
 
-
-//           if(k == 66 ){
-//               ped = iter1;
-//               stackDump(L);
-//               QList<TreeElement *> list  = getElementChildrenAST();
-//               qDebug() << "listChild(): " << list.count();
-//               stackDump(L);
-//               resetAST();
-//               setIndexAST(iter1->local_index);
-//               for(int i = 0; i < list.count();i++){
-//                   qDebug() << i <<". child: " << list.at(i)->getType();
-//                   qDebug() << i <<". ch index: " << list.at(i)->local_index;
-//               }
-//           }
-//           stackDump(L);
 
            QList<TreeElement*> aaa = getElementChildrenAST();
            qDebug() << k <<". listChild(): " << aaa;
@@ -410,10 +392,15 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
              for(int a = 0 ; a < iter->childCount(); a++){
                   qDebug() << "__" << a <<". ChildElement: " <<  iter->getChildren()[a]->getType();
              }
+
+             if(iter->childCount()==aaa.size())
+                qDebug() << "Compare: " << i <<". child: " << iter->childCount() << " " << aaa.size() << " " << "true" ;
+             else
+                qDebug() << "Compare: " << i <<". child: " << iter->childCount() << " " << aaa.size() << " " << "false" ;
         }
 
     }
-}
+    }
 
     if(root != 0)
     {
@@ -644,7 +631,7 @@ int Analyzer::getCountElementChildrenAST()
 
 QList<TreeElement*> Analyzer::getElementChildrenAST(){
     QList<TreeElement*> children;
-    qDebug() << "getElementChildrenAST()";
+   // qDebug() << "getElementChildrenAST()";
 
     int hlbka_child = lua_gettop(L);
     int rozbalenie_child = lua_tonumber(L, -3);
@@ -658,10 +645,9 @@ QList<TreeElement*> Analyzer::getElementChildrenAST(){
                 qDebug() << "getElementChildrenAST(): " << child->getType();
             }
 
-            while( (limit >= lua_tonumber(L, -3)) ){
+            while( children.size() != limit ){
                 child = nextElementAST();
               //      qDebug() << "b1): " << child->getType() << "number:" << lua_tonumber(L, -3) << " top:" << lua_gettop(L);
-              //      stackDump(L);
                 if( (hlbka_child+2) == lua_gettop(L) ){
 //                       stackDump(L);
                        qDebug() << "getElementChildrenAST(): " << child->getType();

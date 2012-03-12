@@ -27,6 +27,7 @@ class LanguageManager;
 class BlockGroup;
 class QTableWidget;
 class QTableWidgetItem;
+class QDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -35,6 +36,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QString programPath, QWidget *parent = 0);
     DocumentScene* getScene();
+
+
 
 
 public slots:
@@ -62,7 +65,8 @@ private slots:
     void showPrintableArea();
     void setShort();
     void savedShortcuts();
-	void wInit();
+    void closeShortcuts();
+        void wInit();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -99,7 +103,7 @@ private:
 
     QAction *helpAction;
     QAction *aboutAction;
-	QAction *shortAction;
+        QAction *shortAction;
 
     QAction *textBoldAction;
     QAction *textItalicAction;
@@ -117,6 +121,7 @@ private:
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
     QLabel *searchLabel;
+    QDialog *set_shortcuts;
 
     LanguageManager *langManager;
  //   DocumentScene *scene;
@@ -142,12 +147,11 @@ private:
 
     void showArea();
     void hideArea();
-	QPointF startPoint;
+        QPointF startPoint;
     BlockGroup *selectedGroup;
 
     void readSettings();
     void writeSettings();
-//  set_shortcuts *setCustomShortcuts(this Qt::Window);
 };
 
 #endif // MAIN_WINDOW_H
