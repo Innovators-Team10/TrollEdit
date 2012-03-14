@@ -7,6 +7,7 @@
 #include "text_item.h"
 #include "doc_block.h"
 #include "tree_element.h"
+#include "language_manager.h"
 #include <QtGui>
 
 QTime DocumentScene::time;
@@ -24,14 +25,14 @@ DocumentScene::~DocumentScene(){
     main=0;
 }
 
-void DocumentScene::newGroup(Analyzer *analyzer)
+void DocumentScene::newGroup(QString extension)
 {
-    loadGroup("", analyzer);
+    loadGroup("", extension);
 }
 
 bool loadingFinished;
 
-void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
+void DocumentScene::loadGroup(QString fileName, QString extension)
 {
     QString content;
 
@@ -69,7 +70,12 @@ void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
     }
 
     time.start();
-    BlockGroup *newGr = new BlockGroup(content, analyzer, this);
+    BlockGroup *newGr;
+    if(fileName.startsWith("Unknown")){
+        newGr = new BlockGroup(content, extension, this);
+    }else{
+        newGr = new BlockGroup(content, fileName, this);
+    }
     newGr->setVisible(false);
     groups << newGr;
     qDebug("\nGroup created: %d", time.restart());
@@ -324,7 +330,9 @@ void DocumentScene::cleanGroup(BlockGroup *group)
 void DocumentScene::setGroupLang(Analyzer *newAnalyzer, BlockGroup *group)
 {
     group=getBlockGroup();
-
+    if(group==0){
+        return;
+    }
     QString content = group->toText();
     group->setAnalyzer(newAnalyzer);
     group->setContent(content);
