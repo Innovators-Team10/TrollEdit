@@ -13,7 +13,6 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     langManager = new LanguageManager(programPath);
 
     createTabs();
-
 //    createActions();
     createMenus();
     createToolBars();
@@ -26,7 +25,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     icon.addFile(":/icon16.png");
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
-    setCurrentFile(0);
+    //setCurrentFile(0);
 
     setStyleSheet(
                 "QMainWindow { "
@@ -541,8 +540,16 @@ void MainWindow::newFile()
         qDebug("newFile() Error: dScene = null");
         return;
     }else{
-        dScene->newGroup(langManager->getAnalyzerForLang(scriptsBox->currentText()));
+        dScene->newGroup(scriptsBox->currentText());
     }
+}
+
+LanguageManager* MainWindow::getLangManager(){
+    return this->langManager;
+}
+
+QComboBox* MainWindow::getScriptBox(){
+    return this->scriptsBox;
 }
 
 void MainWindow::load(QString fileName)
@@ -555,7 +562,7 @@ void MainWindow::load(QString fileName)
     }else{
         qDebug() << "load() filename=" << fileName;
      //   qDebug(fileName);
-        dScene->loadGroup(fileName, analyzer);
+        dScene->loadGroup(fileName, QFileInfo(fileName).suffix());
     }
 }
 
@@ -573,8 +580,7 @@ void MainWindow::closeTab(int position){
 
 void MainWindow::tabChanged(int position){
     qDebug("tabChanged()");
-//    getScene()->selectGroup(getScene()->selectedGroup()); nejde
-//    setCurrentFile(getScene()->selectedGroup()); nejde
+    setCurrentFile(getScene());
 }
 
 void MainWindow::createTabs()
@@ -621,8 +627,8 @@ void MainWindow::setCurrentFile(BlockGroup *group)
     if (group != 0)
     {
         fileName = group->getFilePath();
-        lang = group->getAnalyzer()->getLanguageName();
-        selectedGroup = group;
+   //     lang = group->getAnalyzer()->getLanguageName();
+  //      selectedGroup = group;
     }
     else
     {
@@ -666,6 +672,68 @@ void MainWindow::setCurrentFile(BlockGroup *group)
             saveAsAction->setText(tr("Save \"%1\" &As...").arg(fileName));
             closeAction->setText(tr("&Close \"%1\"").arg(fileName));
         }
+    }
+}
+
+void MainWindow::setCurrentFile(DocumentScene *scene)
+{
+    QString fileName;
+    QString lang;
+
+    if(scene!=0){
+        BlockGroup *group=scene->selectedGroup();
+
+        if (group != 0)
+        {
+            fileName = group->getFilePath();
+            lang = group->getAnalyzer()->getLanguageName();
+            selectedGroup = group;
+        }
+        else
+        {
+            qDebug("selected group == 0");
+            lang = "";
+            fileName = "Empty";
+            selectedGroup = 0;
+        }
+
+
+    if (fileName.isEmpty() || fileName == "Empty")
+    {
+        setWindowFilePath(fileName);
+        groupActions->setEnabled(false);
+   //     searchLineEdit->setEnabled(false);
+    }
+    else
+    {
+        groupActions->setEnabled(true);
+        searchLineEdit->setEnabled(true);
+
+        if (scriptsBox->currentText() != lang)
+        {
+            int index = scriptsBox->findText(lang, Qt::MatchFixedString);
+            scriptsBox->blockSignals(true);
+            scriptsBox->setCurrentIndex(index);
+            scriptsBox->blockSignals(false);
+        }
+        if (windowFilePath() != fileName)
+        {
+            setWindowFilePath(fileName);
+
+            if (!QFileInfo(fileName).fileName().isEmpty())
+            {
+                fileName = QFileInfo(fileName).fileName();
+            }
+            else
+            {
+                revertAction->setEnabled(false);
+            }
+
+            saveAction->setText(tr("&Save \"%1\"").arg(fileName));
+            saveAsAction->setText(tr("Save \"%1\" &As...").arg(fileName));
+            closeAction->setText(tr("&Close \"%1\"").arg(fileName));
+        }
+    }
     }
 }
 

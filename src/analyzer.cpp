@@ -87,6 +87,7 @@ Analyzer::Analyzer(QString script)
  */
 void Analyzer::setupConstants()
 {
+    qDebug() << "scriptName=" << scriptName;
     if (luaL_loadfile(L, qPrintable(scriptName)) || lua_pcall(L, 0, 0, 0))
     {
         throw "Error loading script \"" + scriptName + "\"";
