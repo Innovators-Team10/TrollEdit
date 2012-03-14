@@ -19,14 +19,17 @@ public:
     LanguageManager(QString programPath);
     ~LanguageManager();
 
+    QString getLanguage(QString extens);
+
+    QHash<QString, QString> languages;          //! <language_name, file_extension>
     Analyzer *getAnalyzerFor(QString suffix) const;
     Analyzer *getAnalyzerForLang(QString language) const;
     QList<QPair<QString, QHash<QString, QString> > > getConfigData();
     QStringList getLanguages() const;
 
 private:
+    QString programPath;
     QHash<QString, Analyzer *> analyzers;       //! <file_extension, analyzer>
-    QHash<QString, QString> languages;          //! <language_name, file_extension>
     Analyzer *defaultAnalyzer;
     QList<QPair<QString, QHash<QString, QString> > > configData;
 };
