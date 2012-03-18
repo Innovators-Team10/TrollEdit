@@ -25,8 +25,8 @@ signals:
     void fileSelected(BlockGroup *group);
 
 public slots:
-    void newGroup(Analyzer *analyzer);
-    void loadGroup(QString fileName, Analyzer *analyzer);
+    void newGroup(QString extension);
+    void loadGroup(QString fileName, QString extension);
     void revertGroup(BlockGroup *group = 0);
     void saveGroup(QString fileName = "", BlockGroup *group = 0, bool noDocs = false);
     void saveGroupAs(BlockGroup *group = 0);
@@ -55,6 +55,7 @@ public:
     void print(QString text) const;
 
     static QTime time;
+    ~DocumentScene();
 
     MainWindow *getWindow() const {return window;}
 
@@ -75,6 +76,7 @@ private:
     QHash<QString, QPair<QFont, QColor> > highlighting;
 
     void adjustSceneRect();
+    BlockGroup* getBlockGroup();
     bool toBool(QString textBool);
 };
 

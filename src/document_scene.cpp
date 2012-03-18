@@ -7,6 +7,7 @@
 #include "text_item.h"
 #include "doc_block.h"
 #include "tree_element.h"
+#include "language_manager.h"
 #include <QtGui>
 
 QTime DocumentScene::time;
@@ -20,14 +21,18 @@ DocumentScene::DocumentScene(MainWindow *parent)
 //    setItemIndexMethod(QGraphicsScene::NoIndex);
 }
 
-void DocumentScene::newGroup(Analyzer *analyzer)
+DocumentScene::~DocumentScene(){
+    main=0;
+}
+
+void DocumentScene::newGroup(QString extension)
 {
-    loadGroup("", analyzer);
+    loadGroup("", extension);
 }
 
 bool loadingFinished;
 
-void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
+void DocumentScene::loadGroup(QString fileName, QString extension)
 {
     QString content;
 
@@ -51,7 +56,7 @@ void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
         content = in.readAll();
     }
 
-    selectGroup();
+    selectGroup(getBlockGroup());
     loadingFinished = false;
 
     if (groups.size() == 0)
@@ -65,7 +70,12 @@ void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
     }
 
     time.start();
-    BlockGroup *newGr = new BlockGroup(content, analyzer, this);
+    BlockGroup *newGr;
+    if(fileName.startsWith("Unknown")){
+        newGr = new BlockGroup(content, extension, this);
+    }else{
+        newGr = new BlockGroup(content, fileName, this);
+    }
     newGr->setVisible(false);
     groups << newGr;
     qDebug("\nGroup created: %d", time.restart());
@@ -88,12 +98,7 @@ void DocumentScene::loadGroup(QString fileName, Analyzer *analyzer)
 
 void DocumentScene::revertGroup(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QString fileName = group->getFilePath();
 
@@ -125,12 +130,7 @@ void DocumentScene::revertGroup(BlockGroup *group)
 
 void DocumentScene::saveGroup(QString fileName, BlockGroup *group, bool noDocs)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QFile file;
 
@@ -178,12 +178,7 @@ void DocumentScene::saveGroup(QString fileName, BlockGroup *group, bool noDocs)
 
 void DocumentScene::saveGroupAs(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QString dir = QFileInfo(window->windowFilePath()).absoluteDir().absolutePath();
 
@@ -196,12 +191,7 @@ void DocumentScene::saveGroupAs(BlockGroup *group)
 
 void DocumentScene::saveGroupAsWithoutDoc(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QString fileName = QFileDialog::getSaveFileName((QWidget*)parent());
 
@@ -219,12 +209,8 @@ void DocumentScene::saveAllGroups()
 
 void DocumentScene::closeGroup(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
+    if(group==0) return;
 
     if (group->isModified())
     {
@@ -278,12 +264,7 @@ void DocumentScene::findText(QString searchStr, BlockGroup *group)
 {
     if (searchStr.isEmpty()) return;
 
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     bool ret = false;
     group->clearSearchResults();
@@ -341,25 +322,17 @@ void DocumentScene::findText(QString searchStr, BlockGroup *group)
 
 void DocumentScene::cleanGroup(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
     group->clearSearchResults();
     group->update();
 }
 
 void DocumentScene::setGroupLang(Analyzer *newAnalyzer, BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
+    group=getBlockGroup();
+    if(group==0){
+        return;
     }
-
     QString content = group->toText();
     group->setAnalyzer(newAnalyzer);
     group->setContent(content);
@@ -402,14 +375,20 @@ void DocumentScene::groupWasModified(BlockGroup *group)
         emit modified(group->isModified());
 }
 
+BlockGroup *DocumentScene::getBlockGroup()
+{
+    if(main->getScene()->currentGroup!=0){
+        qDebug("scene->currentGroup !=0");
+        return main->getScene()->currentGroup;
+    } else{
+        qDebug("current=0");
+        return 0;
+    }
+}
+
 void DocumentScene::showPreview(BlockGroup *group)
 {
-    if (group == 0)
-    {
-        if (currentGroup == 0) return;
-
-        group = currentGroup;
-    }
+    group=getBlockGroup();
 
     QDialog *dialog = new QDialog(window);
     QLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom, dialog);

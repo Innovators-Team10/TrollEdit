@@ -89,6 +89,7 @@ Analyzer::Analyzer(QString script)
  */
 void Analyzer::setupConstants()
 {
+    qDebug() << "scriptName=" << scriptName;
     if (luaL_loadfile(L, qPrintable(scriptName)) || lua_pcall(L, 0, 0, 0))
     {
         throw "Error loading script \"" + scriptName + "\"";
@@ -212,6 +213,7 @@ Analyzer::~Analyzer()
  */
 void Analyzer::readSnippet(QString fileName)
 {
+    qDebug("reading snippet...");
     try
     {
         if (luaL_loadfile(L, qPrintable(fileName)) || lua_pcall(L, 0, 0, 0))
@@ -324,6 +326,13 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
       TreeElement *iter1 = nextElementAST();
       TreeElement *iter = root;
 
+      TreeElement* parent = getParentElementAST(); // CHECK
+      if( parent != 0 ){
+          qDebug() << "Parent: " << parent->getText();
+      }else{
+           qDebug() << "Parent: null";
+      }
+
       TreeElement* ped;
       int i =0;
       int k =0;
@@ -416,6 +425,7 @@ TreeElement* Analyzer::analyzeFull(QString input)
 {
     try
     {
+        qDebug() << "input=" << input;
         TreeElement *root = analyzeString(mainGrammar, input);
         root->setFloating();
         return root;

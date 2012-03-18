@@ -5,6 +5,8 @@
 #include "text_item.h"
 #include "tree_element.h"
 #include "document_scene.h"
+#include "main_window.h"
+#include "language_manager.h"
 
 const QString BlockGroup::BLOCK_MIME = "block_data";
 //const QPointF BlockGroup::OFFSET_IN_TL = QPointF(0, 0);  // inner offset, left and top
@@ -12,12 +14,27 @@ const QString BlockGroup::BLOCK_MIME = "block_data";
 //const QPointF BlockGroup::OFFSET_OUT = QPointF(0, 0);    // outer offset
 const QPointF BlockGroup::OFFSET_INSERT = QPointF(8, 0); // offset while draging
 //const QPointF BlockGroup::NO_OFFSET = QPointF(0, 0);     // default offset
+const QString GRAMMAR_DIR = "/../share/trolledit/grammars";
 
-BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
+
+BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
 {
-    this->analyzer = analyzer;
+    //this->analyzer = analyzer;
+    qDebug() << scene->main->getScriptBox()->currentText();
+//    qDebug() << "filename split" << file.split(".")[1];
+    qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
+ //   qDebug() << "file" << file.split(".")[1];
+    Analyzer *a;
+    if(text.isEmpty()){
+        a=new Analyzer(scene->main->getLangManager()->getLanguage(file.toLower()));
+    }else{
+        a=new Analyzer(scene->main->getLangManager()->getLanguage(file.split(".")[1]));
+    }
+
+    this->analyzer = a;
     this->docScene = scene;
+//    this->docScene->analyzer=a;
 
     highlight = true;
 
@@ -774,12 +791,12 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
 void BlockGroup::analyzeAll(QString text)
 {
-    qDebug("\nBlockGroup::analyzeAll()");
+    qDebug() << "\nBlockGroup::analyzeAll()" << text;
 
     if (text.isEmpty()) //! use snippet if text is empty
     {
         text = analyzer->getSnippet();
-        qDebug("\nDefault snipped used");
+        qDebug() << "\nDefault snippet used" << text;
         getStatusBar()->showMessage("File reset - default text used", 2000);
 
         if (text.isEmpty()) text = "    ";
@@ -789,6 +806,11 @@ void BlockGroup::analyzeAll(QString text)
     // create new root element
     TreeElement *rootEl = analyzer->analyzeFull(text);
     qDebug("text analysis: %d", time.restart());
+<<<<<<< HEAD
+=======
+    qDebug() << text;
+    qDebug() << "rootEl->getText()" << rootEl->getText();
+>>>>>>> 430ee2f1f4da906e20d84707c005370c76a045a4
 
     // create new root
     Block *newRoot = new Block(rootEl, 0, this);
