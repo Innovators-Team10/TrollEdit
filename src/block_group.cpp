@@ -806,11 +806,6 @@ void BlockGroup::analyzeAll(QString text)
     // create new root element
     TreeElement *rootEl = analyzer->analyzeFull(text);
     qDebug("text analysis: %d", time.restart());
-<<<<<<< HEAD
-=======
-    qDebug() << text;
-    qDebug() << "rootEl->getText()" << rootEl->getText();
->>>>>>> 430ee2f1f4da906e20d84707c005370c76a045a4
 
     // create new root
     Block *newRoot = new Block(rootEl, 0, this);

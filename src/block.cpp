@@ -106,13 +106,14 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
             }
             else //! create docblock form child element
             {
-               // if(TreeElement::DYNAMIC){
+               if(TreeElement::DYNAMIC){
                     //! zisti ako to reprezentovat z AST-cka
-               // }else{
+                    //! preco sa vytvori DocBlock, ktory ma prazdny TextItem?
+               }else{
                     QString text = childEl->getText();
                     childEl->deleteAllChildren();
                     new DocBlock(text, childEl, this, group);
-               // }
+               }
             }
         }
     }

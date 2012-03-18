@@ -208,5 +208,5 @@ void TextItem::adaptToFloating()
 //        qDebug() << "myBlock null";
 //        return;
 //    }
-    disconnect(this, 0, myBlock->blockGroup(), 0); //zisti presne co to robi
+//    disconnect(this, 0, myBlock->blockGroup(), 0); //BUG!! zisti presne co to robi
 }
