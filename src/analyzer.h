@@ -38,14 +38,23 @@ public:
     static const QString TAB;
 
     TreeElement* nextElementAST();                  //! next()
+    void nextElementAST_void();
     bool hasNextElementAST();                       //! hasNext()
     bool isLeafElementAST();                        //! isLeaf()
     int getCountElementChildrenAST();               //!
     QList<TreeElement*> getElementChildrenAST();    //!
     TreeElement* getParentElementAST();             //!
     void resetAST();                                //!
-    TreeElement* setIndexAST(int index);            //!
-    int glob_index;                                 //! uchovanie aktualnej pozicie v zasobniku
+    TreeElement* setIndexAST(int deep, int* nodes); //!
+    void checkLocationAST(int deep, int* nodes);    //! skontroluje lokaciu podla zadanych parametrov a nastavi sa na nu
+    TreeElement* getElementAST();                   //! vrati Element z aktualnej pozicie
+    TreeElement* getElementAST(int deep, int* nodes);//! vrati Element z urcenej pozicie
+    int getDeepAST();                               //! vrati aktualnu hlbku AST
+    int* getNodesAST();                             //! vrati pole index, ktore vedu k elementu
+    int glob_deep_AST;                              //! hlbka Elementu v AST
+    int* glob_nodes_AST;                            //! uzol v AST - musis si pametat postupnost rozbaleny - pole intov
+
+    static const int DEFAULT_STACK_DEEP;
 
 private:
     static const char *EXTENSIONS_FIELD;
