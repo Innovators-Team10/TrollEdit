@@ -84,19 +84,21 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
     // process rest of the AST
     if (element->isLeaf()) //! leaf - create text area
     {
+        qDebug() << "text " << element->getType() << " par: " << element->allowsParagraphs()  ;
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs(), element->isPaired());
+        qDebug() << "this " << myTextItem;
     }
     else //! non-leaf - create rest of the tree
     {
         myTextItem = 0;
         setToolTip(element->getType().replace("_", " "));
 
-        int child_count = element->childCount();
+       // int child_count = element->childCount();
         QList<TreeElement*> children = element->getChildren();
        // for (int i = 0; i < child_count; i++)children.size()
        for (int i = 0; i < children.size(); i++)
         {
-            qDebug() << "child_count " << child_count <<"  size() "<< children.size() << " element:"<< element->getType();
+          //  qDebug() << "child_count " << child_count <<"  size() "<< children.size() << " element:"<< element->getType();
             TreeElement *childEl = children[i];
             if (!childEl->isFloating()) //! create block from child element
             {
@@ -104,13 +106,13 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
             }
             else //! create docblock form child element
             {
-                if(TreeElement::DYNAMIC){
+               // if(TreeElement::DYNAMIC){
                     //! zisti ako to reprezentovat z AST-cka
-                }else{
+               // }else{
                     QString text = childEl->getText();
                     childEl->deleteAllChildren();
                     new DocBlock(text, childEl, this, group);
-                }
+               // }
             }
         }
     }

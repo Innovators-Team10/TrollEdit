@@ -204,5 +204,9 @@ void TextItem::focusOutEvent(QFocusEvent *event)
 
 void TextItem::adaptToFloating()
 {
-//    disconnect(this, 0, myBlock->blockGroup(), 0); //zisti presne co to robi
+//    if(myBlock == 0){
+//        qDebug() << "myBlock null";
+//        return;
+//    }
+    disconnect(this, 0, myBlock->blockGroup(), 0); //zisti presne co to robi
 }

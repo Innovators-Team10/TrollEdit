@@ -40,6 +40,7 @@ public slots:
     void cleanGroup(BlockGroup *group = 0);
 
 public:
+    MainWindow *main;
     DocumentScene(MainWindow *parent);
     void update(const QRectF &rect = QRectF());
     void selectGroup(BlockGroup *group = 0);
