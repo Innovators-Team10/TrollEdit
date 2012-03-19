@@ -17,8 +17,9 @@ class TreeElement
 {
 public:
      int spaces;
-     int local_index;                         //! pozicia tohto elementu v zasobniku
-     static const bool DYNAMIC;       //! dynamicke spracovanie AST - don't work
+     static const bool DYNAMIC;       //! dynamicke spracovanie AST
+     int local_deep_AST;              //! hlbka v AST
+     int* local_nodes_AST;            //! uzol v AST - musis si pametat postupnost rozbaleny - pole intov
 
      TreeElement(QString type = "", bool selectable = false,
                  bool multiText = false, bool lineBreaking = false, bool paired = false);

@@ -35,6 +35,9 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QString programPath, QWidget *parent = 0);
+    DocumentScene* getScene();
+    LanguageManager* getLangManager();
+    QComboBox* getScriptBox();
 
 
 
@@ -72,6 +75,7 @@ protected:
 private:
     enum { MaxRecentFiles = 6 };
     QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
+    void setCurrentFile(DocumentScene *scene);
 
     QAction *aboutQtAction;
     QAction *newAction;
@@ -113,7 +117,7 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
-    QTabBar *tabBar;
+    // QTabBar *tabBar; // is not (and should not be) used ???
     QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;
@@ -133,10 +137,11 @@ private:
 
     QGraphicsView* createView();
     QTableWidget *m_table;
-    void createActions();
+    void createActions(DocumentScene *scene);
     void createMenus();
+    void createGlobalActions();
+    void disconnectAll();
     void createTabs();
-    DocumentScene* getScene();
     void createToolBars();
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();

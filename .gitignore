@@ -1,0 +1,6 @@
+_build
+TrollEdit
+qtcreator_*
+.DS_Store
+
+/CMakeLists.txt.user

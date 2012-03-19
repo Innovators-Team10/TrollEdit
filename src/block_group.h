@@ -27,7 +27,7 @@ class BlockGroup : public QObject, public QGraphicsRectItem
 
 
 public:
-    BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene);
+    BlockGroup(QString text, QString file, DocumentScene *scene);
 
     ~BlockGroup();
 

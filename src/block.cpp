@@ -84,36 +84,36 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
     // process rest of the AST
     if (element->isLeaf()) //! leaf - create text area
     {
+        qDebug() << "text " << element->getType() << " par: " << element->allowsParagraphs()  ;
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs(), element->isPaired());
+        qDebug() << "this " << myTextItem;
     }
     else //! non-leaf - create rest of the tree
     {
         myTextItem = 0;
         setToolTip(element->getType().replace("_", " "));
 
-        // zistime pocet deti tabulky, tolkokrat spravime next();
-
-        int child_count = element->childCount();
+       // int child_count = element->childCount();
         QList<TreeElement*> children = element->getChildren();
        // for (int i = 0; i < child_count; i++)children.size()
        for (int i = 0; i < children.size(); i++)
         {
-            qDebug() << "child_count " << child_count <<"  size() "<< children.size() << " par:"<< element->getType();
-            TreeElement *childEl = children[i];//element->next();
-//            if( childEl->local_index != childEl->analyzer->glob_index){ //!
-//                childEl->analyzer->resetAST();
-//                childEl->analyzer->setIndexAST(childEl->local_index);
-//            }
-
+          //  qDebug() << "child_count " << child_count <<"  size() "<< children.size() << " element:"<< element->getType();
+            TreeElement *childEl = children[i];
             if (!childEl->isFloating()) //! create block from child element
             {
                 new Block(childEl, this);
             }
             else //! create docblock form child element
             {
-//                QString text = childEl->getText();
-//                childEl->deleteAllChildren();
-//                new DocBlock(text, childEl, this, group);
+               if(TreeElement::DYNAMIC){
+                    //! zisti ako to reprezentovat z AST-cka
+                    //! preco sa vytvori DocBlock, ktory ma prazdny TextItem?
+               }else{
+                    QString text = childEl->getText();
+                    childEl->deleteAllChildren();
+                    new DocBlock(text, childEl, this, group);
+               }
             }
         }
     }
