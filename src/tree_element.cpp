@@ -6,7 +6,7 @@
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
 const char *TreeElement::NEWLINE_EL = "nl";
-const bool TreeElement::DYNAMIC = false;        //! dynamicke spracovanie AST - don't work
+const bool TreeElement::DYNAMIC = false;        //! dynamicke spracovanie AST - work with index
 
 TreeElement::TreeElement(QString type, bool selectable,
                          bool multiText, bool lineBreaking, bool paired)
@@ -22,7 +22,6 @@ TreeElement::TreeElement(QString type, bool selectable,
     pair = 0;
     floating = false;
 
-    local_index = 1;
     analyzer = 0;
 }
 
@@ -43,8 +42,8 @@ TreeElement::~TreeElement()
     if (getParent() != 0)
     {
         if (!getParent()->isImportant())
-            //delete parent;
-            delete getParent();             //! todo otestuj mazanie
+            delete parent;
+            //delete getParent();             //! todo otestuj mazanie
         else
             getParent()->removeChild(this);
     }
@@ -151,13 +150,11 @@ void TreeElement::deleteAllChildren()           //! todo otestuj mazanie
 bool TreeElement::isLeaf() const
 {
     if(DYNAMIC){
-        qDebug() << "isLeaf() " << this->local_index;
         if( this->analyzer != 0 ){
-            if( this->local_index != this->analyzer->glob_index) //!
-                this->analyzer->setIndexAST(this->local_index);
+            this->analyzer->checkLocationAST(this->local_deep_AST,this->local_nodes_AST);
+
             return this->analyzer->isLeafElementAST();  //! new iterator
         }else{
-            qDebug() << "isLeaf() false";
             return true;
         }
     }else{
@@ -277,18 +274,12 @@ bool TreeElement::isPaired() const
 int TreeElement::childCount() const
 {
     if(DYNAMIC){
-        qDebug() << "TreeElement->childCount() " << this->local_index;
         if( this->analyzer != 0 ){
-            if( this->local_index != this->analyzer->glob_index){ //!
-                this->analyzer->resetAST();
-                this->analyzer->setIndexAST(this->local_index);
-                qDebug() << "childCount()-> setIndexAST()";
-            }
-//            qDebug() << "getCountElementChildrenAST()";
+            this->analyzer->checkLocationAST(this->local_deep_AST,this->local_nodes_AST);
 
             return this->analyzer->getCountElementChildrenAST();
         }else{
-            qDebug() << "chlidCount() null";
+//            qDebug() << "chlidCount() null";
             return 0;
         }
     }else{
@@ -332,10 +323,8 @@ int TreeElement::indexOfBranch(const TreeElement *desc) const
 QList<TreeElement*> TreeElement::getChildren() const
 {
     if(DYNAMIC){
-        if( this->local_index != this->analyzer->glob_index) //!
-            this->analyzer->setIndexAST(this->local_index);
+       this->analyzer->checkLocationAST(this->local_deep_AST,this->local_nodes_AST);
 
-        qDebug() << "TreeElement->getChildren() local" << this->local_index;
         return this->analyzer->getElementChildrenAST();
     }else{
         return children;
@@ -427,10 +416,8 @@ TreeElement *TreeElement::getParent() const
 {
     if(DYNAMIC){
         if(this != 0){
-        qDebug() << "TreeElement->getParent() " << this->local_index << " anlzr " <<  this->analyzer;
             if( this->analyzer != 0 ){
-                if( this->local_index != this->analyzer->glob_index) //!
-                    this->analyzer->setIndexAST(this->local_index);
+                this->analyzer->checkLocationAST(this->local_deep_AST,this->local_nodes_AST);
 
                 return this->analyzer->getParentElementAST();
             }else{
@@ -456,7 +443,6 @@ QString TreeElement::getText(bool noComments) const
     DocBlock *docBl = 0;
 
     if (isFloating()) docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
-
 
     QString spacesStr = QString().fill(' ', spaces);
 
@@ -509,13 +495,12 @@ TreeElement *TreeElement::next()
 bool TreeElement::hasNext(int index)
 {
     if(DYNAMIC){
-        qDebug() << "TreeElement->hasNext()";
+//        qDebug() << "TreeElement->hasNext()";
         if(this != 0){
-            if( this->local_index != this->analyzer->glob_index) //!
-                this->analyzer->setIndexAST(this->local_index);
+            this->analyzer->checkLocationAST(this->local_deep_AST,this->local_nodes_AST);
 
             for(int i = 0; i < index; i++){
-                this->analyzer->nextElementAST();
+                this->analyzer->nextElementAST_void();
             }
             //return getParent()->analyzer->hasNextElementAST(); //! new iterator
             return this->analyzer->hasNextElementAST(); //! new iterator
@@ -533,12 +518,10 @@ TreeElement *TreeElement::next(int index)
 {
     if(DYNAMIC){
 
-        if( this->local_index != this->analyzer->glob_index) //!
-            this->analyzer->setIndexAST(this->local_index);
+        this->analyzer->checkLocationAST(this->local_deep_AST,this->local_nodes_AST);
         for(int i = 0; i < index; i++){
-            this->analyzer->nextElementAST();
+            this->analyzer->nextElementAST_void();
         }
-        qDebug() << "TreeElement->next() local" << this->local_index;
 
         if(getParent() == 0)
             return 0;
