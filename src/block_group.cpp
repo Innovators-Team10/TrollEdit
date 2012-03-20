@@ -21,7 +21,7 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
 {
     //this->analyzer = analyzer;
-    qDebug() << scene->main->getScriptBox()->currentText();
+    qDebug() << "currentText()" << scene->main->getScriptBox()->currentText();
 //    qDebug() << "filename split" << file.split(".")[1];
     qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
  //   qDebug() << "file" << file.split(".")[1];
@@ -34,7 +34,10 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
 
     this->analyzer = a;
     this->docScene = scene;
-//    this->docScene->analyzer=a;
+
+    txt = new TextGroup(this, docScene);
+    docScene->addItem(txt);
+    txt->setVisible(false);
 
     highlight = true;
 
@@ -74,6 +77,8 @@ BlockGroup::~BlockGroup()
 {
     docScene = 0;
     root = 0;
+    txt->setVisible(false);
+    txt=0;
 }
 
 void BlockGroup::setContent(QString content)
@@ -906,16 +911,32 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
     QGraphicsRectItem::keyPressEvent(event);
 }
 
+void BlockGroup::changeMode(){
+    if(isVisible()){
+        txt->setPlainText(this->toText());
+        txt->setPos(this->pos().x(),this->pos().y());
+        txt->setScale(this->scale());
+        txt->setFocus();
+        txt->setVisible(true);
+        this->setVisible(false);
+        docScene->selectGroup(this);
+        docScene->update();
+    }else{
+        txt->setVisible(false);
+        this->setContent(txt->toPlainText());
+        this->setPos(txt->pos().x(),txt->pos().y());
+        this->updateSize();
+        this->setVisible(true);
+        docScene->update();
+    }
+}
+
 void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
-            TextGroup *txt = new TextGroup(this, docScene);
-            docScene->addItem(txt);
-            txt->setFocus();
-
-            this->setVisible(false);
+            changeMode();
             event->accept();
         }
     }

@@ -12,11 +12,8 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 {
     langManager = new LanguageManager(programPath);
 
+    createActions();
     createTabs();
-//    createActions();
-    createMenus();
-    createToolBars();
-    statusBar();
 
     readSettings();
 
@@ -25,7 +22,6 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     icon.addFile(":/icon16.png");
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
-    //setCurrentFile(0);
 
     setStyleSheet(
                 "QMainWindow { "
@@ -149,7 +145,7 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
                 );
 }
 
-void MainWindow::createActions(DocumentScene *scene)
+void MainWindow::createActions()
 {
     groupActions = new QActionGroup(this);
 
@@ -190,7 +186,7 @@ void MainWindow::createActions(DocumentScene *scene)
     textstring.remove(6,1);
     revertAction->setShortcut((textstring));
     revertAction->setToolTip(tr("Revert to last save"));
-    connect(revertAction, SIGNAL(triggered()), scene, SLOT(revertGroup()));
+    connect(revertAction, SIGNAL(triggered()), this, SLOT(revertGroupWraper()));
     groupActions->addAction(revertAction);
 
     // save
@@ -200,42 +196,42 @@ void MainWindow::createActions(DocumentScene *scene)
     textstring.remove(6,1);
     saveAction->setShortcut((textstring));
     saveAction->setToolTip(tr("Save file"));
-    connect(saveAction, SIGNAL(triggered()), scene, SLOT(saveGroup()));
+    connect(saveAction, SIGNAL(triggered()), this, SLOT(saveGroupWrapper()));
     groupActions->addAction(saveAction);
 
     // save as
     QIcon saveAsIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as"); // probably same as saveAction
     saveAsAction = new QAction(saveAsIcon, tr("Save &As..."), this);
     saveAsAction->setToolTip(tr("Save file as..."));
-    connect(saveAsAction, SIGNAL(triggered()), scene, SLOT(saveGroupAs()));
+    connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWrapper()));
     groupActions->addAction(saveAsAction);
 
     // save as
 //    QIcon saveAsNoDocIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as");
     saveAsNoDocAction = new QAction(tr("Save Without Comments"), this); // ??? is this used ???
     saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
-    connect(saveAsNoDocAction, SIGNAL(triggered()), scene, SLOT(saveGroupAsWithoutDoc()));
+    connect(saveAsNoDocAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWithoutDocWrapper()));
     groupActions->addAction(saveAsNoDocAction);
 
     // save all
     saveAllAction = new QAction(tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
     saveAllAction->setToolTip(tr("Save all files"));
-    connect(saveAllAction, SIGNAL(triggered()), scene, SLOT(saveAllGroups()));
+    connect(saveAllAction, SIGNAL(triggered()), this, SLOT(saveAllGroupsWrapper()));
 
     // close
     QIcon closeIcon(":/m/close"); closeIcon.addFile(":/s/close"); // works
-    closeAction = new QAction(closeIcon, tr("&Close File"), scene);
+    closeAction = new QAction(closeIcon, tr("&Close File"), this);
     textstring = file.readLine();
     textstring.remove(6,1);
     closeAction->setShortcut((textstring));
     closeAction->setToolTip(tr("Close file"));
-    connect(closeAction, SIGNAL(triggered()), scene, SLOT(closeGroup()));
+    connect(closeAction, SIGNAL(triggered()), this, SLOT(closeGroupWrapper()));
     groupActions->addAction(closeAction);
 
     // close all
     closeAllAction = new QAction(tr("Close All"), this);
     closeAllAction->setToolTip(tr("Close all files"));
-    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroups()));
+    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroupsWrapper()));
 
     // print pdf
     QIcon printIcon(":/m/print"); printIcon.addFile(":/s/print");
@@ -254,7 +250,7 @@ void MainWindow::createActions(DocumentScene *scene)
     textstring.remove(6,1);
     plainEditAction->setShortcut((textstring));
     plainEditAction->setToolTip(tr("Edit file as plain text"));
-    connect(plainEditAction, SIGNAL(triggered()), scene, SLOT(showPreview()));
+    connect(plainEditAction, SIGNAL(triggered()), this, SLOT(showPreviewWrapper()));
     groupActions->addAction(plainEditAction);
 
     // clear search results
@@ -263,7 +259,7 @@ void MainWindow::createActions(DocumentScene *scene)
     clearAction->icon().addFile(":/m/save.png");
 //    clearAction->setShortcut(tr("CTRL+S"));
     clearAction->setToolTip(tr("Clean search results"));
-    connect(clearAction, SIGNAL(triggered()), scene, SLOT(cleanGroup()));
+    connect(clearAction, SIGNAL(triggered()), this, SLOT(cleanGroupWrapper()));
     groupActions->addAction(clearAction);
 
     // recent files
@@ -315,6 +311,46 @@ void MainWindow::createActions(DocumentScene *scene)
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
     printableAreaAction->setCheckable(true);
         file.close();
+}
+
+// wrapper slots
+// in most functions is dynamically detected current BlockGroup,
+// so they are called with parameter 0
+void MainWindow::closeGroupWrapper(){
+    getScene()->closeGroup(getScene()->selectedGroup());
+}
+
+void MainWindow::revertGroupWrapper(){
+    getScene()->revertGroup(getScene()->selectedGroup());
+}
+
+void MainWindow::saveGroupWrapper(){
+    getScene()->saveGroup(getScene()->selectedGroup()->getFilePath(),0,false);
+}
+
+void MainWindow::saveGroupAsWrapper(){
+    getScene()->saveGroupAs(0);
+}
+
+void MainWindow::saveAllGroupsWrapper(){
+    getScene()->saveAllGroups();
+}
+
+void MainWindow::saveGroupAsWithoutDocWrapper(){
+    getScene()->saveGroupAsWithoutDoc(0);
+}
+
+void MainWindow::closeAllGroupsWrapper(){
+    getScene()->closeAllGroups();
+}
+
+void MainWindow::showPreviewWrapper(){
+    getScene()->selectedGroup()->changeMode();
+//    getScene()->showPreview(0); // povodny edit plain text, zobrazi okno s plain textom
+}
+
+void MainWindow::cleanGroupWrapper(){
+    getScene()->cleanGroup(0);
 }
 
 void MainWindow::createMenus()
@@ -525,8 +561,6 @@ void MainWindow::newTab()
     DocumentScene* dScene=(DocumentScene *) view->scene();
     dScene->main=this;
 
-    createActions(dScene);
-
     tabWidget->addTab(widget, *name);
     tabWidget->setCurrentWidget(widget); // focus on new tab
     return;
@@ -541,6 +575,8 @@ void MainWindow::newFile()
         return;
     }else{
         dScene->newGroup(scriptsBox->currentText());
+        setCurrentFile(dScene->selectedGroup());
+        scriptsBox->setCurrentIndex(0); // select item in scriptsBox on C (in future select previously used item etc...)
     }
 }
 
@@ -579,8 +615,14 @@ void MainWindow::closeTab(int position){
 }
 
 void MainWindow::tabChanged(int position){
-    qDebug("tabChanged()");
-    setCurrentFile(getScene());
+    BlockGroup *group=getScene()->selectedGroup();
+    if(group==0){
+        qDebug("tabChanged() group=0");
+        setCurrentFile(0);
+        return;
+    }else{
+        setCurrentFile(group);
+    }
 }
 
 void MainWindow::createTabs()
@@ -603,7 +645,10 @@ void MainWindow::createTabs()
     QGraphicsView* view=(QGraphicsView *) widget;
     DocumentScene* dScene=(DocumentScene *) view->scene();
     dScene->main=this;
-    createActions(dScene);
+    createMenus();
+    createToolBars();
+    statusBar();
+
 
     tabWidget->addTab(widget, "*tab0");
     tabWidget->setCurrentWidget(widget); // focus on new tab
@@ -627,8 +672,8 @@ void MainWindow::setCurrentFile(BlockGroup *group)
     if (group != 0)
     {
         fileName = group->getFilePath();
-   //     lang = group->getAnalyzer()->getLanguageName();
-  //      selectedGroup = group;
+        lang = group->getAnalyzer()->getLanguageName();
+        selectedGroup = group;
     }
     else
     {
@@ -646,6 +691,7 @@ void MainWindow::setCurrentFile(BlockGroup *group)
     else
     {
         groupActions->setEnabled(true);
+        closeAction->setEnabled(true);
         searchLineEdit->setEnabled(true);
 
         if (scriptsBox->currentText() != lang)
@@ -672,68 +718,6 @@ void MainWindow::setCurrentFile(BlockGroup *group)
             saveAsAction->setText(tr("Save \"%1\" &As...").arg(fileName));
             closeAction->setText(tr("&Close \"%1\"").arg(fileName));
         }
-    }
-}
-
-void MainWindow::setCurrentFile(DocumentScene *scene)
-{
-    QString fileName;
-    QString lang;
-
-    if(scene!=0){
-        BlockGroup *group=scene->selectedGroup();
-
-        if (group != 0)
-        {
-            fileName = group->getFilePath();
-            lang = group->getAnalyzer()->getLanguageName();
-            selectedGroup = group;
-        }
-        else
-        {
-            qDebug("selected group == 0");
-            lang = "";
-            fileName = "Empty";
-            selectedGroup = 0;
-        }
-
-
-    if (fileName.isEmpty() || fileName == "Empty")
-    {
-        setWindowFilePath(fileName);
-        groupActions->setEnabled(false);
-   //     searchLineEdit->setEnabled(false);
-    }
-    else
-    {
-        groupActions->setEnabled(true);
-        searchLineEdit->setEnabled(true);
-
-        if (scriptsBox->currentText() != lang)
-        {
-            int index = scriptsBox->findText(lang, Qt::MatchFixedString);
-            scriptsBox->blockSignals(true);
-            scriptsBox->setCurrentIndex(index);
-            scriptsBox->blockSignals(false);
-        }
-        if (windowFilePath() != fileName)
-        {
-            setWindowFilePath(fileName);
-
-            if (!QFileInfo(fileName).fileName().isEmpty())
-            {
-                fileName = QFileInfo(fileName).fileName();
-            }
-            else
-            {
-                revertAction->setEnabled(false);
-            }
-
-            saveAction->setText(tr("&Save \"%1\"").arg(fileName));
-            saveAsAction->setText(tr("Save \"%1\" &As...").arg(fileName));
-            closeAction->setText(tr("&Close \"%1\"").arg(fileName));
-        }
-    }
     }
 }
 
