@@ -25,7 +25,7 @@ public:
 
     DocumentScene *scene;
     BlockGroup *block;
-
+    void changeMode();
 
 signals:
 
