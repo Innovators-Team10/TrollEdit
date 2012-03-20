@@ -746,7 +746,7 @@ bool BlockGroup::reanalyzeBlock(Block *block)
     Block *analysedBl;
     do
     {
-        analysedBl = analysedEl->getBlock();
+        analysedBl = analysedEl->getBlock();    //BUG!!! Dynamicka verzia da null
         analysedEl = (*analysedEl)[0];
     }
     while (analysedBl == 0);
@@ -791,7 +791,7 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
 void BlockGroup::analyzeAll(QString text)
 {
-    qDebug() << "\nBlockGroup::analyzeAll()" << text;
+    qDebug() << "\nBlockGroup::analyzeAll()";
 
     if (text.isEmpty()) //! use snippet if text is empty
     {

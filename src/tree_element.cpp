@@ -6,7 +6,7 @@
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
 const char *TreeElement::NEWLINE_EL = "nl";
-const bool TreeElement::DYNAMIC = false;        //! dynamicke spracovanie AST - work with index
+const bool TreeElement::DYNAMIC = true;        //! dynamicke spracovanie AST - work with index
 
 TreeElement::TreeElement(QString type, bool selectable,
                          bool multiText, bool lineBreaking, bool paired)
@@ -72,7 +72,11 @@ void TreeElement::setPair(TreeElement *pair)
 
 TreeElement *TreeElement::getPair() const
 {
+    if(DYNAMIC){
+        return pair;
+    }else{
     return pair;
+    }
 }
 
 void TreeElement::appendChild(TreeElement *child)
@@ -289,6 +293,7 @@ int TreeElement::childCount() const
 
 int TreeElement::index() const
 {
+    //if(DYNAMIC){ //zisti priamo z AST lua_tonumber(L,-1)-1
     if (getParent() == 0)
         return -1;
     else

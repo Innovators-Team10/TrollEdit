@@ -49,6 +49,7 @@ public:
     void checkLocationAST(int deep, int* nodes);    //! skontroluje lokaciu podla zadanych parametrov a nastavi sa na nu
     TreeElement* getElementAST();                   //! vrati Element z aktualnej pozicie
     TreeElement* getElementAST(int deep, int* nodes);//! vrati Element z urcenej pozicie
+    bool checkLineBreak();                          //! skontroluje ci je sa ma dany Element zalomit na novy riadok
     int getDeepAST();                               //! vrati aktualnu hlbku AST
     int* getNodesAST();                             //! vrati pole index, ktore vedu k elementu
     int glob_deep_AST;                              //! hlbka Elementu v AST
