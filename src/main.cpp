@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     MainWindow w(path);
     w.setWindowOpacity(0);
-
+    
     splashScreen.show();
     w.show();
 

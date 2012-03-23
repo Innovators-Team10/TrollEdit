@@ -25,8 +25,8 @@ signals:
     void fileSelected(BlockGroup *group);
 
 public slots:
-    void newGroup(Analyzer *analyzer);
-    void loadGroup(QString fileName, Analyzer *analyzer);
+    void newGroup(QString extension);
+    void loadGroup(QString fileName, QString extension);
     void revertGroup(BlockGroup *group = 0);
     void saveGroup(QString fileName = "", BlockGroup *group = 0, bool noDocs = false);
     void saveGroupAs(BlockGroup *group = 0);

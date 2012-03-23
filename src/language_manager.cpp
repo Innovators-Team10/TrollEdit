@@ -12,6 +12,7 @@ const QString SNIPPET_FILE = "/../share/trolledit/grammars/snippets.lua";
 
 LanguageManager::LanguageManager(QString programPath)
 {
+    this->programPath=programPath;
     QFileInfoList grammars;
     QDir dir = QDir(programPath + GRAMMAR_DIR);
     grammars = dir.entryInfoList(QStringList("*.lua"), QDir::Files | QDir::NoSymLinks);
@@ -51,6 +52,41 @@ LanguageManager::LanguageManager(QString programPath)
 
     configData = defaultAnalyzer->readConfig(configFile.absoluteFilePath());
 }
+
+QString LanguageManager::getLanguage(QString extens){
+    QFileInfoList grammars;
+    QDir dir = QDir(programPath + GRAMMAR_DIR);
+    grammars = dir.entryInfoList(QStringList("*.lua"), QDir::Files | QDir::NoSymLinks);
+    QFileInfo defaultGrammar(programPath + DEFAULT_GRAMMAR);
+    QFileInfo configFile(programPath + CONFIG_FILE);
+    QFileInfo snippetFile(programPath + SNIPPET_FILE);
+
+    foreach (QFileInfo file, grammars)
+    {
+        if (file != defaultGrammar && file != configFile && file != snippetFile)
+        {
+            try
+            {
+                qDebug() << "langMan file.absolutePath() " << file.absoluteFilePath();
+                Analyzer *a = new Analyzer(file.absoluteFilePath());
+                a->readSnippet(snippetFile.absoluteFilePath());
+                QStringList extensions = a->getExtensions();
+
+                foreach (QString ext, extensions)
+                {
+                    if(extens==ext){
+                        return file.absoluteFilePath();
+                    }
+                }
+            }
+            catch(...)
+            {
+                // analyzer is not inserted, messages were already displayed in Analyzer class
+            }
+        }
+    }
+}
+
 
 LanguageManager::~LanguageManager()
 {

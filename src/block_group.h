@@ -15,6 +15,7 @@
 #include <QStatusBar>
 
 #include "analyzer.h"
+#include "text_group.h"
 
 class Block;
 class DocBlock;
@@ -27,7 +28,7 @@ class BlockGroup : public QObject, public QGraphicsRectItem
 
 
 public:
-    BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene);
+    BlockGroup(QString text, QString file, DocumentScene *scene);
 
     ~BlockGroup();
 
@@ -46,6 +47,7 @@ public:
     bool isModified() const {return modified;}
     void setModified(bool flag);
     void setContent(QString content);
+    void changeMode();
 
     // block management
     Block *getBlockIn(int line) const;
@@ -126,6 +128,7 @@ private:
     void computeTextSize();
 
     // fields
+    TextGroup *txt;
     QString fileName;           //! name of currently loaded file
     Analyzer *analyzer;         //! my analyzer
     Block *root;                //! main (root) block

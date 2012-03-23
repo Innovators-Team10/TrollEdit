@@ -5,6 +5,8 @@
 #include "text_item.h"
 #include "tree_element.h"
 #include "document_scene.h"
+#include "main_window.h"
+#include "language_manager.h"
 
 const QString BlockGroup::BLOCK_MIME = "block_data";
 //const QPointF BlockGroup::OFFSET_IN_TL = QPointF(0, 0);  // inner offset, left and top
@@ -12,12 +14,30 @@ const QString BlockGroup::BLOCK_MIME = "block_data";
 //const QPointF BlockGroup::OFFSET_OUT = QPointF(0, 0);    // outer offset
 const QPointF BlockGroup::OFFSET_INSERT = QPointF(8, 0); // offset while draging
 //const QPointF BlockGroup::NO_OFFSET = QPointF(0, 0);     // default offset
+const QString GRAMMAR_DIR = "/../share/trolledit/grammars";
 
-BlockGroup::BlockGroup(QString text, Analyzer* analyzer, DocumentScene *scene)
+
+BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
 {
-    this->analyzer = analyzer;
+    //this->analyzer = analyzer;
+    qDebug() << "currentText()" << scene->main->getScriptBox()->currentText();
+//    qDebug() << "filename split" << file.split(".")[1];
+    qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
+ //   qDebug() << "file" << file.split(".")[1];
+    Analyzer *a;
+    if(text.isEmpty()){
+        a=new Analyzer(scene->main->getLangManager()->getLanguage(file.toLower()));
+    }else{
+        a=new Analyzer(scene->main->getLangManager()->getLanguage(file.split(".")[1]));
+    }
+
+    this->analyzer = a;
     this->docScene = scene;
+
+    txt = new TextGroup(this, docScene);
+    docScene->addItem(txt);
+    txt->setVisible(false);
 
     highlight = true;
 
@@ -57,6 +77,8 @@ BlockGroup::~BlockGroup()
 {
     docScene = 0;
     root = 0;
+    txt->setVisible(false);
+    txt=0;
 }
 
 void BlockGroup::setContent(QString content)
@@ -774,12 +796,12 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
 void BlockGroup::analyzeAll(QString text)
 {
-    qDebug("\nBlockGroup::analyzeAll()");
+    qDebug() << "\nBlockGroup::analyzeAll()" << text;
 
     if (text.isEmpty()) //! use snippet if text is empty
     {
         text = analyzer->getSnippet();
-        qDebug("\nDefault snipped used");
+        qDebug() << "\nDefault snippet used" << text;
         getStatusBar()->showMessage("File reset - default text used", 2000);
 
         if (text.isEmpty()) text = "    ";
@@ -887,16 +909,32 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
     QGraphicsRectItem::keyPressEvent(event);
 }
 
+void BlockGroup::changeMode(){
+    if(isVisible()){
+        txt->setPlainText(this->toText());
+        txt->setPos(this->pos().x(),this->pos().y());
+        txt->setScale(this->scale());
+        txt->setFocus();
+        txt->setVisible(true);
+        this->setVisible(false);
+        docScene->selectGroup(this);
+        docScene->update();
+    }else{
+        txt->setVisible(false);
+        this->setContent(txt->toPlainText());
+        this->setPos(txt->pos().x(),txt->pos().y());
+        this->updateSize();
+        this->setVisible(true);
+        docScene->update();
+    }
+}
+
 void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
-            TextGroup *txt = new TextGroup(this, docScene);
-            docScene->addItem(txt);
-            txt->setFocus();
-
-            this->setVisible(false);
+            changeMode();
             event->accept();
         }
     }

@@ -36,7 +36,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QString programPath, QWidget *parent = 0);
     DocumentScene* getScene();
-
+    LanguageManager* getLangManager();
+    QComboBox* getScriptBox();
 
 
 
@@ -49,6 +50,16 @@ signals:
     void apply(QBrush *brush, QPen *pen);
 
 private slots:
+    void closeGroupWrapper();
+    void revertGroupWrapper();
+    void saveGroupWrapper();
+    void saveGroupAsWrapper();
+    void saveAllGroupsWrapper();
+    void saveGroupAsWithoutDocWrapper();
+    void closeAllGroupsWrapper();
+    void showPreviewWrapper();
+    void cleanGroupWrapper();
+
     void newFile();
     void newTab();
     void closeTab(int );
@@ -135,7 +146,7 @@ private:
 
     QGraphicsView* createView();
     QTableWidget *m_table;
-    void createActions(DocumentScene *scene);
+    void createActions();
     void createMenus();
     void createGlobalActions();
     void disconnectAll();
