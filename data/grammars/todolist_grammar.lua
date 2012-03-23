@@ -63,7 +63,7 @@ document =
 	Ct(
 	Cc("document") *
 	(N'multiline_comment' + N'nl')^0 * 
-	N'markup_element'^-1 *
+	N'todo_lists'^0 *
 	N'unknown'^0 *
 	N'whites'^-1 * -1),
 	
@@ -84,10 +84,10 @@ block = N'word'^1 + N'markup_element'^1,
 start_element = T"<" * N'markup_tag' * T">",
 end_element = T"</" * N'markup_tag' * T">",
 empty_element = T"<" * N'markup_tag' * T"/>",
-todo_lists = T"<todolists>" * N'todo_list' * T"</todolists>",
-todo_list = T"<todolist>" * N'done' * N'undone' * T"</todolist>",
-done = T"<done>" * N'markup_tag' * T"</done>",
-undone = T"<undone>" * N'markup_tag' * T"</undone>",
+todo_lists = T"<todolists>" * N'done' * N'undone' * T"</todolists>",
+todo_list = T"<todolist>" * N'word' * T"</todolist>",
+done = T"<done>" * N'todo_list' * T"</done>",
+undone = T"<undone>" * N'todo_list' * T"</undone>",
 	
 -- TERMINALS
 markup_tag = T((NI'letter' + S("_:")) * NI'markup_tag_char'^0),
