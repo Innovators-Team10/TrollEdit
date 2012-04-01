@@ -1355,8 +1355,8 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 
     if (pointed) //! hover background
     {
-        QColor color = Qt::gray;
-        color.setAlpha(70);
+        QColor color = Qt::red;
+        color.setAlpha(80);
         painter->fillPath(path, color);
     }
 
@@ -1373,7 +1373,7 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 QColor Block::getHoverColor() const
 {
     if (element->isUnknown())
-        return Qt::red;
+        return Qt::green;
     else
         return Qt::blue;
 }

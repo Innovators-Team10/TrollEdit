@@ -178,7 +178,7 @@ void DocumentScene::saveGroup(QString fileName, BlockGroup *group, bool noDocs)
 
 void DocumentScene::saveGroupAs(BlockGroup *group)
 {
-    //group=getBlockGroup();
+    group=getBlockGroup();
 
     QString dir = QFileInfo(window->windowFilePath()).absoluteDir().absolutePath();
 
@@ -203,8 +203,7 @@ void DocumentScene::saveAllGroups()
 {
     foreach (BlockGroup *group, groups)
     {
-        saveGroup(group->fileName, group);
-//        saveGroup("", group); // povodna funkcia
+        saveGroup("", group);
     }
 }
 
@@ -263,62 +262,71 @@ void DocumentScene::closeAllGroups()
 
 void DocumentScene::findText(QString searchStr, BlockGroup *group)
 {
-    if (searchStr.isEmpty()) return;
-
-    group=getBlockGroup();
-
-    bool ret = false;
-    group->clearSearchResults();
-    bool inner = false;
-
-    QRegExp blockMatch("@(\\S*)");
-
-    if (blockMatch.indexIn(searchStr) > -1) //! search inner blocks
+    try
     {
-        searchStr = blockMatch.cap(1);
-        inner = true;
-    }
-    QRegExp exactMatch("\"(\\S*)\"");
+        if (searchStr.isEmpty()) return;
 
-    if (exactMatch.indexIn(searchStr) > -1) //! only exact blocks
-    {
-        searchStr = exactMatch.cap(1);
-        ret = group->searchBlocks(searchStr, inner, true);
-    }
-    else //! any blocks
-    {
-        ret = group->searchBlocks(searchStr, inner, false);
-    }
+        group=getBlockGroup();
 
-    if (!ret && !inner) //! search text
-    {
-        QSet<int> lineNumbers;
-        QString allText = group->toText(true);
-        QStringList lines = allText.split("\n", QString::KeepEmptyParts);
+        bool ret = false;
+        group->clearSearchResults();
+        bool inner = false;
 
-        for (int i =0 ;i < lines.size(); i++)
+        QRegExp blockMatch("@(\\S*)");
+
+        if (blockMatch.indexIn(searchStr) > -1) //! search inner blocks
         {
-            QString line = lines.at(i);
+            searchStr = blockMatch.cap(1);
+            inner = true;
+        }
+        QRegExp exactMatch("\"(\\S*)\"");
 
-            if (line.contains(searchStr)) lineNumbers << i;
-
+        if (exactMatch.indexIn(searchStr) > -1) //! only exact blocks
+        {
+            searchStr = exactMatch.cap(1);
+            ret = group->searchBlocks(searchStr, inner, true);
+        }
+        else //! any blocks
+        {
+            ret = group->searchBlocks(searchStr, inner, false);
         }
 
-        if (!lineNumbers.isEmpty())
+        if (!ret && !inner) //! search text
         {
-            group->highlightLines(lineNumbers);
-            ret = true;
+            QSet<int> lineNumbers;
+            QString allText = group->toText(true);
+            QStringList lines = allText.split("\n", QString::KeepEmptyParts);
+
+            for (int i =0 ;i < lines.size(); i++)
+            {
+                QString line = lines.at(i);
+
+                if (line.contains(searchStr)) lineNumbers << i;
+
+            }
+
+            if (!lineNumbers.isEmpty())
+            {
+                group->highlightLines(lineNumbers);
+                ret = true;
+            }
+        }
+        if (ret)
+        {
+            group->update();
+            window->statusBar()->showMessage("Search finished", 1000);
+        }
+        else
+        {
+            window->statusBar()->showMessage("Not found", 1000);
         }
     }
-    if (ret)
+
+    catch(...)
     {
-        group->update();
-        window->statusBar()->showMessage("Search finished", 1000);
+        //
     }
-    else
-    {
-        window->statusBar()->showMessage("Not found", 1000);
-    }
+
 }
 
 void DocumentScene::cleanGroup(BlockGroup *group)
@@ -454,12 +462,8 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
         else
         {
-           QGraphicsItem *item = itemAt(event->scenePos());
-//            TextGroup* t = ((TextGroup*)(item));
-            //            if(qobject_cast<TextGroup*>(item)!=0){
- //           if(t!=0){
-  //              selectGroup(t->block);
-  //          }
+            QGraphicsItem *item = itemAt(event->scenePos());
+
             if (item == 0)
             {
                 selectGroup();

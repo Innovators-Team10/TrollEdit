@@ -70,7 +70,6 @@ static void stackDump (lua_State *L) {          //! print stack to debug
 Analyzer::Analyzer(QString script)
 {
     msgBox = new QMessageBox();
-    qDebug() << script;
     scriptName = script;
     L = lua_open();             //! initialize Lua
     luaL_openlibs(L);           //! load Lua base libraries
