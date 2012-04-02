@@ -1,3 +1,9 @@
+/**
+ * document_scene.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class DocumentScene and it's funtions and identifiers
+ *
+ */
 #ifndef DOCUMENT_SCENE_H
 #define DOCUMENT_SCENE_H
 
@@ -19,8 +25,8 @@ signals:
     void fileSelected(BlockGroup *group);
 
 public slots:
-    void newGroup(Analyzer *analyzer);
-    void loadGroup(QString fileName, Analyzer *analyzer);
+    void newGroup(QString extension);
+    void loadGroup(QString fileName, QString extension);
     void revertGroup(BlockGroup *group = 0);
     void saveGroup(QString fileName = "", BlockGroup *group = 0, bool noDocs = false);
     void saveGroupAs(BlockGroup *group = 0);
@@ -34,6 +40,7 @@ public slots:
     void cleanGroup(BlockGroup *group = 0);
 
 public:
+    MainWindow *main;
     DocumentScene(MainWindow *parent);
     void update(const QRectF &rect = QRectF());
     void selectGroup(BlockGroup *group = 0);
@@ -48,6 +55,7 @@ public:
     void print(QString text) const;
 
     static QTime time;
+    ~DocumentScene();
 
     MainWindow *getWindow() const {return window;}
 
@@ -68,6 +76,7 @@ private:
     QHash<QString, QPair<QFont, QColor> > highlighting;
 
     void adjustSceneRect();
+    BlockGroup* getBlockGroup();
     bool toBool(QString textBool);
 };
 

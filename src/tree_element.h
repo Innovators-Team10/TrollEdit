@@ -1,8 +1,15 @@
+/**
+ * tree_element.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class TreeElement and it's funtions and identifiers
+ *
+ */
 #ifndef TREEELEMENT_H
 #define TREEELEMENT_H
 
 #include <QList>
 #include <QString>
+#include "analyzer.h"
 
 class Block;
 
@@ -10,6 +17,9 @@ class TreeElement
 {
 public:
      int spaces;
+     static const bool DYNAMIC;       //! dynamicke spracovanie AST
+     int local_deep_AST;              //! hlbka v AST
+     int* local_nodes_AST;            //! uzol v AST - musis si pametat postupnost rozbaleny - pole intov
 
      TreeElement(QString type = "", bool selectable = false,
                  bool multiText = false, bool lineBreaking = false, bool paired = false);
@@ -75,13 +85,16 @@ public:
 
      TreeElement *clone() const;
 
+     Analyzer* analyzer;
+
+
  protected:
      TreeElement *parent;
 
  private:
      static const char *WHITE_EL;
      static const char *UNKNOWN_EL;
-     static const char *NEWLINE_EL;
+     static const char *NEWLINE_EL;     
 
      QList<TreeElement*> children;
      QString type;

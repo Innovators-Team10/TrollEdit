@@ -1,3 +1,10 @@
+/**
+ * analyzer.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class Analyzer and it's funtions and identifiers
+ *
+ */
+
 #ifndef ANALYZER_H
 #define ANALYZER_H
 
@@ -30,6 +37,25 @@ public:
     void readSnippet(QString fileName);
     static const QString TAB;
 
+    TreeElement* nextElementAST();                  //! next()
+    void nextElementAST_void();
+    bool hasNextElementAST();                       //! hasNext()
+    bool isLeafElementAST();                        //! isLeaf()
+    int getCountElementChildrenAST();               //!
+    QList<TreeElement*> getElementChildrenAST();    //!
+    TreeElement* getParentElementAST();             //!
+    void resetAST();                                //!
+    TreeElement* setIndexAST(int deep, int* nodes); //!
+    void checkLocationAST(int deep, int* nodes);    //! skontroluje lokaciu podla zadanych parametrov a nastavi sa na nu
+    TreeElement* getElementAST();                   //! vrati Element z aktualnej pozicie
+    TreeElement* getElementAST(int deep, int* nodes);//! vrati Element z urcenej pozicie
+    int getDeepAST();                               //! vrati aktualnu hlbku AST
+    int* getNodesAST();                             //! vrati pole index, ktore vedu k elementu
+    int glob_deep_AST;                              //! hlbka Elementu v AST
+    int* glob_nodes_AST;                            //! uzol v AST - musis si pametat postupnost rozbaleny - pole intov
+
+    static const int DEFAULT_STACK_DEEP;
+
 private:
     static const char *EXTENSIONS_FIELD;
     static const char *LANGUAGE_FIELD;
@@ -44,28 +70,31 @@ private:
     static const char *MULTILINE_COMMENT_TOKENS_FIELD;
     static const char *CONFIG_KEYS_FIELD;
 
-    lua_State *L;               // the Lua interpreter
-    QStringList extensions;     // types of files to be analyzed
-    QString langName;           // name/description of analyzed language(s)
-    QString scriptName;        // script name
-    QString mainGrammar;        // name of complete gramar
-    QHash<QString, QString> subGrammars;// names of partial grammars
-    QStringList pairedTokens;           // list of paired tokens, example: "{", "}", "begin", "end"...
-    QStringList selectableTokens;       // list of tokens which can contain line-breaking children
-    QStringList multiTextTokens;        // list of tokens which can contain more lines of text
-    QStringList floatingTokens;         // list of tokens allowed to say out of hierarchy
-    QString defaultSnippet;             // code that will be displayed in new file
-    QString multilineSupport;           // natural support of multiline comments
-    QHash<QString, QStringList> commentTokens;      // start & end tokens for comments
+    lua_State *L;               //! the Lua interpreter
+    QStringList extensions;     //! types of files to be analyzed
+    QString langName;           //! name/description of analyzed language(s)
+    QString scriptName;        //! script name
+    QString mainGrammar;        //! name of complete gramar
+    QHash<QString, QString> subGrammars;//! names of partial grammars
+    QStringList pairedTokens;           //! list of paired tokens, example: "{", "}", "begin", "end"...
+    QStringList selectableTokens;       //! list of tokens which can contain line-breaking children
+    QStringList multiTextTokens;        //! list of tokens which can contain more lines of text
+    QStringList floatingTokens;         //! list of tokens allowed to say out of hierarchy
+    QString defaultSnippet;             //! code that will be displayed in new file
+    QString multilineSupport;           //! natural support of multiline comments
+    QHash<QString, QStringList> commentTokens;      //! start & end tokens for comments
 
     void setupConstants();
     TreeElement* analyzeString(QString grammar, QString input);
     TreeElement* createTreeFromLuaStack();
     void checkPairing(TreeElement *element);
 
-    void processWhites(TreeElement *root); // move all whites as high as possible without changing tree text
+    void processWhites(TreeElement *root); //! move all whites as high as possible without changing tree text
 
-    QMessageBox *msgBox; // for (error) mesasage
+    QString getChildAST();                          //! child of current element in AST
+    QString getParentAST();                         //! parent of current element in AST
+
+    QMessageBox *msgBox; //! for (error) mesasage
 };
 
 #endif // ANALYZER_H

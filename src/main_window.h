@@ -1,3 +1,9 @@
+/**
+ * main_window.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class MainWindow and it's funtions and identifiers
+ *
+ */
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
@@ -8,10 +14,20 @@
 #include <QPrintPreviewDialog>
 #include <QPainter>
 #include <QList>
+#include <QTableView>
+
+typedef struct pokus
+{
+        int test;
+} POKUS;
+
 
 class DocumentScene;
 class LanguageManager;
 class BlockGroup;
+class QTableWidget;
+class QTableWidgetItem;
+class QDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -19,6 +35,11 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QString programPath, QWidget *parent = 0);
+    DocumentScene* getScene();
+    LanguageManager* getLangManager();
+    QComboBox* getScriptBox();
+
+
 
 public slots:
     void open(QString fileName);
@@ -29,7 +50,20 @@ signals:
     void apply(QBrush *brush, QPen *pen);
 
 private slots:
+    void closeGroupWrapper();
+    void revertGroupWrapper();
+    void saveGroupWrapper();
+    void saveGroupAsWrapper();
+    void saveAllGroupsWrapper();
+    void saveGroupAsWithoutDocWrapper();
+    void closeAllGroupsWrapper();
+    void showPreviewWrapper();
+    void cleanGroupWrapper();
+
     void newFile();
+    void newTab();
+    void closeTab(int );
+    void tabChanged(int );
     void open();
     void openRecentFile();
     void about();
@@ -40,16 +74,21 @@ private slots:
 
     void printPdf();
     void showPrintableArea();
+    void setShort();
+    void savedShortcuts();
+    void closeShortcuts();
+        void wInit();
 
 protected:
     void closeEvent(QCloseEvent *event);
 
 private:
     enum { MaxRecentFiles = 6 };
-    QActionGroup *groupActions;     // used to disable subset of actions when no group is selected
+    QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
 
     QAction *aboutQtAction;
     QAction *newAction;
+    QAction *newTabAction;
     QAction *openAction;
     QAction *revertAction;
     QAction *saveAction;
@@ -75,6 +114,7 @@ private:
 
     QAction *helpAction;
     QAction *aboutAction;
+        QAction *shortAction;
 
     QAction *textBoldAction;
     QAction *textItalicAction;
@@ -86,12 +126,16 @@ private:
     QMenu *helpMenu;
 
     QToolBar *formatToolBar;
+    // QTabBar *tabBar; // is not (and should not be) used ???
+    QTabWidget *tabWidget;
+    QSplashScreen *ico;
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
     QLabel *searchLabel;
+    QDialog *set_shortcuts;
 
     LanguageManager *langManager;
-    DocumentScene *scene;
+ //   DocumentScene *scene;
     QHash<QString, QPair<QFont, QColor> > *highlightFormats;
 
     QPrinter *printer;
@@ -100,9 +144,13 @@ private:
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
 
-
+    QGraphicsView* createView();
+    QTableWidget *m_table;
     void createActions();
     void createMenus();
+    void createGlobalActions();
+    void disconnectAll();
+    void createTabs();
     void createToolBars();
     QString strippedName(const QString &fullFileName);
     void updateRecentFileActions();
@@ -110,7 +158,7 @@ private:
 
     void showArea();
     void hideArea();
-	QPointF startPoint;
+        QPointF startPoint;
     BlockGroup *selectedGroup;
 
     void readSettings();

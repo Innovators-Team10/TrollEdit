@@ -31,7 +31,8 @@ void DocumentTabs::provideSize()
 
 void DocumentTabs::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::MidButton) {
+    if (event->button() == Qt::MidButton)
+    {
         QTabBar *tabs = tabBar();
         removeTab(tabs->tabAt(event->pos()));
     }

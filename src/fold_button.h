@@ -1,3 +1,10 @@
+/**
+ * fold_button.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class FoldButton and it's funtions and identifiers
+ *
+ */
+
 #ifndef FOLD_BUTTON_H
 #define FOLD_BUTTON_H
 
@@ -30,7 +37,7 @@ protected:
 
 private:
     Block *myBlock;
-    QString foldText; // custom text showing when myBlock is folded
+    QString foldText; //! custom text showing when myBlock is folded
     QPixmap plus;
     QPixmap minus;
     friend class Block;

@@ -1,3 +1,9 @@
+/**
+ * document_tabs.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class DocumentTabs and it's funtions and identifiers
+ *
+ */
 #ifndef DOCUMENTTABS_H
 #define DOCUMENTTABS_H
 

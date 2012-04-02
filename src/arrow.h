@@ -1,3 +1,9 @@
+/**
+ * arrow.h
+ *  ---------------------------------------------------------------------------
+ * Contains the declaration of class Arrow and it's funtions and identifiers
+ *
+ */
 #ifndef ARROW_H
 #define ARROW_H
 
