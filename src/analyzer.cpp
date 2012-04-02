@@ -112,6 +112,7 @@ void Analyzer::setupConstants()
 
     // get grammars
     lua_getglobal (L, MAIN_GRAMMAR_FIELD);
+    //stackDump(L);
     mainGrammar = QString(lua_tostring(L, -1));
     lua_pop(L, 1);
 

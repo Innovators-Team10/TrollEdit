@@ -53,6 +53,16 @@ signals:
     void apply(QBrush *brush, QPen *pen);
 
 private slots:
+    void closeGroupWrapper();
+    void revertGroupWrapper();
+    void saveGroupWrapper();
+    void saveGroupAsWrapper();
+    void saveAllGroupsWrapper();
+    void saveGroupAsWithoutDocWrapper();
+    void closeAllGroupsWrapper();
+    void showPreviewWrapper();
+    void cleanGroupWrapper();
+
     void newFile();
     void newTab();
     void closeTab(int );
@@ -116,7 +126,6 @@ protected:
 private:
     enum { MaxRecentFiles = 6 };
     QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
-    void setCurrentFile(DocumentScene *scene);
 
     // for file menu
     QAction *newAction;
@@ -243,7 +252,7 @@ private:
     QGraphicsView* createView();
     QTableWidget *m_table;
 
-    void createActions(DocumentScene *scene);
+    void createActions();
     void createMenus();
     void createGlobalActions();
     void disconnectAll();
