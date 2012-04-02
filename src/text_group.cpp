@@ -14,7 +14,7 @@ TextGroup::TextGroup(BlockGroup *block, DocumentScene *scene)
     this->block = block;
     this->scene = scene;
 
-//    this->setPlainText(block->toText());
+    this->setPlainText(block->toText());
     this->setPos(block->pos().x(),block->pos().y());
     this->setScale(block->scale());
     this->setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsMovable);
@@ -30,15 +30,20 @@ TextGroup::~TextGroup()
 
 }
 
-void TextGroup::changeMode(){
-}
-
 void TextGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
-            block->changeMode();
+            block->setContent(this->toPlainText());
+            block->setPos(this->pos().x(),this->pos().y());
+
+            this->setVisible(false);
+            block->setVisible(true);
+
+            block->updateSize();
+
+            scene->update();
             event->accept();
         }
         else

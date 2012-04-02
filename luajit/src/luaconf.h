@@ -16,13 +16,13 @@
 /* #undef LUAJIT_CPU_NOCMOV */
 
 /* Default path for loading Lua and C modules with require(). */
-#define LUA_MODULE_SUFFIX ".dll"
-#define LUA_DIR	"!\\..\\"
-#define LUA_LDIR	"lib\\lua"
-#define LUA_CDIR	"lib\\lua"
+#define LUA_MODULE_SUFFIX ".so"
+#define LUA_DIR	"!/../"
+#define LUA_LDIR	"lib/lua"
+#define LUA_CDIR	"lib/lua"
 
-#define LUA_PATH_DEFAULT ".\\?.lua;!\\..\\lib\\lua\\?.lua;!\\..\\lib\\lua\\?\\init.lua;.\\?\\init.lua"
-#define LUA_CPATH_DEFAULT ".\\?.dll;!\\..\\lib\\lua\\?.dll;!\\..\\lib\\lua\\loadall.dll"
+#define LUA_PATH_DEFAULT "./?.lua;!/../lib/lua/?.lua;!/../lib/lua/?/init.lua;./?/init.lua"
+#define LUA_CPATH_DEFAULT "./?.so;!/../lib/lua/?.so;!/../lib/lua/loadall.so"
 
 /* Environment variable names for path overrides and initialization code. */
 #define LUA_PATH "LUA_PATH"
@@ -30,7 +30,7 @@
 #define LUA_INIT "LUA_INIT"
 
 /* Special file system characters. */
-#define LUA_DIRSEP	"\\"
+#define LUA_DIRSEP	"/"
 #define LUA_PATHSEP	";"
 #define LUA_PATH_MARK	"?"
 #define LUA_EXECDIR	"!"
