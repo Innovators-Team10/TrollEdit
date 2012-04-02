@@ -34,7 +34,10 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     }
     this->analyzer = a;
     this->docScene = scene;
-//    this->docScene->analyzer=a;
+
+    txt = new TextGroup(this, docScene);
+    docScene->addItem(txt);
+    txt->setVisible(false);
 
     highlight = true;
 
@@ -74,6 +77,8 @@ BlockGroup::~BlockGroup()
 {
     docScene = 0;
     root = 0;
+    txt->setVisible(false);
+    txt=0;
 }
 
 void BlockGroup::setContent(QString content)
@@ -603,7 +608,6 @@ void BlockGroup::changeMode(){
         docScene->update();
     }
 }
-
 
 void BlockGroup::updateSize()
 {
