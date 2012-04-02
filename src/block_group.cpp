@@ -28,10 +28,10 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     Analyzer *a;
     if(text.isEmpty()){
         a=new Analyzer(scene->main->getLangManager()->getLanguage(file.toLower()));
+        a->readSnippet(scene->main->getLangManager()->snippetFile);
     }else{
         a=new Analyzer(scene->main->getLangManager()->getLanguage(file.split(".")[1]));
     }
-
     this->analyzer = a;
     this->docScene = scene;
 //    this->docScene->analyzer=a;
@@ -584,6 +584,27 @@ void BlockGroup::moveCursorUpDown(Block *start, bool moveUp, int from)
     selectBlock(target, true);
 }
 
+void BlockGroup::changeMode(){
+    if(isVisible()){
+        txt->setPlainText(this->toText());
+        txt->setPos(this->pos().x(),this->pos().y());
+        txt->setScale(this->scale());
+        txt->setFocus();
+        txt->setVisible(true);
+        this->setVisible(false);
+        docScene->selectGroup(this);
+        docScene->update();
+    }else{
+        txt->setVisible(false);
+        this->setContent(txt->toPlainText());
+        this->setPos(txt->pos().x(),txt->pos().y());
+        this->updateSize();
+        this->setVisible(true);
+        docScene->update();
+    }
+}
+
+
 void BlockGroup::updateSize()
 {
     // need to be called manually whenever size or position of blocks in this group changes
@@ -909,11 +930,6 @@ void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
-            TextGroup *txt = new TextGroup(this, docScene);
-            docScene->addItem(txt);
-            txt->setFocus();
-
-            this->setVisible(false);
             event->accept();
         }
     }

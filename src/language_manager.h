@@ -21,6 +21,8 @@ public:
 
     QString getLanguage(QString extens);
 
+    QString snippetFile;
+
     QHash<QString, QString> languages;          //! <language_name, file_extension>
     Analyzer *getAnalyzerFor(QString suffix) const;
     Analyzer *getAnalyzerForLang(QString language) const;
