@@ -454,7 +454,12 @@ TreeElement *Analyzer::analyzeElement(TreeElement* element)
     {
         try
         {
+            if(TreeElement::DYNAMIC){
+            //!dopln
+                subRoot = reanalyzeString(element, grammar, element->getText());
+            }else{
             subRoot = analyzeString(grammar, element->getText());
+            }
         }
         catch(QString exMsg)
         {
@@ -477,6 +482,7 @@ TreeElement *Analyzer::getAnalysableAncestor(TreeElement *element)
         if (subGrammars.contains(element->getType())) break;
 
         element = element->getParent();
+        qDebug() << "reanlys el:" << element->getType();
     }
 
     if (element->getParent() == 0)
@@ -529,6 +535,51 @@ TreeElement *Analyzer::createTreeFromLuaStack()
         }
         lua_pop(L, 1); //! removes 'value'; keeps 'key' for next iteration
     }
+    return root;
+}
+
+TreeElement *Analyzer::reanalyzeString(TreeElement *el, QString grammar, QString input)
+{
+    stackDump(L);
+    setIndexAST(el->local_deep_AST,el->local_nodes_AST);
+    stackDump(L);
+    int last = lua_tonumber(L, -3) - 1;
+    lua_pop(L, 3);
+    //lua_pushstring(L, "reanalys_table");
+    //luaL_dofile(L, qPrintable(scriptName));     //! load the script
+    stackDump(L);
+    lua_getglobal (L, "lpeg");                  //! table to be indexed
+    stackDump(L);
+    lua_getfield(L, -1, "match");               //! function to be called: 'lpeg.match'
+    stackDump(L);
+    lua_remove(L, -2);                          //! remove 'lpeg' from the stack
+    stackDump(L);
+    lua_getglobal (L, qPrintable(grammar));     //! 1st argument
+    stackDump(L);
+    lua_pushstring(L, qPrintable(input));       //! 2nd argument
+    stackDump(L);
+    int err = lua_pcall(L, 2, 1, 0);            //! call with 2 arguments and 1 result, no error function
+    stackDump(L);
+    if (err != 0)
+    {
+        throw "Error in grammar \"" + grammar + "\" in script \"" + scriptName + "\"";
+    }
+    lua_rawseti(L, -2, last);
+    stackDump(L);
+    //lua_rawset(L, -3);
+    //stackDump(L);
+    lua_pushnumber(L, last);
+    stackDump(L);
+    lua_next(L, -2);
+    stackDump(L);
+    lua_pushnil(L);
+    stackDump(L);
+    lua_next(L,-2);
+    stackDump(L);
+
+    TreeElement *root = 0;
+
+    root = getElementAST();
     return root;
 }
 
@@ -593,19 +644,28 @@ TreeElement *Analyzer::getElementAST()
     {
         paired = true;
     }
-    //if(nodeName == "\n") //nodeName.replace("\t", TAB);
     bool lineBreak = checkLineBreak();
-    //if( ((lua_tonumber(L,-4) ==  lua_objlen(L,-5))))
-    //    lineBreak = true;
-//            qDebug() << "nextElementAST(): " << nodeName << " " <<  lua_tonumber(L,-4) << " " << lua_objlen(L,-5) ;
-    //if(nodeName.contains(";") || nodeName.contains("}") || nodeName.contains("{") ) lineBreak = true;
+    nodeName = nodeName.replace("\t", TAB);     //!
+//    if(nodeName.isEmpty()){
+//        nodeName = TAB;
+//    }
+    if(nodeName.contains("\n")){
+//        qDebug() << "\\n";
+//        nodeName = nodeName.replace("\n", "", Qt::CaseInsensitive);
+        nodeName = "";
+    }
+//    qDebug() << "after: " << nodeName;
     root = new TreeElement(nodeName,
                            selectableTokens.contains(nodeName),
                            multiTextTokens.contains(nodeName),
                            lineBreak, paired);
     if (floatingTokens.contains(nodeName)){
         root->setFloating(true);
-        qDebug() << "node " << nodeName <<" floating true" ;
+//        qDebug() << "node " << nodeName <<" floating true" ;
+    }
+    if(nodeName == TreeElement::NEWLINE_EL || nodeName == TreeElement::WHITE_EL){
+        root->setSpaces(nodeName.length());
+//        qDebug() << "space " << nodeName.length();
     }
 
     root->local_deep_AST = getDeepAST();
@@ -654,29 +714,32 @@ int* Analyzer::getNodesAST()
 
 bool Analyzer::checkLineBreak(){
     bool lineBreak = false;
-    int size = lua_gettop(L);
-    int limit = 0;
-    int pom = 0;
 
-    while( (pom != 5 ) && (size > DEFAULT_STACK_DEEP) ){
-        if(lua_tonumber(L,size-1) ==  lua_objlen(L,size-2)){
-            limit++;
-        }/*else if(lua_tonumber(L,size-1) !=  lua_objlen(L,size-2)){
-            limit--;
-        }*/
-//        else if(limit >= 2){
-//            lineBreak = true;
-//            break;
-//        }
-        size -= 2;
-        pom++;
+    QString next = "";
+    if( lua_gettop(L) > DEFAULT_STACK_DEEP + 3 ){
+        int last = lua_tonumber(L, -4) - 1;
+        lua_pop(L, 3);
+        int s = lua_gettop(L);
+        lua_next(L, -2);
+        if(s <= lua_gettop(L) ){
+            lua_pushnil(L);
+            lua_next(L, -2);
+            next = lua_tostring(L, -1);
+            lua_pop(L, 4);
+        }
+        lua_pushnumber(L, last);
+        lua_next(L, -2);
+        lua_pushnil(L);
+        lua_next(L, -2);
+    }else{
+        next = "";
     }
-//    qDebug() << limit << " " << lua_tostring(L, -1) << " deep" << getDeepAST() ;
-    if( limit >= 2)
+    QString node = lua_tostring(L, -1);
+    if( next == "nl" || next == "line_comment"  || next == "multiline_comment" || node.contains("\n") ) {
         lineBreak = true;
-    if( limit == getDeepAST()-1)
-        lineBreak = true;
-
+    }else{
+        lineBreak = false;
+    }
     return lineBreak;
 }
 

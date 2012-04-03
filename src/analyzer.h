@@ -37,6 +37,7 @@ public:
     void readSnippet(QString fileName);
     static const QString TAB;
 
+    TreeElement* reanalyzeString(TreeElement *el, QString grammar, QString input); //! reanalyzovanie vybraneho textu
     TreeElement* nextElementAST();                  //! next()
     void nextElementAST_void();
     bool hasNextElementAST();                       //! hasNext()

@@ -86,15 +86,14 @@ public:
      TreeElement *clone() const;
 
      Analyzer* analyzer;
-
+     static const char *WHITE_EL;
+     static const char *UNKNOWN_EL;
+     static const char *NEWLINE_EL;
 
  protected:
      TreeElement *parent;
 
- private:
-     static const char *WHITE_EL;
-     static const char *UNKNOWN_EL;
-     static const char *NEWLINE_EL;     
+ private:     
 
      QList<TreeElement*> children;
      QString type;

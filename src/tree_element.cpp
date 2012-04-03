@@ -6,7 +6,7 @@
 const char *TreeElement::WHITE_EL = "whites";
 const char *TreeElement::UNKNOWN_EL = "unknown";
 const char *TreeElement::NEWLINE_EL = "nl";
-const bool TreeElement::DYNAMIC = true;        //! dynamicke spracovanie AST - work with index
+const bool TreeElement::DYNAMIC = true;        //! dynamicke spracovanie AST - now work with nodes and deep
 
 TreeElement::TreeElement(QString type, bool selectable,
                          bool multiText, bool lineBreaking, bool paired)
