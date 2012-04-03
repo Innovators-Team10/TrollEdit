@@ -21,17 +21,17 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
 {
     //this->analyzer = analyzer;
-    qDebug() << "currentText()" << scene->main->getScriptBox()->currentText();
+    qDebug() << scene->main->getScriptBox()->currentText();
 //    qDebug() << "filename split" << file.split(".")[1];
     qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
  //   qDebug() << "file" << file.split(".")[1];
     Analyzer *a;
     if(text.isEmpty()){
         a=new Analyzer(scene->main->getLangManager()->getLanguage(file.toLower()));
+        a->readSnippet(scene->main->getLangManager()->snippetFile);
     }else{
         a=new Analyzer(scene->main->getLangManager()->getLanguage(file.split(".")[1]));
     }
-
     this->analyzer = a;
     this->docScene = scene;
 
@@ -65,7 +65,7 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     computeTextSize();
     setAcceptDrops(true);
     setFlag(QGraphicsItem::ItemIsMovable);
-    setPen(QPen(QBrush(Qt::gray), 2, Qt::DashDotLine));
+    setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
 
     time.start();
 
@@ -589,6 +589,26 @@ void BlockGroup::moveCursorUpDown(Block *start, bool moveUp, int from)
     selectBlock(target, true);
 }
 
+void BlockGroup::changeMode(){
+    if(isVisible()){
+        txt->setPlainText(this->toText());
+        txt->setPos(this->pos().x(),this->pos().y());
+        txt->setScale(this->scale());
+        txt->setFocus();
+        txt->setVisible(true);
+        this->setVisible(false);
+        docScene->selectGroup(this);
+        docScene->update();
+    }else{
+        txt->setVisible(false);
+        this->setContent(txt->toPlainText());
+        this->setPos(txt->pos().x(),txt->pos().y());
+        this->updateSize();
+        this->setVisible(true);
+        docScene->update();
+    }
+}
+
 void BlockGroup::updateSize()
 {
     // need to be called manually whenever size or position of blocks in this group changes
@@ -915,32 +935,11 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
     QGraphicsRectItem::keyPressEvent(event);
 }
 
-void BlockGroup::changeMode(){
-    if(isVisible()){
-        txt->setPlainText(this->toText());
-        txt->setPos(this->pos().x(),this->pos().y());
-        txt->setScale(this->scale());
-        txt->setFocus();
-        txt->setVisible(true);
-        this->setVisible(false);
-        docScene->selectGroup(this);
-        docScene->update();
-    }else{
-        txt->setVisible(false);
-        this->setContent(txt->toPlainText());
-        this->setPos(txt->pos().x(),txt->pos().y());
-        this->updateSize();
-        this->setVisible(true);
-        docScene->update();
-    }
-}
-
 void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
-            changeMode();
             event->accept();
         }
     }

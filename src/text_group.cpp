@@ -27,7 +27,8 @@ TextGroup::TextGroup(BlockGroup *block, DocumentScene *scene)
 
 TextGroup::~TextGroup()
 {
-
+    this->block=0;
+    this->scene=0;
 }
 
 void TextGroup::changeMode(){
@@ -48,4 +49,3 @@ void TextGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     QGraphicsTextItem::mousePressEvent(event);
 }
-

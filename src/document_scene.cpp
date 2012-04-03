@@ -353,7 +353,7 @@ void DocumentScene::selectGroup(BlockGroup *group)
     }
     if (currentGroup != group)
     {
-        currentGroup = group;        
+        currentGroup = group;
         updateNedded = true;
     }
     if (currentGroup != 0)
