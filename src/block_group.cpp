@@ -605,6 +605,7 @@ void BlockGroup::changeMode(){
         this->setPos(txt->pos().x(),txt->pos().y());
         this->updateSize();
         this->setVisible(true);
+        this->updateSize();
         docScene->update();
     }
 }
@@ -769,13 +770,14 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
     // find block of original analyzed element
     Block *analysedBl;
+    if(!TreeElement::DYNAMIC){
     do
     {
-        analysedBl = analysedEl->getBlock();
-        analysedEl = (*analysedEl)[0];
+        analysedBl = analysedEl->getBlock();    //BUG!!! Dynamicka verzia da null
+        analysedEl = (*analysedEl)[0];          //BUG!!! Ide mimo pola pri reanalyzovani
     }
     while (analysedBl == 0);
-
+    }else{analysedBl = block;}
     // collect data from original block
     bool isPrevLB = false;
 
@@ -788,16 +790,21 @@ bool BlockGroup::reanalyzeBlock(Block *block)
     int spaces = analysedBl->getElement()->getSpaces();
 
     // destroy original block
+    if(!TreeElement::DYNAMIC){
     analysedBl->setParentBlock(0); // NOTE: don't use removeBlock(), we don't want any aditional ancestors to be removed
     analysedBl->setVisible(false);
-    analysedBl->deleteLater();
+    analysedBl->deleteLater();}
     qDebug("old block deleted: %d", time.restart());
 
     // create new block
-    Block *newBlock = new Block(newEl, parentBl);
+    Block *newBlock = 0;
+    if(!TreeElement::DYNAMIC)
+    newBlock = new Block(newEl, parentBl);
+    else
+    newBlock = new Block(newEl, 0, this);
 
     if (nextSib != 0)
-        newBlock->setParentBlock(newBlock->parent, nextSib);
+        if(!TreeElement::DYNAMIC)newBlock->setParentBlock(newBlock->parent, nextSib);
     // set data
     newBlock->getElement()->setLineBreaking(isAnalyzedLB);
 
@@ -816,7 +823,7 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
 void BlockGroup::analyzeAll(QString text)
 {
-    qDebug() << "\nBlockGroup::analyzeAll()" << text;
+    qDebug() << "\nBlockGroup::analyzeAll()";
 
     if (text.isEmpty()) //! use snippet if text is empty
     {
@@ -934,6 +941,7 @@ void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
+            changeMode();
             event->accept();
         }
     }
