@@ -310,7 +310,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
 
     TreeElement *root = 0;
 
-    resetAST();
+    if(TreeElement::DYNAMIC) resetAST();
 
     if(lua_istable(L, -1))
     {

@@ -31,9 +31,6 @@ TextGroup::~TextGroup()
     this->scene=0;
 }
 
-void TextGroup::changeMode(){
-}
-
 void TextGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton){

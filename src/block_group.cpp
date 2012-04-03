@@ -605,6 +605,7 @@ void BlockGroup::changeMode(){
         this->setPos(txt->pos().x(),txt->pos().y());
         this->updateSize();
         this->setVisible(true);
+        this->updateSize();
         docScene->update();
     }
 }
@@ -940,6 +941,7 @@ void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
+            changeMode();
             event->accept();
         }
     }

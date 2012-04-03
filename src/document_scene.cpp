@@ -517,11 +517,11 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
                 str.append(QString("%1").arg(el->getSpaces()));
                 str.append("  "+el->getType());
-
-                for(int i = 0; i < el->local_deep_AST; i++)
-                    str.append(QString("%1 ").arg(el->local_nodes_AST[i]));
-                str.append(QString("child:%1 ").arg(el->childCount()));
-
+                if(TreeElement::DYNAMIC){
+                    for(int i = 0; i < el->local_deep_AST; i++)
+                        str.append(QString("%1 ").arg(el->local_nodes_AST[i]));
+                    str.append(QString("child:%1 ").arg(el->childCount()));
+                }
                 if (el->isLineBreaking()) str.append("*");
 
                 str.append("\n");
