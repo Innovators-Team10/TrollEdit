@@ -21,17 +21,17 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
 {
     //this->analyzer = analyzer;
-    qDebug() << "currentText()" << scene->main->getScriptBox()->currentText();
+    qDebug() << scene->main->getScriptBox()->currentText();
 //    qDebug() << "filename split" << file.split(".")[1];
     qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
  //   qDebug() << "file" << file.split(".")[1];
     Analyzer *a;
     if(text.isEmpty()){
         a=new Analyzer(scene->main->getLangManager()->getLanguage(file.toLower()));
+        a->readSnippet(scene->main->getLangManager()->snippetFile);
     }else{
         a=new Analyzer(scene->main->getLangManager()->getLanguage(file.split(".")[1]));
     }
-
     this->analyzer = a;
     this->docScene = scene;
 
@@ -65,7 +65,7 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     computeTextSize();
     setAcceptDrops(true);
     setFlag(QGraphicsItem::ItemIsMovable);
-    setPen(QPen(QBrush(Qt::gray), 2, Qt::DashDotLine));
+    setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
 
     time.start();
 
@@ -589,6 +589,27 @@ void BlockGroup::moveCursorUpDown(Block *start, bool moveUp, int from)
     selectBlock(target, true);
 }
 
+void BlockGroup::changeMode(){
+    if(isVisible()){
+        txt->setPlainText(this->toText());
+        txt->setPos(this->pos().x(),this->pos().y());
+        txt->setScale(this->scale());
+        txt->setFocus();
+        txt->setVisible(true);
+        this->setVisible(false);
+        docScene->selectGroup(this);
+        docScene->update();
+    }else{
+        txt->setVisible(false);
+        this->setContent(txt->toPlainText());
+        this->setPos(txt->pos().x(),txt->pos().y());
+        this->updateSize();
+        this->setVisible(true);
+        this->updateSize();
+        docScene->update();
+    }
+}
+
 void BlockGroup::updateSize()
 {
     // need to be called manually whenever size or position of blocks in this group changes
@@ -749,13 +770,14 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
     // find block of original analyzed element
     Block *analysedBl;
+    if(!TreeElement::DYNAMIC){
     do
     {
-        analysedBl = analysedEl->getBlock();
-        analysedEl = (*analysedEl)[0];
+        analysedBl = analysedEl->getBlock();    //BUG!!! Dynamicka verzia da null
+        analysedEl = (*analysedEl)[0];          //BUG!!! Ide mimo pola pri reanalyzovani
     }
     while (analysedBl == 0);
-
+    }else{analysedBl = block;}
     // collect data from original block
     bool isPrevLB = false;
 
@@ -768,16 +790,21 @@ bool BlockGroup::reanalyzeBlock(Block *block)
     int spaces = analysedBl->getElement()->getSpaces();
 
     // destroy original block
+    if(!TreeElement::DYNAMIC){
     analysedBl->setParentBlock(0); // NOTE: don't use removeBlock(), we don't want any aditional ancestors to be removed
     analysedBl->setVisible(false);
-    analysedBl->deleteLater();
+    analysedBl->deleteLater();}
     qDebug("old block deleted: %d", time.restart());
 
     // create new block
-    Block *newBlock = new Block(newEl, parentBl);
+    Block *newBlock = 0;
+    if(!TreeElement::DYNAMIC)
+    newBlock = new Block(newEl, parentBl);
+    else
+    newBlock = new Block(newEl, 0, this);
 
     if (nextSib != 0)
-        newBlock->setParentBlock(newBlock->parent, nextSib);
+        if(!TreeElement::DYNAMIC)newBlock->setParentBlock(newBlock->parent, nextSib);
     // set data
     newBlock->getElement()->setLineBreaking(isAnalyzedLB);
 
@@ -796,7 +823,7 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
 void BlockGroup::analyzeAll(QString text)
 {
-    qDebug() << "\nBlockGroup::analyzeAll()" << text;
+    qDebug() << "\nBlockGroup::analyzeAll()";
 
     if (text.isEmpty()) //! use snippet if text is empty
     {
@@ -907,26 +934,6 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
         }
     }
     QGraphicsRectItem::keyPressEvent(event);
-}
-
-void BlockGroup::changeMode(){
-    if(isVisible()){
-        txt->setPlainText(this->toText());
-        txt->setPos(this->pos().x(),this->pos().y());
-        txt->setScale(this->scale());
-        txt->setFocus();
-        txt->setVisible(true);
-        this->setVisible(false);
-        docScene->selectGroup(this);
-        docScene->update();
-    }else{
-        txt->setVisible(false);
-        this->setContent(txt->toPlainText());
-        this->setPos(txt->pos().x(),txt->pos().y());
-        this->updateSize();
-        this->setVisible(true);
-        docScene->update();
-    }
 }
 
 void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
