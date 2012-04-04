@@ -10,6 +10,7 @@ extern "C" {
     int luaopen_lpeg (lua_State *L);
 }
 
+static MainWindow* window;
 
 void loadConfig(lua_State *L, const char *fname, int *w, int *h, QString *style) {
     if (luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0))
@@ -26,6 +27,12 @@ void loadConfig(lua_State *L, const char *fname, int *w, int *h, QString *style)
     *style = lua_tostring(L, -3);
     *w = lua_tointeger(L, -2);
     *h = lua_tointeger(L, -1);
+}
+
+static int setstyle(lua_State *L) {
+    QString str = lua_tostring(L, 1); /* get argument */
+    window->setStyleSheet(str);
+    return 0;                         /* number of results in LUA*/
 }
 
 static void stackDump (lua_State *L)
@@ -96,12 +103,16 @@ int main(int argc, char *argv[])
     QDir dir = QDir(QApplication::applicationDirPath() + CONFIG_DIR);
     //QFileInfoList configs = dir.entryInfoList(QStringList("*.lua"), QDir::Files | QDir::NoSymLinks);
     QFileInfo configFile(dir.absolutePath()+ QDir::separator() + "config_app.lua");
+
+    window = reinterpret_cast<MainWindow*>(&w);
+    lua_register(L, "setstyle", setstyle);
     loadConfig(L, qPrintable(configFile.absoluteFilePath()), &width, &height, &style);
+
     qDebug() << configFile.absoluteFilePath() << "width: " << width << " height: " << height << "\n style: " << style;
     //window size
     w.resize(width, height);
     //CSS style
-    w.setStyleSheet(style);
+    //w.setStyleSheet(style);
 
     //w.setStyleSheet();
     splashScreen.show();
