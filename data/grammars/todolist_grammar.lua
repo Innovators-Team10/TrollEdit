@@ -5,11 +5,10 @@ require "lpeg"
 extensions = {"txt"}
 language = "TODO"
 full_grammar = "document"
-other_grammars = {
-	markup_element="in_markup_element", 
+other_grammars = { 
 }
-paired = {"<", ">", "start_element", "end_element"}
-selectable = {"document", "markup_element", "block", "unknown", "unknown_word", "todo_list", "done", "undone"}
+paired = {"<", ">"}
+selectable = {"document", "unknown", "unknown_word", "todo_list", "done", "undone"}
 multi_text = {}
 floating = {}
 
@@ -66,14 +65,7 @@ document =
 	N'todo_lists'^0 *
 	N'unknown'^0 *
 	N'whites'^-1 * -1),
-	
-in_markup_element =  
-	Ct(
-	N'nl'^0 *
-	(N'word'^1 + N'markup_element'^0) *
-	N'unknown'^0 *
-	N'whites'^-1 * -1),
-	
+		
 -- NONTERMINALS
 markup_element = 
 	N'empty_element' * (N'multiline_comment')^0 + 
@@ -112,8 +104,6 @@ markup_tag_char = NI'letter' + NI'digit' + S(".-_:"),
 -- *** POSSIBLE GRAMMARS (ENTRY POINTS) ****
 grammar[1] = "document"
 document = P(grammar)
-grammar[1] = "in_markup_element"
-in_markup_element = P(grammar)
 
 --*******************************************************************
 -- TESTING - this script cannot be used by Analyzer.cpp when these lines are uncommented !!!
