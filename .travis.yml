@@ -11,7 +11,7 @@ install:
 
 # Make sure we have all submodules
 before_script:
-  - git submodule update --init
+  - git submodule update --init >/dev/null 2>&1
 
 # Build TrollEdit
 script:
