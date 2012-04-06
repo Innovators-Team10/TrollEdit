@@ -8,6 +8,8 @@
 #include "main_window.h"
 #include "language_manager.h"
 
+#include <QMessageBox>
+
 const QString BlockGroup::BLOCK_MIME = "block_data";
 //const QPointF BlockGroup::OFFSET_IN_TL = QPointF(0, 0);  // inner offset, left and top
 //const QPointF BlockGroup::OFFSET_IN_BR = QPointF(0, 0);  // inner offset, right and bottom
@@ -66,6 +68,8 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     setAcceptDrops(true);
     setFlag(QGraphicsItem::ItemIsMovable);
     setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
+    
+    runParalelized = false;
 
     time.start();
 
@@ -122,6 +126,7 @@ void BlockGroup::setRoot(Block *newRoot)
     clearSearchResults();
     root->updateBlock(false);
 
+//  pouzit OpenMP
     foreach (DocBlock *dbl, docBlocks())
     {
         dbl->updateBlock(false);
@@ -823,30 +828,70 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
 void BlockGroup::analyzeAll(QString text)
 {
-    qDebug() << "\nBlockGroup::analyzeAll()";
-
+    qDebug() << "text size = " << text.size();
+    qDebug() << "runParalelized = " << runParalelized;
+    qDebug() << "maxThreadCount = " << QThreadPool::globalInstance()->maxThreadCount();
+    qDebug() << "currentThreadId(): " << QThread::currentThreadId(); 
+    
     if (text.isEmpty()) //! use snippet if text is empty
     {
         text = analyzer->getSnippet();
-        qDebug() << "\nDefault snippet used" << text;
+        qDebug() << "\nDefault snippet used";
         getStatusBar()->showMessage("File reset - default text used", 2000);
 
         if (text.isEmpty()) text = "    ";
     }
     time.restart();
+    
+// tu len decision ci in master alebo in thread   
+    try 
+    {
+        if (runParalelized == true) {
+//          connect nastavit, nastavit future, setfuture, zavola sa updateallinthread ked dobehne
+            
+        }
+        else {
+            TreeElement* rootEl = analazyAllInMaster(text);
+            updateAllInMaster(rootEl);
+        }        
+    }
+    catch (...) 
+    {
+        QMessageBox::information(0,"Error","Error in AnalyzeAll!");
+    }
+}
 
-    // create new root element
-    TreeElement *rootEl = analyzer->analyzeFull(text);
-    qDebug("text analysis: %d", time.restart());
+//* this function is run in thread, when finished, slot for updateAllInThread is invoked
+bool BlockGroup::analazyAllInThread (QString text) 
+{
+    
+}
 
+//* this function is run directly in master, while he is waiting, returns Root Element of analyzed text
+TreeElement* BlockGroup::analazyAllInMaster (QString text)  
+{
+    return analyzer->analyzeFull(text);
+}
+
+//NotImplemented
+void BlockGroup::updateAllInThread () 
+{
+    
+}
+
+void BlockGroup::updateAllInMaster (TreeElement* rootEl) 
+{
     // create new root
     Block *newRoot = new Block(rootEl, 0, this);
     qDebug("root creation: %d", time.restart());
-
+    
     // set new root
     setRoot(newRoot);
     qDebug("root update: %d", time.restart());
+    
+    return;
 }
+
 
 QString BlockGroup::toText(bool noDocs) const
 {

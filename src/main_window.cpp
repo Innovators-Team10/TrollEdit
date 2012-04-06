@@ -113,7 +113,7 @@ void MainWindow::createActions()
     textstring.remove(6,1);
     revertAction->setShortcut((textstring));
     revertAction->setToolTip(tr("Revert to last save"));
-    connect(revertAction, SIGNAL(triggered()), this, SLOT(revertGroupWraper()));
+    connect(revertAction, SIGNAL(triggered()), this, SLOT(revertGroupWrapper()));
     groupActions->addAction(revertAction);
 
 

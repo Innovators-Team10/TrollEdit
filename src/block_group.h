@@ -13,6 +13,11 @@
 #include <QSet>
 #include <QTime>
 #include <QStatusBar>
+#include <QtConcurrentRun>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QThreadPool>
+#include <QMessageBox>
 
 #include "analyzer.h"
 #include "text_group.h"
@@ -76,7 +81,17 @@ public:
     void analyzeAll(QString text);
     bool reanalyzeBlock(Block* block);
     QString toText(bool noDocs = false) const;
-
+    
+    // paralelism
+    QFutureWatcher<TreeElement*> watcher;
+    QFuture<TreeElement*> future;
+    TreeElement *groupRootEl;
+    bool runParalelized;
+    bool analazyAllInThread (QString text); //this one is run in thread
+    TreeElement* analazyAllInMaster (QString text); //this one is run directly in master, while he is waiting
+    void updateAllInThread ();
+    void updateAllInMaster (TreeElement* rootEl);
+    
     // visualization
     void showInsertLine(InsertLine type, QPointF scenePos);
     QPainterPath shape() const;
