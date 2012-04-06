@@ -26,6 +26,7 @@ markup_tag = {base="text_style", color="brown"}
 attribute_key = {base="text_style", color="red"}
 attribute_value = {base="text_style", color="blue"}
 funct_definition = {base="text_style", bold="true"}
-done = {family="courier", size="12", color="green", bold="false", italic="false", underline="true"}
-undone = {family="courier", size="12", color="red", bold="false", italic="false", underline="true"}
-todo_list = {family="courier", size="12", color="black", bold="false", italic="false", underline="true"}
+done = {base="text_style", color="green"}
+undone = {base="text_style", color="red"}
+todo_list = {base="text_style", color="blue"}
+
