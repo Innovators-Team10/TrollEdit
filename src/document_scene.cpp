@@ -178,7 +178,7 @@ void DocumentScene::saveGroup(QString fileName, BlockGroup *group, bool noDocs)
 
 void DocumentScene::saveGroupAs(BlockGroup *group)
 {
-    group=getBlockGroup();
+    //group=getBlockGroup();
 
     QString dir = QFileInfo(window->windowFilePath()).absoluteDir().absolutePath();
 
@@ -203,7 +203,8 @@ void DocumentScene::saveAllGroups()
 {
     foreach (BlockGroup *group, groups)
     {
-        saveGroup("", group);
+        saveGroup(group->fileName, group);
+//        saveGroup("", group); // povodna funkcia
     }
 }
 
@@ -262,71 +263,62 @@ void DocumentScene::closeAllGroups()
 
 void DocumentScene::findText(QString searchStr, BlockGroup *group)
 {
-    try
+    if (searchStr.isEmpty()) return;
+
+    group=getBlockGroup();
+
+    bool ret = false;
+    group->clearSearchResults();
+    bool inner = false;
+
+    QRegExp blockMatch("@(\\S*)");
+
+    if (blockMatch.indexIn(searchStr) > -1) //! search inner blocks
     {
-        if (searchStr.isEmpty()) return;
+        searchStr = blockMatch.cap(1);
+        inner = true;
+    }
+    QRegExp exactMatch("\"(\\S*)\"");
 
-        group=getBlockGroup();
-
-        bool ret = false;
-        group->clearSearchResults();
-        bool inner = false;
-
-        QRegExp blockMatch("@(\\S*)");
-
-        if (blockMatch.indexIn(searchStr) > -1) //! search inner blocks
-        {
-            searchStr = blockMatch.cap(1);
-            inner = true;
-        }
-        QRegExp exactMatch("\"(\\S*)\"");
-
-        if (exactMatch.indexIn(searchStr) > -1) //! only exact blocks
-        {
-            searchStr = exactMatch.cap(1);
-            ret = group->searchBlocks(searchStr, inner, true);
-        }
-        else //! any blocks
-        {
-            ret = group->searchBlocks(searchStr, inner, false);
-        }
-
-        if (!ret && !inner) //! search text
-        {
-            QSet<int> lineNumbers;
-            QString allText = group->toText(true);
-            QStringList lines = allText.split("\n", QString::KeepEmptyParts);
-
-            for (int i =0 ;i < lines.size(); i++)
-            {
-                QString line = lines.at(i);
-
-                if (line.contains(searchStr)) lineNumbers << i;
-
-            }
-
-            if (!lineNumbers.isEmpty())
-            {
-                group->highlightLines(lineNumbers);
-                ret = true;
-            }
-        }
-        if (ret)
-        {
-            group->update();
-            window->statusBar()->showMessage("Search finished", 1000);
-        }
-        else
-        {
-            window->statusBar()->showMessage("Not found", 1000);
-        }
+    if (exactMatch.indexIn(searchStr) > -1) //! only exact blocks
+    {
+        searchStr = exactMatch.cap(1);
+        ret = group->searchBlocks(searchStr, inner, true);
+    }
+    else //! any blocks
+    {
+        ret = group->searchBlocks(searchStr, inner, false);
     }
 
-    catch(...)
+    if (!ret && !inner) //! search text
     {
-        //
-    }
+        QSet<int> lineNumbers;
+        QString allText = group->toText(true);
+        QStringList lines = allText.split("\n", QString::KeepEmptyParts);
 
+        for (int i =0 ;i < lines.size(); i++)
+        {
+            QString line = lines.at(i);
+
+            if (line.contains(searchStr)) lineNumbers << i;
+
+        }
+
+        if (!lineNumbers.isEmpty())
+        {
+            group->highlightLines(lineNumbers);
+            ret = true;
+        }
+    }
+    if (ret)
+    {
+        group->update();
+        window->statusBar()->showMessage("Search finished", 1000);
+    }
+    else
+    {
+        window->statusBar()->showMessage("Not found", 1000);
+    }
 }
 
 void DocumentScene::cleanGroup(BlockGroup *group)
@@ -361,7 +353,7 @@ void DocumentScene::selectGroup(BlockGroup *group)
     }
     if (currentGroup != group)
     {
-        currentGroup = group;        
+        currentGroup = group;
         updateNedded = true;
     }
     if (currentGroup != 0)
@@ -462,8 +454,12 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
         else
         {
-            QGraphicsItem *item = itemAt(event->scenePos());
-
+           QGraphicsItem *item = itemAt(event->scenePos());
+//            TextGroup* t = ((TextGroup*)(item));
+            //            if(qobject_cast<TextGroup*>(item)!=0){
+ //           if(t!=0){
+  //              selectGroup(t->block);
+  //          }
             if (item == 0)
             {
                 selectGroup();
@@ -511,6 +507,25 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
             str.append(QString("Last line: %1").arg(currentGroup->lastLine));
 
+        }
+        else if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier){
+            QList<TreeElement*> list = rootEl->getDescendants();
+
+            foreach (TreeElement *el, list)
+            {
+                str.append("- ");
+
+                str.append(QString("%1").arg(el->getSpaces()));
+                str.append("  "+el->getType());
+                if(TreeElement::DYNAMIC){
+                    for(int i = 0; i < el->local_deep_AST; i++)
+                        str.append(QString("%1 ").arg(el->local_nodes_AST[i]));
+                    str.append(QString("child:%1 ").arg(el->childCount()));
+                }
+                if (el->isLineBreaking()) str.append("*");
+
+                str.append("\n");
+            }
         }
         else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
         {

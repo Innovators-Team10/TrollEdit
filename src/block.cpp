@@ -84,9 +84,9 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
     // process rest of the AST
     if (element->isLeaf()) //! leaf - create text area
     {
-        qDebug() << "text " << element->getType() << " par: " << element->allowsParagraphs()  ;
+        //qDebug() << "text " << element->getType() << " par: " << element->allowsParagraphs()  ;
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs(), element->isPaired());
-        qDebug() << "this " << myTextItem;
+        //qDebug() << "this " << myTextItem;
     }
     else //! non-leaf - create rest of the tree
     {

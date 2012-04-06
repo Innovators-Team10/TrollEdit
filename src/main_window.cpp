@@ -16,139 +16,60 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 {
     langManager = new LanguageManager(programPath);
 
+    createActions();
     createTabs();
-    //createActions();
-    createMenus();
-    createToolBars();
-    statusBar();
-    readSettings();
-    updateRecentFileActions();
 
+    readSettings();
+
+    updateRecentFileActions();
     QIcon icon = QIcon();
     //icon.addFile(":/icon16.png");
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
     //setCurrentFile(0);
-
-    //CSS style
-    setStyleSheet(
-        "QMainWindow {"
-                        "color: black;"
-                        "background-color: #C2C2C2;"
-                        "border-color: silver;"
-                        "font-size: 10px;"
-                     "}"
-
-                    "QTabWidget::tab-bar {"
-                        "left: 2px;" /* odsadenie od plus*/
-                    "}"
-
-                    "QTabBar::tab {"
-                        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                                                    "stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,"
-                                                    "stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);"
-                        "border: 1px solid silver;" /* vrchne oramovanie tabu*/
-
-                        "border-top-left-radius: 7px;"
-                        "border-top-right-radius: 7px;"
-                        "min-width: 18ex;"
-                        "padding: 5px;" /*vyska tabu*/
-                    "}"
-
-                    "QTabBar::tab:selected, QTabBar::tab:hover {"
-                                                     "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
-                                                     "stop: 0 #fafafa, stop: 0.4 #f4f4f4,"
-                                                     "stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);"
-                    "}"
-
-                    "QTabBar::tab:selected {"
-                         "border-color: #9B9B9B;"
-                         "border-bottom-color: red;"
-                    "}"
-
-                     "QTabBar::tab:!selected {"
-                         "margin-top: 2px;"
-                     "}"
-
-                    "QMenu {"
-                        "background-color: #D6DADE;" /*vnutro menu*/
-                        "color: white;"
-                    "}"
-
-                    "QMenu::item {"
-                        "background-color: transparent;"
-                        "color: black;"
-                    "}"
-
-                    "QMenu::item:selected {"
-                        "background-color: #A6A8AB;"
-                    "}"
-
-                    "QMenu::item:disabled {"
-                        "color:gray;"
-                    "}"
-
-
-                    "QMenuBar {"
-                        "background-color: #787A7C;"
-                        "color: white;"
-                    "}"
-
-                    "QMenuBar::item {"
-                        "spacing: 13px;"
-                        "padding: 2px 12px;"
-                        "background: transparent;"
-                        "border-radius: 2px;"
-                    "}"
-
-                    "QMenuBar::item:selected {"
-                        "background: #a8a8a8;"
-                    "}"
-
-                    "QMenuBar::item:disabled {"
-                        "background: #000000;"
-                    "}"
-
-                    "QMenuBar::item:pressed {"
-                        "background: #888888;"
-                    "}"
-
-
-                    "QToolButton {"
-                        "padding: 2px;"
-                        "background-color: transparent;"
-                        "min-width: 35px;"
-                    "}"
-
-                    "QToolButton:hover {"
-                        "background: qradialgradient(cx: 0.3, cy: -0.4,"
-                        "fx: 0.3, fy: -0.4,"
-                        "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
-                    "}"
-
-                    "QToolButton:pressed {"
-                        "background: qradialgradient(cx: 0.4, cy: -0.1,"
-                        "fx: 0.4, fy: -0.1,"
-                        "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);"
-                    "}"
-
-                    "QToolButton:disabled {"
-                        "background: transparent"
-                        "fx: 0.4, fy: -0.1,"
-                        "radius: 1.35, stop: 0 #777, stop: 1 #333);"
-                    "}"
-
-                    "QStatusBar{ "
-                        "color: black;"
-                    "}"
-                "QMessageBox {"
-                "background-color:silver;"
-                "}"
-            );
 }
 
+// wrapper slots
+// in most functions is dynamically detected current BlockGroup,
+// so they are called with parameter 0
+void MainWindow::closeGroupWrapper(){
+    getScene()->closeGroup(getScene()->selectedGroup());
+}
 
-void MainWindow::createActions(DocumentScene *scene)
+void MainWindow::revertGroupWrapper(){
+    getScene()->revertGroup(getScene()->selectedGroup());
+}
+
+void MainWindow::saveGroupWrapper(){
+    getScene()->saveGroup(getScene()->selectedGroup()->getFilePath(),0,false);
+}
+
+void MainWindow::saveGroupAsWrapper(){
+    getScene()->saveGroupAs(0);
+}
+
+void MainWindow::saveAllGroupsWrapper(){
+    getScene()->saveAllGroups();
+}
+
+void MainWindow::saveGroupAsWithoutDocWrapper(){
+    getScene()->saveGroupAsWithoutDoc(0);
+}
+
+void MainWindow::closeAllGroupsWrapper(){
+    getScene()->closeAllGroups();
+}
+
+void MainWindow::showPreviewWrapper(){
+    getScene()->selectedGroup()->changeMode();
+//    getScene()->showPreview(0); // povodny edit plain text, zobrazi okno s plain textom
+}
+
+void MainWindow::cleanGroupWrapper(){
+    getScene()->cleanGroup(0);
+}
+
+void MainWindow::createActions()
 {
     groupActions = new QActionGroup(this);
 
@@ -192,7 +113,7 @@ void MainWindow::createActions(DocumentScene *scene)
     textstring.remove(6,1);
     revertAction->setShortcut((textstring));
     revertAction->setToolTip(tr("Revert to last save"));
-    connect(revertAction, SIGNAL(triggered()), scene, SLOT(revertGroup()));
+    connect(revertAction, SIGNAL(triggered()), this, SLOT(revertGroupWraper()));
     groupActions->addAction(revertAction);
 
 
@@ -203,7 +124,7 @@ void MainWindow::createActions(DocumentScene *scene)
     textstring.remove(6,1);
     saveAction->setShortcut((textstring));
     saveAction->setToolTip(tr("Save file"));
-    connect(saveAction, SIGNAL(triggered()), scene, SLOT(saveGroup()));
+    connect(saveAction, SIGNAL(triggered()), this, SLOT(saveGroupWrapper()));
     groupActions->addAction(saveAction);
 
 
@@ -211,69 +132,63 @@ void MainWindow::createActions(DocumentScene *scene)
     QIcon saveAsIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as"); // probably same as saveAction
     saveAsAction = new QAction(saveAsIcon, tr("Save &As..."), this);
     saveAsAction->setToolTip(tr("Save file as..."));
-    connect(saveAsAction, SIGNAL(triggered()), scene, SLOT(saveGroupAs()));
+    connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWrapper()));
     groupActions->addAction(saveAsAction);
 
 
-    // save as
-    // QIcon saveAsNoDocIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as");
-    saveAsNoDocAction = new QAction(tr("Save without comments"), this); // ??? is this used ???
-    saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
-    connect(saveAsNoDocAction, SIGNAL(triggered()), scene, SLOT(saveGroupAsWithoutDoc()));
-    groupActions->addAction(saveAsNoDocAction);
+    saveAsNoDocAction = new QAction(tr("Save Without Comments"), this); // ??? is this used ???
+        saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
+        connect(saveAsNoDocAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWithoutDocWrapper()));
+        groupActions->addAction(saveAsNoDocAction);
 
+        // save all
+        saveAllAction = new QAction(tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
+        saveAllAction->setToolTip(tr("Save all files"));
+        connect(saveAllAction, SIGNAL(triggered()), this, SLOT(saveAllGroupsWrapper()));
 
-    // save all
-    saveAllAction = new QAction(tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
-    saveAllAction->setToolTip(tr("Save all files"));
-    connect(saveAllAction, SIGNAL(triggered()), scene, SLOT(saveAllGroups()));
+        // close
+        QIcon closeIcon(":/m/close"); closeIcon.addFile(":/s/close"); // works
+        closeAction = new QAction(closeIcon, tr("&Close File"), this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        closeAction->setShortcut((textstring));
+        closeAction->setToolTip(tr("Close file"));
+        connect(closeAction, SIGNAL(triggered()), this, SLOT(closeGroupWrapper()));
+        groupActions->addAction(closeAction);
 
+        // close all
+        closeAllAction = new QAction(tr("Close All"), this);
+        closeAllAction->setToolTip(tr("Close all files"));
+        connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroupsWrapper()));
 
-    // close
-    QIcon closeIcon(":/icons/closeFile"); closeIcon.addFile(":/s/close"); // works
-    closeAction = new QAction(closeIcon, tr("&Close file"), scene);
-    textstring = file.readLine();
-    textstring.remove(6,1);
-    closeAction->setShortcut((textstring));
-    closeAction->setToolTip(tr("Close file"));
-    connect(closeAction, SIGNAL(triggered()), scene, SLOT(closeGroup()));
-    groupActions->addAction(closeAction);
+        // print pdf
+        QIcon printIcon(":/m/print"); printIcon.addFile(":/s/print");
+        printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        printPdfAction->setShortcut((textstring));
+        printPdfAction->setToolTip(tr("Print scene to PDF"));
+        connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
+            groupActions->addAction(printPdfAction);
 
+        // show plain text editor
+        QIcon editIcon(":/m/edit"); printIcon.addFile(":/s/edit");
+        plainEditAction = new QAction(editIcon, tr("&Edit Plain Text"), this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        plainEditAction->setShortcut((textstring));
+        plainEditAction->setToolTip(tr("Edit file as plain text"));
+        connect(plainEditAction, SIGNAL(triggered()), this, SLOT(showPreviewWrapper()));
+        groupActions->addAction(plainEditAction);
 
-    // close all
-    closeAllAction = new QAction(tr("Close All"), this);
-    closeAllAction->setToolTip(tr("Close all files"));
-    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroups()));
-
-
-    // print pdf
-    QIcon printIcon(":/icons/print"); printIcon.addFile(":/s/print");
-    printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
-    textstring = file.readLine();
-    textstring.remove(6,1);
-    printPdfAction->setShortcut((textstring));
-    printPdfAction->setToolTip(tr("Print scene to PDF"));
-    connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
-    groupActions->addAction(printPdfAction);
-
-
-    // show plain text editor
-    QIcon editIcon(":/icons/text"); printIcon.addFile(":/s/edit");
-    plainEditAction = new QAction(editIcon, tr("&Edit plain text"), this);
-    textstring = file.readLine();
-    textstring.remove(6,1);
-    plainEditAction->setShortcut((textstring));
-    plainEditAction->setToolTip(tr("Edit file as plain text"));
-    connect(plainEditAction, SIGNAL(triggered()), scene, SLOT(showPreview()));
-    groupActions->addAction(plainEditAction);
-
-    // clear search results
-    QIcon clearIcon(":/icons/clean"); saveIcon.addFile(":/s/clear");
-    clearAction = new QAction(clearIcon, tr("Clea&n search"), this);
-    clearAction->icon().addFile(":/m/save.png");
-    clearAction->setToolTip(tr("Clean search results"));
-    connect(clearAction, SIGNAL(triggered()), scene, SLOT(cleanGroup()));
-    groupActions->addAction(clearAction);
+        // clear search results
+        QIcon clearIcon(":/m/clear"); saveIcon.addFile(":/s/clear");
+        clearAction = new QAction(clearIcon, tr("Clea&n Search"), this);
+        clearAction->icon().addFile(":/m/save.png");
+    //    clearAction->setShortcut(tr("CTRL+S"));
+        clearAction->setToolTip(tr("Clean search results"));
+        connect(clearAction, SIGNAL(triggered()), this, SLOT(cleanGroupWrapper()));
+        groupActions->addAction(clearAction);
 
 
     // recent files
@@ -793,8 +708,6 @@ void MainWindow::newTab()
     DocumentScene* dScene=(DocumentScene *) view->scene();
     dScene->main=this;
 
-    createActions(dScene);
-
     tabWidget->addTab(widget, *name);
     tabWidget->setCurrentWidget(widget); // focus on new tab
     return;
@@ -809,6 +722,8 @@ void MainWindow::newFile()
         return;
     }else{
         dScene->newGroup(scriptsBox->currentText());
+        setCurrentFile(dScene->selectedGroup());
+        scriptsBox->setCurrentIndex(0); // select item in scriptsBox on C (in future select previously used item etc...)
     }
 }
 
@@ -848,7 +763,14 @@ void MainWindow::closeTab(int position){
 
 void MainWindow::tabChanged(int position){
     qDebug("tabChanged()");
-    setCurrentFile(getScene());
+    BlockGroup *group=getScene()->selectedGroup();
+        if(group==0){
+            qDebug("tabChanged() group=0");
+            setCurrentFile(0);
+            return;
+        }else{
+            setCurrentFile(group);
+        }
 }
 
 void MainWindow::createTabs()
@@ -876,7 +798,9 @@ void MainWindow::createTabs()
     QGraphicsView* view=(QGraphicsView *) widget;
     DocumentScene* dScene=(DocumentScene *) view->scene();
     dScene->main=this;
-    createActions(dScene);
+    createMenus();
+    createToolBars();
+    statusBar();
 
     tabWidget->addTab(widget, "Start page");
     tabWidget->setCurrentWidget(widget); // focus on new tab
@@ -900,8 +824,8 @@ void MainWindow::setCurrentFile(BlockGroup *group)
     if (group != 0)
     {
         fileName = group->getFilePath();
-   //     lang = group->getAnalyzer()->getLanguageName();
-  //      selectedGroup = group;
+        lang = group->getAnalyzer()->getLanguageName();
+        selectedGroup = group;
     }
     else
     {
@@ -945,68 +869,6 @@ void MainWindow::setCurrentFile(BlockGroup *group)
             saveAsAction->setText(tr("Save \"%1\" &As...").arg(fileName));
             closeAction->setText(tr("&Close \"%1\"").arg(fileName));
         }
-    }
-}
-
-void MainWindow::setCurrentFile(DocumentScene *scene)
-{
-    QString fileName;
-    QString lang;
-
-    if(scene!=0){
-        BlockGroup *group=scene->selectedGroup();
-
-        if (group != 0)
-        {
-            fileName = group->getFilePath();
-            lang = group->getAnalyzer()->getLanguageName();
-            selectedGroup = group;
-        }
-        else
-        {
-            qDebug("selected group == 0");
-            lang = "";
-            fileName = "Empty";
-            selectedGroup = 0;
-        }
-
-
-    if (fileName.isEmpty() || fileName == "Empty")
-    {
-        setWindowFilePath(fileName);
-        groupActions->setEnabled(false);
-     // searchLineEdit->setEnabled(false);
-    }
-    else
-    {
-        groupActions->setEnabled(true);
-        searchLineEdit->setEnabled(true);
-
-        if (scriptsBox->currentText() != lang)
-        {
-            int index = scriptsBox->findText(lang, Qt::MatchFixedString);
-            scriptsBox->blockSignals(true);
-            scriptsBox->setCurrentIndex(index);
-            scriptsBox->blockSignals(false);
-        }
-        if (windowFilePath() != fileName)
-        {
-            setWindowFilePath(fileName);
-
-            if (!QFileInfo(fileName).fileName().isEmpty())
-            {
-                fileName = QFileInfo(fileName).fileName();
-            }
-            else
-            {
-                revertAction->setEnabled(false);
-            }
-
-            saveAction->setText(tr("&Save \"%1\"").arg(fileName));
-            saveAsAction->setText(tr("Save \"%1\" &As...").arg(fileName));
-            closeAction->setText(tr("&Close \"%1\"").arg(fileName));
-        }
-    }
     }
 }
 
@@ -1616,7 +1478,7 @@ void MainWindow::readSettings()
 {
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     QPoint pos = settings.value("pos", QPoint(100, 100)).toPoint();
-    QSize size = settings.value("size", QSize(850, 700)).toSize();
+    QSize size = settings.value("size", QSize(450, 400)).toSize();
     resize(size);
     move(pos);
 
