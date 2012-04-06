@@ -2,13 +2,14 @@
 require "lpeg"
 
 -- important fields for Analyzer class
-extensions = {"txt"}
+extensions = {"txt", "todo"}
 language = "TODO"
 full_grammar = "document"
-other_grammars = { 
+other_grammars = {
+	markup_element="in_markup_element", 
 }
-paired = {"<", ">"}
-selectable = {"document", "unknown", "unknown_word", "todo_list", "done", "undone"}
+paired = {"<", ">", "start_element", "end_element"}
+selectable = {"document", "markup_element", "block", "unknown", "unknown_word", "todo_list", "done", "undone"}
 multi_text = {}
 floating = {}
 
@@ -62,10 +63,17 @@ document =
 	Ct(
 	Cc("document") *
 	(N'multiline_comment' + N'nl')^0 * 
-	N'todo_lists'^0 *
+	N'markup_element'^-1 *
 	N'unknown'^0 *
 	N'whites'^-1 * -1),
-		
+	
+in_markup_element =  
+	Ct(
+	N'nl'^0 *
+	(N'word'^1 + N'markup_element'^0) *
+	N'unknown'^0 *
+	N'whites'^-1 * -1),
+	
 -- NONTERMINALS
 markup_element = 
 	N'empty_element' * (N'multiline_comment')^0 + 
@@ -76,10 +84,10 @@ block = N'word'^1 + N'markup_element'^1,
 start_element = T"<" * N'markup_tag' * T">",
 end_element = T"</" * N'markup_tag' * T">",
 empty_element = T"<" * N'markup_tag' * T"/>",
-todo_lists = T"<todolists>" * N'done' * N'undone' * T"</todolists>",
-todo_list = T"<todolist>" * N'word' * T"</todolist>",
-done = T"<done>" * N'todo_list' * T"</done>",
-undone = T"<undone>" * N'todo_list' * T"</undone>",
+todo_lists = T"<todolists>" * N'todo_list' * T"</todolists>",
+todo_list = T"<todolist>" * N'done' * N'undone' * T"</todolist>",
+done = T"<done>" * N'markup_tag' * T"</done>",
+undone = T"<undone>" * N'markup_tag' * T"</undone>",
 	
 -- TERMINALS
 markup_tag = T((NI'letter' + S("_:")) * NI'markup_tag_char'^0),
@@ -88,7 +96,7 @@ number = T(NI'digit'^1),
 multiline_comment = T(P"<!--" * (1 - P"-->")^0 * P"-->"),
 	
 -- LITERALS
-unknown = N'unknown_word'^1 * N'nl'^0,	-- anything divided to words
+unknown = N'unknown_word'^1 *  N'nl'^0,	-- anything divided to words
 unknown_word = N'whites'^-1 * TP((1 - S" \t\r\n")^1),
 
 whites = TP(S(" \t")^1),	 		-- spaces and tabs
@@ -104,6 +112,8 @@ markup_tag_char = NI'letter' + NI'digit' + S(".-_:"),
 -- *** POSSIBLE GRAMMARS (ENTRY POINTS) ****
 grammar[1] = "document"
 document = P(grammar)
+grammar[1] = "in_markup_element"
+in_markup_element = P(grammar)
 
 --*******************************************************************
 -- TESTING - this script cannot be used by Analyzer.cpp when these lines are uncommented !!!
