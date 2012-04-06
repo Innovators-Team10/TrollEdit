@@ -1,10 +1,36 @@
-Temporarily to run this project a file "shortcuts.txt" (located in "Data/shortcuts.txt") has to be present in program directory.
+TrollEdit - Graphically Enhanced Text Editor
+=========
 
-Also these dlls are required, later it will be composed into installer:
-- libgcc_s_dw2-1.dll
-- liblua.dll
-- mingwm10.dll
-- QtCore4.dll
-- QtGui4.dll
+TrollEdit is an ongoing experiment to create an usable graphically enhanced text editor for programming. Instead of providing simple syntax highlighting TrollEdit utilized PEG grammars and abstract syntactic trees for visualization.
 
-If you add logo2.png, you can to see it in help in editor - just for fun.
+Build
+-----
+
+Windows MinGW
+
+```bash
+mkdir _build
+cd _build
+cmake .. -G"MinGW Makefiles" -DQT_QMAKE_EXECUTABLE=[path to qmake]
+cmake --build . --target install
+```
+
+Linux/Unix/OSX
+
+```bash
+mkdir _build
+cd _build
+cmake .. -G"Unix Makefiles" -DQT_QMAKE_EXECUTABLE=[path to qmake]
+cmake --build . --target install
+```
+
+Apple Bundle
+
+```bash
+mkdir _build
+cd _build
+cmake .. -G"Unix Makefiles" -DQT_QMAKE_EXECUTABLE=[path to qmake] -DTROLLEDIT_BUILD_BUNDLE=ON
+cmake --build . --target install
+```
+
+The result will be in the `TrollEdit` directory of the source.
