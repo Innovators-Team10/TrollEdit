@@ -90,19 +90,12 @@ if(USE_BUILTIN_LUA)
 else()
   # Find Lua implementation, assuming lpeg is installed by other means
   find_package(Lua51 REQUIRED)
-  
-  # RPath functionality (relative paths to libraries)
-  set( CMAKE_SKIP_BUILD_RPATH FALSE )
-  set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
-  set( CMAKE_INSTALL_RPATH $ORIGIN/../lib )
-  set( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
-  set( CMAKE_INSTALL_NAME_DIR @executable_path/../lib )
 endif()
 
 # Find QT4
 find_package(Qt4 COMPONENTS QtMain QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
-set(CMAKE_AUTOMOC TRUE)
+#set(CMAKE_AUTOMOC TRUE)
 
 # ---------------
 # Build TrollEdit
@@ -170,6 +163,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${LU
 
 # Files
 file(GLOB_RECURSE TROLLEDIT_SRC src/*.cpp)
+file(GLOB_RECURSE TROLLEDIT_H src/*.h)
 file(GLOB_RECURSE TROLLEDIT_UI ui/*.ui)
 file(GLOB_RECURSE TROLLEDIT_QRC res/*.qrc )
 file(GLOB_RECURSE TROLLEDIT_RC res/*.rc )
@@ -179,18 +173,30 @@ set(TROLLEDIT_README "README.md")
 # Generators
 qt4_wrap_ui(TROLLEDIT_UI_GEN ${TROLLEDIT_UI})
 qt4_add_resources(TROLLEDIT_QRC_GEN ${TROLLEDIT_QRC})
+qt4_wrap_cpp(TROLLEDIT_MOC ${TROLLEDIT_H})
 
 # Build and link
 add_executable(${TROLLEDIT_NAME} ${TROLLEDIT_EXECUTABLE_TYPE} 
   ${TROLLEDIT_SRC}
   ${TROLLEDIT_UI_GEN}
   ${TROLLEDIT_QRC_GEN}
-  ${TROLLEDIT_RC})
+  ${TROLLEDIT_RC}
+  ${TROLLEDIT_MOC})
 target_link_libraries(${TROLLEDIT_NAME} ${QT_LIBRARIES} ${LUA_LIBRARY})
 
 # Make sure dependencies are built first
 if(USE_BUILTIN_LUA)
   add_dependencies(${TROLLEDIT_NAME} dep_luajit)
+  
+  # If not bundling make sure we have rpath set to the built in library
+  if (NOT TROLLEDIT_BUILD_BUNDLE)
+    # RPath functionality (relative paths to libraries)
+    set( CMAKE_SKIP_BUILD_RPATH FALSE )
+    set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
+    set( CMAKE_INSTALL_RPATH $ORIGIN/../lib )
+    set( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
+    set( CMAKE_INSTALL_NAME_DIR @executable_path/../lib )
+  endif()
 endif()
   
 # -------
