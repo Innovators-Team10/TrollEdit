@@ -1,0 +1,34 @@
+#
+# TrollEdit Travis-CI Hook
+#
+
+# Since CMake is not directly supported we use erlang VMs
+language: erlang
+
+# We need CMake and QT libraries
+install:
+  - sudo apt-get install libqt4-dev qt4-qmake cmake >/dev/null 2>&1
+
+# Make sure we have all submodules
+before_script:
+  - git submodule update --init
+
+# Build TrollEdit
+script:
+  - mkdir _build
+  - cd _build
+  - cmake ..
+  - cmake --build . --target install -j6
+
+# Try running tests and packing
+after_script:
+  - ctest
+  - cpack
+
+# Notify the me if needed
+notifications:
+  recipients:
+    - drahosp@gmail.com
+  email:
+    on_success: change
+    on_failure: always
