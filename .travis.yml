@@ -19,7 +19,7 @@ script:
   - mkdir _build
   - cd _build
   - cmake ..
-  - cmake --build . --target install -j6
+  - cmake --build . --target install -- -j6
 
 # Try running tests and packing
 after_script:
