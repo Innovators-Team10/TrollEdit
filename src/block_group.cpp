@@ -836,7 +836,7 @@ void BlockGroup::analyzeAll(QString text)
     if (text.isEmpty()) //! use snippet if text is empty
     {
         text = analyzer->getSnippet();
-        qDebug() << "\nDefault snippet used";
+        qDebug() << "Default snippet used";
         getStatusBar()->showMessage("File reset - default text used", 2000);
 
         if (text.isEmpty()) text = "    ";
@@ -864,19 +864,20 @@ void BlockGroup::analyzeAll(QString text)
 //* this function is run in thread, when finished, slot for updateAllInThread is invoked
 bool BlockGroup::analazyAllInThread (QString text) 
 {
-    
+    qDebug("analazyAllInThread");
 }
 
 //* this function is run directly in master, while he is waiting, returns Root Element of analyzed text
 TreeElement* BlockGroup::analazyAllInMaster (QString text)  
 {
+    qDebug("analazyAllInMaster");
     return analyzer->analyzeFull(text);
 }
 
 //NotImplemented
 void BlockGroup::updateAllInThread () 
 {
-    
+    qDebug("updateAllInThread");
 }
 
 void BlockGroup::updateAllInMaster (TreeElement* rootEl) 
@@ -889,6 +890,7 @@ void BlockGroup::updateAllInMaster (TreeElement* rootEl)
     setRoot(newRoot);
     qDebug("root update: %d", time.restart());
     
+    qDebug("updateAllInMaster");
     return;
 }
 

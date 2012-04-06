@@ -1218,13 +1218,13 @@ void MainWindow::newWindow()
 // zoom in
 void MainWindow::zoomIn()
 {
-    QMessageBox::information(this,"title","On Function is working!");
+    getScene()->adjustScale(1.2);
 }
 
 // zoom out
 void MainWindow::zoomOut()
 {
-    QMessageBox::information(this,"title","On Function is working!");
+    getScene()->adjustScale(-1.2);
 }
 
 // split
