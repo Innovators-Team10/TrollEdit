@@ -23,7 +23,7 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
 {
     //this->analyzer = analyzer;
-    qDebug() << scene->main->getScriptBox()->currentText();
+//    qDebug() << scene->main->getScriptBox()->currentText();
 //    qDebug() << "filename split" << file.split(".")[1];
     qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
  //   qDebug() << "file" << file.split(".")[1];
@@ -91,6 +91,11 @@ void BlockGroup::setContent(QString content)
     docScene->update();
 }
 
+void BlockGroup::updateDocBlockInMap(DocBlock* element)
+{
+    element->updateBlock(false);
+}
+
 void BlockGroup::setRoot(Block *newRoot)
 {
     if (newRoot == 0)
@@ -126,11 +131,13 @@ void BlockGroup::setRoot(Block *newRoot)
     clearSearchResults();
     root->updateBlock(false);
 
-//  pouzit OpenMP
     foreach (DocBlock *dbl, docBlocks())
     {
         dbl->updateBlock(false);
     }
+    
+//    QList<DocBlock*> docBlocksList = docBlocks();
+//    QtConcurrent::blockingMap(docBlocksList, this->updateDocBlockInMap());
 
     updateSize();
 }
@@ -843,12 +850,13 @@ void BlockGroup::analyzeAll(QString text)
     }
     time.restart();
     
-// tu len decision ci in master alebo in thread   
     try 
     {
         if (runParalelized == true) {
-//          connect nastavit, nastavit future, setfuture, zavola sa updateallinthread ked dobehne
-            
+            bool connected = QObject::connect(&watcher, SIGNAL(finished()), this, SLOT(updateAllInThread()));
+            future = QtConcurrent::run(this, &BlockGroup::analazyAllInThread, text);    
+            watcher.setFuture(future);
+            qDebug() << "Connected:" << connected;
         }
         else {
             TreeElement* rootEl = analazyAllInMaster(text);
@@ -862,21 +870,39 @@ void BlockGroup::analyzeAll(QString text)
 }
 
 //* this function is run in thread, when finished, slot for updateAllInThread is invoked
-bool BlockGroup::analazyAllInThread (QString text) 
+TreeElement* BlockGroup::analazyAllInThread (QString text) 
 {
     qDebug("analazyAllInThread");
+    mutex.lock();    
+    TreeElement* rootEl = analyzer->analyzeFull(text);
+    groupRootEl = rootEl;
+    mutex.unlock();
+   
+    return rootEl;
 }
 
 //* this function is run directly in master, while he is waiting, returns Root Element of analyzed text
 TreeElement* BlockGroup::analazyAllInMaster (QString text)  
 {
     qDebug("analazyAllInMaster");
+    runParalelized = true;
     return analyzer->analyzeFull(text);
 }
 
 //NotImplemented
 void BlockGroup::updateAllInThread () 
 {
+    if (groupRootEl != 0) {
+        mutex.lock();
+        Block *newRoot = new Block(groupRootEl, 0, this);
+        mutex.unlock();
+        setRoot(newRoot);
+        
+        qDebug("root update: %d", time.restart());
+    }
+    else {
+        qDebug("groupRootEl is null");
+    }
     qDebug("updateAllInThread");
 }
 
