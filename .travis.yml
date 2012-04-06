@@ -7,7 +7,8 @@ language: erlang
 
 # We need CMake and QT libraries
 install:
-  - sudo apt-get install libqt4-dev qt4-qmake cmake >/dev/null 2>&1
+  - sudo apt-get update
+  - sudo apt-get install libqt4-dev qt4-qmake libx11-dev cmake >/dev/null 2>&1
 
 # Make sure we have all submodules
 before_script:
