@@ -1,6 +1,8 @@
 TrollEdit - Graphically Enhanced Text Editor
 =========
 
+[![Build Status](https://secure.travis-ci.org/Innovators-Team10/TrollEdit.png?branch=dev)](http://travis-ci.org/Innovators-Team10/TrollEdit)
+
 TrollEdit is an ongoing experiment to create an usable graphically enhanced text editor for programming. Instead of providing simple syntax highlighting TrollEdit utilized PEG grammars and abstract syntactic trees for visualization.
 
 Build
