@@ -7,7 +7,6 @@ extern "C" {
     #include "lua.h"
     #include "lualib.h"
     #include "lauxlib.h"
-    int luaopen_lpeg (lua_State *L);
 }
 
 static MainWindow* window;
@@ -96,7 +95,7 @@ int main(int argc, char *argv[])
     w.setWindowOpacity(0);
 
     // Load config from config_app.lua
-    lua_State *L = luaL_newstate();
+    lua_State *L = w.getLuaState();
     luaL_openlibs(L);
     int width, height; QString style;
     const QString CONFIG_DIR = "/../share/trolledit";

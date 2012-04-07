@@ -14,6 +14,7 @@
 
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
+    initLuaState();
     langManager = new LanguageManager(programPath);
 
     createActions();
@@ -27,6 +28,17 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
     //setCurrentFile(0);
+}
+
+//! create lua state
+void MainWindow::initLuaState(){
+    this->L = luaL_newstate();
+    //...
+}
+
+//! give lua state with configuration
+lua_State* MainWindow::getLuaState(){
+    return this->L;
 }
 
 // wrapper slots

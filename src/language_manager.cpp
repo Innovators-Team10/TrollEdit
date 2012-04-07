@@ -74,7 +74,7 @@ QString LanguageManager::getLanguage(QString extens){
 
                 foreach (QString ext, extensions)
                 {
-                    if(extens==ext){
+                    if(extens==ext || ext=="txt"){ //! default last grammar must be txt
                         return file.absoluteFilePath();
                     }
                 }
