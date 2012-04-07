@@ -91,7 +91,6 @@ public:
     bool runParalelized;
     TreeElement* analazyAllInMaster (QString text);
     void updateAllInMaster (TreeElement* rootEl);
-    void updateDocBlockInMap(DocBlock* element);
         
     // visualization
     void showInsertLine(InsertLine type, QPointF scenePos);

@@ -91,11 +91,6 @@ void BlockGroup::setContent(QString content)
     docScene->update();
 }
 
-void BlockGroup::updateDocBlockInMap(DocBlock* element)
-{
-    element->updateBlock(false);
-}
-
 void BlockGroup::setRoot(Block *newRoot)
 {
     if (newRoot == 0)
