@@ -53,6 +53,8 @@ public:
     QPair<QFont, QColor> getDefaultFormat() const;
 
     void print(QString text) const;
+    
+    void adjustScale(qreal delta);
 
     static QTime time;
     ~DocumentScene();

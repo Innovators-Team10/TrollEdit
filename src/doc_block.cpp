@@ -101,6 +101,11 @@ DocBlock::~DocBlock()
 {
 }
 
+void DocBlock::updateBlockInMap(DocBlock* element)
+{
+    element->updateBlock(false);
+}
+
 void DocBlock::updateBlock(bool doAnimation)
 {
     // update line
