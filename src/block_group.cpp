@@ -70,6 +70,7 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
     
     runParalelized = false;
+    groupRootEl = 0;
 
     time.start();
 
@@ -126,12 +127,17 @@ void BlockGroup::setRoot(Block *newRoot)
     clearSearchResults();
     root->updateBlock(false);
 
+//    QList<DocBlock*> docBlocksList = docBlocks();
+//    QList<QSharedPointer<DocBlock> *> pointerList;
+    
     foreach (DocBlock *dbl, docBlocks())
     {
+//        QSharedPointer<DocBlock> *pointerToDocBlock = new QSharedPointer<DocBlock>(dbl);
+//        pointerList.push_back(pointerToDocBlock);
+        
         dbl->updateBlock(false);
     }
-    
-//    QList<DocBlock*> docBlocksList = docBlocks();
+//    qDebug("pointerList - length - %d", pointerList.length());
 //    QtConcurrent::blockingMap(docBlocksList, this->updateDocBlockInMap());
 
     updateSize();
