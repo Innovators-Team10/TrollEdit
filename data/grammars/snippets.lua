@@ -26,3 +26,32 @@ function f()
 return
 end
 ]]
+
+-- todo file
+txt = [[
+<todolists>
+	<done>
+  	<todolist>
+  		<title>TODO1</title>
+  		<author>Author</author>
+  		<creationDate>date</creationDate>
+  		<description>description</description>
+  	</todolist>
+  	<todolist>
+  		<title>TODO2</title>
+  		<author>Author</author>
+  		<creationDate>date</creationDate>
+  		<description>description</description>
+  	</todolist>
+	</done>
+	<undone>
+  	<todolist>
+  		<title>TODO3</title>
+  		<author>Author</author>
+  		<creationDate>date</creationDate>
+  		<description>description</description>
+  	</todolist>
+	</undone>
+</todolists>
+]]
+

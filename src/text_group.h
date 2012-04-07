@@ -18,7 +18,6 @@ class BlockGroup;
 class TextGroup : public QGraphicsTextItem
 {
 
-
 public:
     TextGroup(BlockGroup *block, DocumentScene *scene);
     ~TextGroup();
