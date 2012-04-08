@@ -520,6 +520,7 @@ void MainWindow::createMenus()
     editMenu->addAction(copyAction);
     editMenu->addAction(pasteAction);
     editMenu->addAction(deleteAction);
+    editMenu->addAction(selectAllAction);
     editMenu->addSeparator();
     
     editMenu->addAction(findAction);
@@ -1274,7 +1275,7 @@ void MainWindow::delet()
 
 void MainWindow::selectAll()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->selectAll();
 }
 
 void MainWindow::find()
@@ -1325,12 +1326,6 @@ void MainWindow::find_Replace()
 
 
 //FUNTIONS FOR VIEW MENU ---------------------------------------------------------------------------------
-
-// 2 modes
-void MainWindow::twoMode()
-{
-    getScene()->selectedGroup()->changeMode(actionList);
-}
 
 // startUp screen
 void MainWindow::startUp()
