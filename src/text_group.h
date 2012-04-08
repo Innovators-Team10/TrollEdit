@@ -24,7 +24,13 @@ public:
 
     DocumentScene *scene;
     BlockGroup *block;
-    void changeMode();
+    void copy();
+    void paste();
+    void cut();
+    void deleteFunction();
+    void selectAll();
+    void undo();
+    void redo();
 
 signals:
 
