@@ -14,6 +14,7 @@
 
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
+    initLuaState();
     langManager = new LanguageManager(programPath);
 
     createActions();
@@ -27,6 +28,17 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     icon.addFile(":/icon32.png");
     setWindowIcon(icon);
     //setCurrentFile(0);
+}
+
+//! create lua state
+void MainWindow::initLuaState(){
+    this->L = luaL_newstate();
+    //...
+}
+
+//! give lua state with configuration
+lua_State* MainWindow::getLuaState(){
+    return this->L;
 }
 
 // wrapper slots
@@ -85,7 +97,7 @@ void MainWindow::createActions()
 
 
     // new
-    QIcon newIcon(":/icons/newFile"); newIcon.addFile(":/s/new"); // works
+    QIcon newIcon(":/icons/new.png");
     newAction = new QAction(newIcon, tr("&New"), this);
     textstring = file.readLine();
     textstring.remove(6,1);
@@ -95,7 +107,7 @@ void MainWindow::createActions()
     addAction(newAction);
 
     // open
-    QIcon openIcon(":/icons/openFiles"); openIcon.addFile(":/s/open"); // works
+    QIcon openIcon(":/icons/open.png");
     openAction = new QAction(openIcon, tr("&Open..."), this);
     textstring = file.readLine();
     textstring.remove(6,1);
@@ -118,7 +130,7 @@ void MainWindow::createActions()
 
 
     // save
-    QIcon saveIcon(":/icons/saveFile"); saveIcon.addFile(":/s/save"); // works (only for 1 scene)
+    QIcon saveIcon(":/icons/save.png"); // works (only for 1 scene)
     saveAction = new QAction(saveIcon, tr("&Save"), this);
     textstring = file.readLine();
     textstring.remove(6,1);
@@ -129,25 +141,26 @@ void MainWindow::createActions()
 
 
     // save as
-    QIcon saveAsIcon(":/m/save-as"); saveAsIcon.addFile(":/s/save-as"); // probably same as saveAction
+    QIcon saveAsIcon(":/icons/save.png");  // probably same as saveAction
     saveAsAction = new QAction(saveAsIcon, tr("Save &As..."), this);
     saveAsAction->setToolTip(tr("Save file as..."));
     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWrapper()));
     groupActions->addAction(saveAsAction);
 
 
-    saveAsNoDocAction = new QAction(tr("Save Without Comments"), this); // ??? is this used ???
+        saveAsNoDocAction = new QAction(tr("Save Without Comments"), this); // ??? is this used ???
         saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
         connect(saveAsNoDocAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWithoutDocWrapper()));
         groupActions->addAction(saveAsNoDocAction);
 
         // save all
-        saveAllAction = new QAction(tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
+        QIcon saveAllIcon(":/icons/saveAll.png");
+        saveAllAction = new QAction(saveAllIcon,tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
         saveAllAction->setToolTip(tr("Save all files"));
         connect(saveAllAction, SIGNAL(triggered()), this, SLOT(saveAllGroupsWrapper()));
 
         // close
-        QIcon closeIcon(":/m/close"); closeIcon.addFile(":/s/close"); // works
+        QIcon closeIcon(":/icons/closeFile.png");
         closeAction = new QAction(closeIcon, tr("&Close File"), this);
         textstring = file.readLine();
         textstring.remove(6,1);
@@ -162,17 +175,17 @@ void MainWindow::createActions()
         connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroupsWrapper()));
 
         // print pdf
-        QIcon printIcon(":/m/print"); printIcon.addFile(":/s/print");
+        QIcon printIcon(":/icons/print.png");
         printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
         textstring = file.readLine();
         textstring.remove(6,1);
         printPdfAction->setShortcut((textstring));
         printPdfAction->setToolTip(tr("Print scene to PDF"));
         connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
-            groupActions->addAction(printPdfAction);
+        groupActions->addAction(printPdfAction);
 
         // show plain text editor
-        QIcon editIcon(":/m/edit"); printIcon.addFile(":/s/edit");
+        QIcon editIcon(":/icons/textMode");
         plainEditAction = new QAction(editIcon, tr("&Edit Plain Text"), this);
         textstring = file.readLine();
         textstring.remove(6,1);
@@ -182,10 +195,9 @@ void MainWindow::createActions()
         groupActions->addAction(plainEditAction);
 
         // clear search results
-        QIcon clearIcon(":/m/clear"); saveIcon.addFile(":/s/clear");
+        QIcon clearIcon(":/icons/close");
         clearAction = new QAction(clearIcon, tr("Clea&n Search"), this);
-        clearAction->icon().addFile(":/m/save.png");
-    //    clearAction->setShortcut(tr("CTRL+S"));
+        //clearAction->setShortcut(tr("CTRL+S"));
         clearAction->setToolTip(tr("Clean search results"));
         connect(clearAction, SIGNAL(triggered()), this, SLOT(cleanGroupWrapper()));
         groupActions->addAction(clearAction);
@@ -201,26 +213,21 @@ void MainWindow::createActions()
     }
 
     // exit
-    QIcon exitIcon(":/s/exit");
+    QIcon exitIcon(":/icons/exit.png");
     exitAction = new QAction(exitIcon, tr("E&xit"), this);
     exitAction->setToolTip(tr("Quit the application?"));
     connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
-    // settings
-    QIcon settingsIcon(":/m/settings"); settingsIcon.addFile(":/s/settings");
-    settingsAction = new QAction(settingsIcon, tr("Se&ttings"), this);
-    settingsAction->setToolTip(tr("General application settings"));
-    connect(settingsAction, SIGNAL(triggered()), this, SLOT(settings()));
-
     // help
-    QIcon helpIcon(":/m/help"); helpIcon.addFile(":/s/help");
+    QIcon helpIcon(":/icons/help.png");
     helpAction = new QAction(helpIcon, tr("&Help - online"), this);
     helpAction->setShortcut(tr("F1"));
     helpAction->setToolTip(tr("Show application help"));
     connect(helpAction, SIGNAL(triggered()), this, SLOT(help()));
 
     // about
-    aboutAction = new QAction(tr("&About"), this);
+    QIcon aboutIcon(":/icons/info.png");
+    aboutAction = new QAction(aboutIcon,tr("&About"), this);
     aboutAction->setToolTip(tr("Show application's about box"));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 
@@ -235,7 +242,8 @@ void MainWindow::createActions()
     connect(updateAction, SIGNAL(triggered()), this, SLOT(update()));
 
     // home page
-    homePageAction = new QAction(tr("&Home page"), this);
+    QIcon homeIcon(":/icons/home.png");
+    homePageAction = new QAction(homeIcon,tr("&Home page"), this);
     homePageAction->setToolTip(tr("Open home page of TrollEdit"));
     connect(homePageAction, SIGNAL(triggered()), this, SLOT(homePage()));
 
@@ -275,29 +283,28 @@ void MainWindow::createActions()
     connect( snapshotAction, SIGNAL(triggered()), this, SLOT(snapshot()));
 
     // options
-    optionsAction = new QAction(tr("&Options"), this);
+    QIcon optionIcon(":/icons/seeting.png");
+    optionsAction = new QAction(optionIcon,tr("&Options"), this);
     optionsAction->setStatusTip(tr("Setting main funkcionality"));
     connect(optionsAction, SIGNAL(triggered()), this, SLOT(options()));
 
     // sw metrics
-    metricsAction = new QAction(tr("&SW metrics"), this);
+    QIcon metricsIcon(":/icons/chart.png");
+    metricsAction = new QAction(metricsIcon,tr("&SW metrics"), this);
     metricsAction->setStatusTip(tr("Dispaly of sw metrics"));
     connect(metricsAction, SIGNAL(triggered()), this, SLOT(swMetrics()));
 
     // task list
-    taskListAction = new QAction(tr("&Task list"), this);
+    QIcon taskIcon(":/icons/taskList.png");
+    taskListAction = new QAction(taskIcon,tr("&Task list"), this);
     taskListAction->setStatusTip(tr("Show task list"));
     connect(taskListAction, SIGNAL(triggered()), this, SLOT(taskList()));
 
     // bug list
-    bugListAction = new QAction(tr("&Bug list"), this);
+    QIcon bugIcon(":/icons/bugList.png");
+    bugListAction = new QAction(bugIcon,tr("&Bug list"), this);
     bugListAction->setStatusTip(tr("Show bug list"));
     connect(bugListAction, SIGNAL(triggered()), this, SLOT(bugList()));
-
-    // text mode
-    twoModeAction = new QAction(tr("&Text mode"), this);
-    twoModeAction->setStatusTip(tr("Set text mode"));
-    connect(twoModeAction, SIGNAL(triggered()), this, SLOT(twoMode()));
 
     // start page
     startUpAction = new QAction(tr("&Start page"), this);
@@ -309,15 +316,15 @@ void MainWindow::createActions()
     basicToolbarAction->setStatusTip(tr("Set basic toolbar"));
     connect(basicToolbarAction, SIGNAL(triggered()), this, SLOT(basicToolbar()));
 
-    // formating toolbar
-    formatingToolbarAction = new QAction(tr("&Formating"), this);
-    formatingToolbarAction->setStatusTip(tr("Set formating toolbar"));
-    connect(formatingToolbarAction, SIGNAL(triggered()), this, SLOT(formatingToolbar()));
+    // format toolbar
+    formatToolbarAction = new QAction(tr("&Format"), this);
+    formatToolbarAction->setStatusTip(tr("Set format toolbar"));
+    connect(formatToolbarAction, SIGNAL(triggered()), this, SLOT(formatToolbars()));
 
-    // web toolbar
-    webToolbarAction = new QAction(tr("&Web"), this);
-    webToolbarAction->setStatusTip(tr("Set web toolbar"));
-    connect(webToolbarAction, SIGNAL(triggered()), this, SLOT(webToolbar()));
+    // tools toolbar
+    toolsToolbarAction = new QAction(tr("&Tools"), this);
+    toolsToolbarAction->setStatusTip(tr("Set tools toolbar"));
+    connect(toolsToolbarAction, SIGNAL(triggered()), this, SLOT(toolsToolbar()));
 
     // editor toolbar
     editorToolbarAction = new QAction(tr("&Editor"), this);
@@ -330,14 +337,15 @@ void MainWindow::createActions()
     setBottomDockAction->setCheckable(true);
     connect(setBottomDockAction, SIGNAL(triggered()), this, SLOT(setBottomDock()));
 
-    // bottom right panel
+    // bottom right dock panel
     setRightDockAction = new QAction(tr("&Right dock"), this);
     setRightDockAction->setStatusTip(tr("View right dock panel"));
     setRightDockAction->setCheckable(true);
     connect(setRightDockAction, SIGNAL(triggered()), this, SLOT(setRightDock()));
 
     // full screen
-    fullScreenAction = new QAction(tr("&FullScreen"), this);
+    QIcon fullScreenIcon(":/icons/fullScreen.png");
+    fullScreenAction = new QAction(fullScreenIcon,tr("&FullScreen"), this);
     fullScreenAction->setShortcut(tr("F8"));
     fullScreenAction->setCheckable(true);
     fullScreenAction->setStatusTip(tr("View full screen"));
@@ -349,12 +357,14 @@ void MainWindow::createActions()
     connect(newWindowAction, SIGNAL(triggered()), this, SLOT(newWindow()));
 
     // zoom in
-    zoomInAction = new QAction(tr("&Zoom In"), this);
+    QIcon zoomIncon(":/icons/plus.png");
+    zoomInAction = new QAction(zoomIncon,tr("&Zoom In"), this);
     zoomInAction->setStatusTip(tr("Zoom in"));
     connect(zoomInAction, SIGNAL(triggered()), this, SLOT(zoomIn()));
 
     // zoom out
-    zoomOutAction = new QAction(tr("&Zoom Out"), this);
+    QIcon zoomOutIcon(":/icons/minus.png");
+    zoomOutAction = new QAction(zoomOutIcon,tr("&Zoom Out"), this);
     zoomOutAction->setStatusTip(tr("Zoom out "));
     connect(zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
 
@@ -365,13 +375,15 @@ void MainWindow::createActions()
     connect(splitAction, SIGNAL(triggered()), this, SLOT(split()));
 
     // CMD
-    showCmdAction = new QAction(tr("&CMD"), this);
+    QIcon cmdIcon(":/icons/cmd.png");
+    showCmdAction = new QAction(cmdIcon,tr("&CMD"), this);
     showCmdAction->setCheckable(true);
     showCmdAction->setStatusTip(tr("Run command line"));
     connect(showCmdAction, SIGNAL(triggered()), this, SLOT(showCmd()));
 
     // undo
-    undoAction = new QAction(tr("&Undo"), this);
+    QIcon undoIcon(":/icons/undo.png");
+    undoAction = new QAction(undoIcon, tr("&Undo"), this);
     undoAction->setShortcut(tr("CTRL+Z"));
     undoAction->setStatusTip(tr("Undo"));
     undoAction->setEnabled(false);
@@ -379,7 +391,8 @@ void MainWindow::createActions()
     actionList.append(undoAction);
 
     // redo
-    redoAction = new QAction(tr("&Redo"), this);
+    QIcon redoIcon(":/icons/redo.png");
+    redoAction = new QAction(redoIcon, tr("&Redo"), this);
     redoAction->setShortcut(tr("CTRL+Y"));
     redoAction->setStatusTip(tr("Redo"));
     redoAction->setEnabled(false);
@@ -387,7 +400,8 @@ void MainWindow::createActions()
     actionList.append(redoAction);
 
     // cut
-    cutAction = new QAction(tr("&Cut"), this);
+    QIcon cutIcon(":/icons/cut.png");
+    cutAction = new QAction(cutIcon, tr("&Cut"), this);
     cutAction->setShortcut(tr("CTRL+X"));
     cutAction->setStatusTip(tr("Cut"));
     cutAction->setEnabled(false);
@@ -395,7 +409,8 @@ void MainWindow::createActions()
     actionList.append(cutAction);
 
     // copy
-    copyAction = new QAction(tr("&Copy"), this);
+    QIcon copyIcon(":/icons/copy.png");
+    copyAction = new QAction(copyIcon,tr("&Copy"), this);
     copyAction->setShortcut(tr("CTRL+C"));
     copyAction->setStatusTip(tr("Copy"));
     copyAction->setEnabled(false);
@@ -403,7 +418,8 @@ void MainWindow::createActions()
     actionList.append(copyAction);
 
     // paste
-    pasteAction = new QAction(tr("&Paste"), this);
+    QIcon pasteIcon(":/icons/paste.png");
+    pasteAction = new QAction(pasteIcon,tr("&Paste"), this);
     pasteAction->setShortcut(tr("CTRL+V"));
     pasteAction->setStatusTip(tr("Paste"));
     pasteAction->setEnabled(false);
@@ -411,7 +427,9 @@ void MainWindow::createActions()
     actionList.append(pasteAction);
 
     // delete
-    deleteAction = new QAction(tr("&Delete"), this);
+    QIcon deleteIcon(":/icons/delete.png");
+    deleteAction = new QAction(deleteIcon,tr("&Delete"), this);
+    deleteAction->setShortcut(tr("DEL"));
     deleteAction->setStatusTip(tr("Delete"));
     deleteAction->setEnabled(false);
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(delet()));
@@ -425,8 +443,10 @@ void MainWindow::createActions()
     connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
     actionList.append(selectAllAction);
 
+// attach file    QIcon attachIcon(":/icons/spin.png");    attachFileAction = new QAction(attachIcon,tr("&Attach file"), this);    attachFileAction->setStatusTip(tr("Attach file"));    connect(attachFileAction, SIGNAL(triggered()), this, SLOT(attachFile()));
     // find
-    findAction = new QAction(tr("&Find"), this);
+    QIcon findIcon(":/icons/find.png");
+    findAction = new QAction(findIcon,tr("&Find"), this);
     findAction->setShortcut(tr("CTRL+F"));
     findAction->setStatusTip(tr("Find"));
     connect(findAction, SIGNAL(triggered()), this, SLOT(find()));
@@ -437,9 +457,20 @@ void MainWindow::createActions()
     find_ReplaceAction->setStatusTip(tr("Find and Replace"));
     connect(find_ReplaceAction, SIGNAL(triggered()), this, SLOT(find_Replace()));
 
+    // set bold font
+    QIcon boldIcon(":/icons/bold.png");
+    setBoldAction = new QAction(boldIcon,tr("&Bold font"), this);
+    setBoldAction->setStatusTip(tr("Set bold font"));
+    connect(setBoldAction, SIGNAL(triggered()), this, SLOT(setBold()));
+
+    // set italic font
+    QIcon italicIcon(":/icons/italic.png");
+    setItalicAction = new QAction(italicIcon,tr("&italic font"), this);
+    setItalicAction->setStatusTip(tr("Set italic font"));
+    connect(setItalicAction, SIGNAL(triggered()), this, SLOT(setItalic()));
 
     // show printable area
-    QIcon areaIcon(":/icons/areaScreen"); areaIcon.addFile(":/s/area");
+    QIcon areaIcon(":/icons/printArea.png");
     printableAreaAction = new QAction(areaIcon, tr("Show Printable Area"), this);
     printableAreaAction->setToolTip(tr("Show margins of printable area"));
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
@@ -490,35 +521,39 @@ void MainWindow::createMenus()
     editMenu->addAction(pasteAction);
     editMenu->addAction(deleteAction);
     editMenu->addSeparator();
-    editMenu->addAction(selectAllAction);
+    
     editMenu->addAction(findAction);
     editMenu->addAction(find_ReplaceAction);
 
     // View menu
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(newWindowAction);
-    viewMenu->addAction(twoModeAction);
+    viewMenu->addAction(plainEditAction);
     viewMenu->addAction(startUpAction);
+    viewMenu->addAction(fullScreenAction);
+    viewMenu->addAction(splitAction);
     viewMenu->addSeparator();
     // submenu toolbars
     setToolbarsMenu = viewMenu->addMenu("&Toolbars");
     setToolbarsMenu->addAction(basicToolbarAction);
-    setToolbarsMenu->addAction(formatingToolbarAction);
-    setToolbarsMenu->addAction(webToolbarAction);
+    setToolbarsMenu->addAction(formatToolbarAction);
+    setToolbarsMenu->addAction(toolsToolbarAction);
     setToolbarsMenu->addAction(editorToolbarAction);
     // submenu panels
     panelsMenu = viewMenu->addMenu("&Panels");
     panelsMenu->addAction(setBottomDockAction);
     panelsMenu->addAction(setRightDockAction);
-
-    viewMenu->addAction(fullScreenAction);
-    viewMenu->addAction(splitAction);
     viewMenu->addSeparator();
     viewMenu->addAction(zoomInAction);
     viewMenu->addAction(zoomOutAction);
 
     // tolls menu
     tollsMenu = menuBar()->addMenu(tr("&Tools"));
+    tollsMenu->addAction(taskListAction);
+    tollsMenu->addAction(bugListAction);
+    tollsMenu->addAction(showCmdAction);
+    tollsMenu->addAction(metricsAction);
+    tollsMenu->addSeparator();
     // submenu language
     languageMenu = tollsMenu->addMenu(tr("&Language"));
     languageMenu->addAction(setCAction);
@@ -528,11 +563,9 @@ void MainWindow::createMenus()
     generateMenu= tollsMenu->addMenu(tr("&Generate to"));
     generateMenu->addAction(printPdfAction);
     generateMenu->addAction(snapshotAction);
-    tollsMenu->addAction(taskListAction);
-    tollsMenu->addAction(bugListAction);
-    tollsMenu->addAction(showCmdAction);
+    
     tollsMenu->addAction(shortAction);
-    tollsMenu->addAction(metricsAction); // sw metrics
+    
     tollsMenu->addSeparator();
     tollsMenu->addAction(optionsAction);
 
@@ -640,12 +673,8 @@ void MainWindow::createToolBars()
     try
     {
         // format toolbar
-        formatToolBar = addToolBar(tr("Format"));
-        formatToolBar->setMovable(false);
-
-        logoLabel = new QLabel();
-        logoLabel->setPixmap(QPixmap(":/img/logoSmall"));
-        formatToolBar->addWidget(logoLabel);
+        formatToolBar = addToolBar(tr("Basic"));
+        formatToolBar->setMovable(true);
 
         formatToolBar->addAction(newAction);
         formatToolBar->addAction(openAction);
@@ -656,7 +685,7 @@ void MainWindow::createToolBars()
         formatToolBar->addAction(plainEditAction);
         formatToolBar->addAction(printableAreaAction);
         formatToolBar->addAction(printPdfAction);
-        //formatToolBar->addAction(settingsAction);
+        
         formatToolBar->addSeparator();
 
         scriptsBox = new QComboBox();
@@ -671,18 +700,21 @@ void MainWindow::createToolBars()
         formatToolBar->addSeparator();
 
         searchLineEdit = new QLineEdit();
-        searchLineEdit->setFixedSize(240, 20);
+        searchLineEdit->setFixedSize(150, 20);
         searchLineEdit->setToolTip(tr("For result press Enter"));
         searchLineEdit->setText("search");
         searchLineEdit->setStyleSheet( "QLineEdit{"
                                        "color: black;"
                                        "font-style: italic;"
-                                       "border-radius: 6px;"
+                                       "border-radius: 5px;"
                                        "}");
         connect(searchLineEdit, SIGNAL(editingFinished()), this, SLOT(search()));
         formatToolBar->addWidget(searchLineEdit);
 
         formatToolBar->addAction(clearAction);
+        formatToolBar->addAction(aboutAction);
+        formatToolBar->addAction(helpAction);
+
     }
 
     catch(...)
@@ -690,6 +722,116 @@ void MainWindow::createToolBars()
         QMessageBox::information(this,"Error","Error somewhere!");
     }
 }
+   
+void MainWindow::createEditorToolbars()
+{
+    try
+    {
+        // editor toolbar
+        editorToolbars = addToolBar(tr("Editor"));
+        editorToolbars->setMovable(true);
+        editorToolbars->addAction(undoAction);
+        editorToolbars->addAction(redoAction);
+        editorToolbars->addSeparator();
+        editorToolbars->addAction(copyAction);
+        editorToolbars->addAction(cutAction);
+        editorToolbars->addAction(pasteAction); 
+        editorToolbars->addAction(deleteAction);
+        editorToolbars->addAction(attachFileAction);
+    }
+
+    catch(...)
+    {
+        QMessageBox::information(this,"Error","Editor toolbars!");
+    }
+}
+
+// for attach file as img ...
+void MainWindow::attachFile()
+{
+    QMessageBox::information(this,"title","On Function is working!");
+}
+
+
+void MainWindow::createToolsToolbars()
+{
+    try
+    {
+        // tools toolbar
+        toolsToolbars = addToolBar(tr("Tools"));
+        toolsToolbars->setMovable(true);
+        toolsToolbars->addAction(taskListAction);
+        toolsToolbars->addAction(bugListAction);
+        toolsToolbars->addAction(showCmdAction);
+        toolsToolbars->addAction(metricsAction);
+        toolsToolbars->addSeparator();
+        toolsToolbars->addAction(zoomOutAction);
+        toolsToolbars->addAction(zoomInAction);
+        // pridat notepad
+    }
+
+    catch(...)
+    {
+        QMessageBox::information(this,"Error","Tools toolbars!");
+    }
+}
+
+void MainWindow::createFormatingToolbars()
+{
+    try
+    {
+        // format toolbar
+        formatingToolbars = addToolBar(tr("Format"));
+        formatingToolbars->setMovable(true);
+        setFont = new QFontComboBox();
+        setFont->setStyle(new QPlastiqueStyle);
+        connect(setFont,SIGNAL(currentIndexChanged(QString)), this, SLOT(changeFont(QString)));
+        formatingToolbars->addWidget(setFont);
+
+        setSizeFont = new QComboBox();
+        setSizeFont->setStyle(new QPlastiqueStyle);
+        setSizeFont->addItem("6");
+        setSizeFont->addItem("8");
+        setSizeFont->addItem("10");
+        setSizeFont->addItem("12");
+        setSizeFont->addItem("14");
+        setSizeFont->addItem("16");
+        setSizeFont->addItem("18");
+        setSizeFont->addItem("20"); // lepšie asi ako spinbox
+        connect(setSizeFont,SIGNAL(currentIndexChanged(QString)), this, SLOT(sizeFont(QString)));
+        formatingToolbars->addWidget(setSizeFont);
+        formatingToolbars->addAction(setBoldAction);
+        formatingToolbars->addAction(setItalicAction);
+    }
+
+    catch(...)
+    {
+        QMessageBox::information(this,"Error","Format toolbars!");
+    }
+}
+
+void MainWindow::changeFont()
+{
+   QMessageBox::information(this,"title","On Function is working!");
+}
+
+void MainWindow::sizeFont()
+{
+   QMessageBox::information(this,"title","On Function is working!");
+}
+
+void MainWindow::setBold()
+{
+   QMessageBox::information(this,"title","On Function is working!");
+}
+
+void MainWindow::setItalic()
+{
+   QMessageBox::information(this,"title","On Function is working!");
+}
+
+
+
 
 QGraphicsView* MainWindow::createView()
 {
@@ -733,6 +875,7 @@ void MainWindow::newTab()
 
 void MainWindow::newFile()
 {
+    newTab();
     qDebug("newFile()");
     DocumentScene* dScene=getScene();
     if(dScene==0){ // this should not ever happen
@@ -779,14 +922,17 @@ void MainWindow::closeTab(int position){
     tabWidget->removeTab(position);
 }
 
-void MainWindow::tabChanged(int position){
+void MainWindow::tabChanged(int position)
+{
     qDebug("tabChanged()");
     BlockGroup *group=getScene()->selectedGroup();
         if(group==0){
             qDebug("tabChanged() group=0");
             setCurrentFile(0);
             return;
-        }else{
+        }
+        else
+        {
             setCurrentFile(group);
         }
 }
@@ -816,11 +962,17 @@ void MainWindow::createTabs()
     QGraphicsView* view=(QGraphicsView *) widget;
     DocumentScene* dScene=(DocumentScene *) view->scene();
     dScene->main=this;
+
+    dScene->addPixmap(QPixmap(":/img/startScreen"));
+    QPixmap obr(":/img/newWay");
+    dScene->addPixmap(obr)->setPos(184,335);
+
     createMenus();
     createToolBars();
     statusBar();
 
-    tabWidget->addTab(widget, "Start page");
+    QIcon homeIcon(":/icons/home.png");
+    tabWidget->addTab(widget,homeIcon, "Start page");
     tabWidget->setCurrentWidget(widget); // focus on new tab
 
     this->setCentralWidget(tabWidget);
@@ -892,6 +1044,7 @@ void MainWindow::setCurrentFile(BlockGroup *group)
 
 void MainWindow::open()
 {
+    newTab();
     QString fileFilters = tr("All files (*)");
     QString dir = QFileInfo(windowFilePath()).absoluteDir().absolutePath();
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), dir, fileFilters); // CHECK
@@ -1121,31 +1274,45 @@ void MainWindow::delet()
 
 void MainWindow::selectAll()
 {
-    getScene()->selectedGroup()->getTextGroup()->selectAll();
+  QMessageBox::information(this,"title","On Function is working!");
 }
 
 void MainWindow::find()
 {
   findWindow = new QDialog();
-  QLabel *findLabel = new QLabel("Find:");
-  QLineEdit *findLineEdit = new QLineEdit();
+  findLabel = new QLabel("Inser keyword:");
+  findLineEdit = new QLineEdit();
+  connect(findLineEdit, SIGNAL(editingFinished()), this, SLOT(search2()));
   findLineEdit->setStyleSheet("QLineEdit{"
                               "color: black;"
                               "font-style: italic;"
                               "border-radius: 6px;"
                               "}");
-  QPushButton *findButton = new QPushButton("ok");
+  findButton = new QPushButton("Find");
   findButton->setStyle(new QPlastiqueStyle);
 
-  QHBoxLayout *layout = new QHBoxLayout(findWindow);
+  layout = new QHBoxLayout(findWindow);
   layout->addWidget(findLabel);
   layout->addWidget(findLineEdit);
   layout->addWidget(findButton);
-
-  findWindow->resize(500,40);
-  findWindow->setWindowTitle("Find key word");
-  findWindow->setLayout(layout);
+  findWindow->resize(430,40);
+  findWindow->setWindowTitle("Find keyword");
   findWindow->show();
+  // tlaèidlo find bude hladat dal
+}
+
+// for find
+void MainWindow::search2()
+{
+    try
+    {
+        QString searchText2 = findLineEdit->text();
+        getScene()->findText(searchText2);
+    }
+    catch (...)
+    {
+        QMessageBox::information(this,"Error","Error with Search Text!");
+    }
 }
 
 void MainWindow::find_Replace()
@@ -1174,25 +1341,26 @@ void MainWindow::startUp()
 // basic toolbar
 void MainWindow::basicToolbar()
 {
-     QMessageBox::information(this,"title","On Function is working!");
+    QMessageBox::information(this,"title","On Function is working!");
 }
 
 // formating toolbar
-void MainWindow::formatingToolbar()
+void MainWindow::formatToolbars()
 {
-     QMessageBox::information(this,"title","On Function is working!");
+    createFormatingToolbars();
 }
 
-// web toolbar
-void MainWindow::webToolbar()
+// tools toolbar
+void MainWindow::toolsToolbar()
 {
-     QMessageBox::information(this,"title","On Function is working!");
+     createToolsToolbars();
 }
 
 // editor toolbar
 void MainWindow::editorToolbar()
 {
-     QMessageBox::information(this,"title","On Function is working!");
+    createEditorToolbars();
+    //QMessageBox::information(this,"title","On Function is working!");
 }
 
 // bottom dock
@@ -1213,10 +1381,18 @@ void MainWindow::setBottomDock()
 // right dock
 void MainWindow::setRightDock()
 {
-      dock1 = new QDockWidget(tr("Right dock"), this);
+      dock1 = new QDockWidget(tr("File browser tree"), this);
       dock1->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-      text1 = new QTextEdit(dock1);
-      dock1->setWidget(text1);
+      //text1 = new QTextEdit(dock1);
+
+      QFileSystemModel *model = new QFileSystemModel();
+      model->setRootPath(QDir::homePath());
+
+      QTreeView *tree = new QTreeView(dock1);
+      tree->setModel(model);
+      tree->setRootIndex(model->index(QDir::homePath()));
+      dock1->setWidget(tree);
+
       addDockWidget(Qt::RightDockWidgetArea, dock1);
 }
 
@@ -1225,6 +1401,9 @@ void MainWindow::fullScreen()
 {
     this->showMaximized();
     formatToolBar->hide();
+    editorToolbars->hide();
+    toolsToolbars->hide();
+    formatingToolbars->hide();
 }
 
 // new window
@@ -1285,13 +1464,13 @@ void MainWindow::snapshot()
 // task list
 void MainWindow::taskList()
 {
-    QMessageBox::information(this,"title","On Function is working!");
+    setBottomDock();
 }
 
 // bug list
 void MainWindow::bugList()
 {
-    QMessageBox::information(this,"title","On Function is working!");
+    setBottomDock();
 }
 
 // options
@@ -1301,7 +1480,7 @@ void MainWindow::options()
 
      setOptions->setWindowTitle("Options");
      setOptions->resize(520,390);
-     setOptions->show();    
+     setOptions->show();
 }
 
 // sw metrics
@@ -1340,7 +1519,7 @@ void MainWindow::about()
 
                           "</br>"
                           "<p><b>What is TrollEdit?</b></p>"
-                          "<p>TrollEdit is a Qt based text editor developed by students at Slovak University of Technology."
+                          "<p>TrollEdit is a Qt based text editor developed by students at <a href=\"http://www.fiit.stuba.sk/generate_page.php?page_id=749\">Slovak University of Technology.</a>"
                           "The main goal of the project is to teach students open source deveopmnet and team management."
                           "TrollEdit itself is an experiment to utilize full AST code analysis during writing of code."
                           "This can have benefits in various common tasks such as moving blocks of code, syntax checking,"
@@ -1401,6 +1580,10 @@ void MainWindow::homePage()
 // html help
 void MainWindow::help()
 {
+    /*QWebView *view = new QWebView();
+         view->load(QUrl("http://qt.nokia.com/"));
+         view->show();*/
+
     QDesktopServices::openUrl(QUrl("http://innovators-team10.github.com/user-manual.html"));
 }
 
@@ -1476,13 +1659,6 @@ QString MainWindow::strippedName(const QString &fullFileName)
 }
 
 
-//toto je naèo ta funkcia???
-void MainWindow::settings()
-{
-
-}
-
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     getScene()->closeAllGroups();
@@ -1496,7 +1672,7 @@ void MainWindow::readSettings()
 {
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     QPoint pos = settings.value("pos", QPoint(100, 100)).toPoint();
-    QSize size = settings.value("size", QSize(450, 400)).toSize();
+    QSize size = settings.value("size", QSize(850, 700)).toSize();
     resize(size);
     move(pos);
 
