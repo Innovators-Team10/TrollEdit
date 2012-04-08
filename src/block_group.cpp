@@ -182,6 +182,11 @@ void BlockGroup::setBlockIn(Block *block, int line)
     lastLine = line;
 }
 
+TextGroup* BlockGroup::getTextGroup()
+{
+    return this->txt;
+}
+
 bool BlockGroup::addFoldable(Block *block)
 {
     if (block->getLine() < 0) //! for block out of hierarchy (always able to fold)
@@ -589,6 +594,38 @@ void BlockGroup::moveCursorUpDown(Block *start, bool moveUp, int from)
     selectBlock(target, true);
 }
 
+// changes the mode and disables/enables the editing actions in the menu
+void BlockGroup::changeMode(QList<QAction *> actionList)
+{
+    if(isVisible())
+    {
+        txt->setPlainText(this->toText());
+        txt->setPos(this->pos().x(),this->pos().y());
+        txt->setScale(this->scale());
+        txt->setFocus();
+        txt->setVisible(true);
+        this->setVisible(false);
+        docScene->selectGroup(this);
+        docScene->update();
+
+        for (int i=0; i<actionList.size(); i++)
+            actionList.at(i)->setEnabled(true);
+    }
+    else
+    {
+        txt->setVisible(false);
+        this->setContent(txt->toPlainText());
+        this->setPos(txt->pos().x(),txt->pos().y());
+        this->updateSize();
+        this->setVisible(true);
+        this->updateSize();
+        docScene->update();
+
+        for (int i=0; i<actionList.size(); i++)
+            actionList.at(i)->setEnabled(false);
+    }
+}
+
 void BlockGroup::changeMode(){
     if(isVisible()){
         txt->setPlainText(this->toText());
@@ -941,7 +978,7 @@ void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
-            changeMode();
+            changeMode(getTextGroup()->scene->getWindow()->getActionList());
             event->accept();
         }
     }

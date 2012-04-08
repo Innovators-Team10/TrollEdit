@@ -41,7 +41,7 @@ public:
     DocumentScene* getScene();
     LanguageManager* getLangManager();
     QComboBox* getScriptBox();
-
+    QList<QAction *> getActionList();
 
 
 public slots:
@@ -248,6 +248,7 @@ private:
 
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
+    QList<QAction *> actionList;
 
     QGraphicsView* createView();
     QTableWidget *m_table;

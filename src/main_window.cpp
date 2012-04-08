@@ -61,7 +61,7 @@ void MainWindow::closeAllGroupsWrapper(){
 }
 
 void MainWindow::showPreviewWrapper(){
-    getScene()->selectedGroup()->changeMode();
+    getScene()->selectedGroup()->changeMode(actionList);
 //    getScene()->showPreview(0); // povodny edit plain text, zobrazi okno s plain textom
 }
 
@@ -374,42 +374,56 @@ void MainWindow::createActions()
     undoAction = new QAction(tr("&Undo"), this);
     undoAction->setShortcut(tr("CTRL+Z"));
     undoAction->setStatusTip(tr("Undo"));
-    connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+    undoAction->setEnabled(false);
+    connect(MainWindow::undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+    actionList.append(undoAction);
 
     // redo
     redoAction = new QAction(tr("&Redo"), this);
     redoAction->setShortcut(tr("CTRL+Y"));
     redoAction->setStatusTip(tr("Redo"));
+    redoAction->setEnabled(false);
     connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
+    actionList.append(redoAction);
 
     // cut
     cutAction = new QAction(tr("&Cut"), this);
     cutAction->setShortcut(tr("CTRL+X"));
     cutAction->setStatusTip(tr("Cut"));
+    cutAction->setEnabled(false);
     connect(cutAction, SIGNAL(triggered()), this, SLOT(cut()));
+    actionList.append(cutAction);
 
     // copy
     copyAction = new QAction(tr("&Copy"), this);
     copyAction->setShortcut(tr("CTRL+C"));
     copyAction->setStatusTip(tr("Copy"));
+    copyAction->setEnabled(false);
     connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
+    actionList.append(copyAction);
 
     // paste
     pasteAction = new QAction(tr("&Paste"), this);
     pasteAction->setShortcut(tr("CTRL+V"));
     pasteAction->setStatusTip(tr("Paste"));
+    pasteAction->setEnabled(false);
     connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+    actionList.append(pasteAction);
 
     // delete
     deleteAction = new QAction(tr("&Delete"), this);
     deleteAction->setStatusTip(tr("Delete"));
+    deleteAction->setEnabled(false);
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(delet()));
+    actionList.append(deleteAction);
 
     // selectAll
     selectAllAction = new QAction(tr("&Select All"), this);
     selectAllAction->setShortcut(tr("CTRL+A"));
     selectAllAction->setStatusTip(tr("Select All"));
+    selectAllAction->setEnabled(false);
     connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
+    actionList.append(selectAllAction);
 
     // find
     findAction = new QAction(tr("&Find"), this);
@@ -433,8 +447,12 @@ void MainWindow::createActions()
     file.close();
 }
 
-
 // Items in MenuBar
+
+QList<QAction *> MainWindow::getActionList()
+{
+    return actionList;
+}
 
 void MainWindow::createMenus()
 {
@@ -1073,37 +1091,37 @@ void MainWindow::openRecentFile()
 
 void MainWindow::undo()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->undo();
 }
 
 void MainWindow::redo()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->redo();
 }
 
 void MainWindow::cut()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->cut();
 }
 
 void MainWindow::copy()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->copy();
 }
 
 void MainWindow::paste()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->paste();
 }
 
 void MainWindow::delet()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->deleteFunction();
 }
 
 void MainWindow::selectAll()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->selectAll();
 }
 
 void MainWindow::find()
@@ -1144,7 +1162,7 @@ void MainWindow::find_Replace()
 // 2 modes
 void MainWindow::twoMode()
 {
-    QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->changeMode(actionList);
 }
 
 // startUp screen
