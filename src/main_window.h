@@ -18,6 +18,11 @@
 #include <QList>
 #include <QTableView>
 
+extern "C" {
+    #include "lua.h"
+    #include "lualib.h"
+    #include "lauxlib.h"
+}
 
 typedef struct pokus
 {
@@ -41,7 +46,7 @@ public:
     DocumentScene* getScene();
     LanguageManager* getLangManager();
     QComboBox* getScriptBox();
-
+    lua_State* getLuaState();
 
 
 public slots:
@@ -124,9 +129,10 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private:
+    lua_State* L;                   //! load configuration from lua
     enum { MaxRecentFiles = 6 };
     QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
-
+    
     // for file menu
     QAction *newAction;
     QAction *newTabAction;
@@ -252,6 +258,7 @@ private:
     QGraphicsView* createView();
     QTableWidget *m_table;
 
+    void initLuaState();
     void createActions();
     void createMenus();
     void createGlobalActions();
