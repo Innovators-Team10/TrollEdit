@@ -11,6 +11,7 @@
 #include <QMessageBox>
 #include <QHash>
 #include <QList>
+#include <QDebug>
 
 #include <QThreadPool>
 
