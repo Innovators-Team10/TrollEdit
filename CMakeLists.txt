@@ -30,7 +30,6 @@ set ( INSTALL_DATA share/trolledit CACHE PATH "Directory for shared data." )
 
 # Warnings for Debug mode
 if ( CMAKE_COMPILER_IS_GNUCXX OR APPLE )
-        set ( CMAKE_CXX_FLAGS_DEBUG -Wall -Wextra -Werror )
 endif ()
 
 # Default build type
