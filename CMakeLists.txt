@@ -114,7 +114,6 @@ include ( ${QT_USE_FILE} )
 if ( APPLE )
   # Executable settings
   set ( TROLLEDIT_EXECUTABLE_TYPE MACOSX_BUNDLE )
-  set ( CMAKE_OSX_ARCHITECTURES "i386;x86_64" )
   set ( BUNDLE_APP "\${CMAKE_INSTALL_PREFIX}/${TROLLEDIT_NAME}.app" )
 
   # Override default install destinations into the bundle
