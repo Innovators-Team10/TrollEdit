@@ -1,0 +1,6 @@
+[submodule "dependencies/luajit"]
+	path = dependencies/luajit
+	url = git://github.com/LuaDist/luajit
+ [submodule "dependencies/lpeg"]
+	path = dependencies/lpeg
+	url = git://github.com/LuaDist/lpeg

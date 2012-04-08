@@ -13,6 +13,12 @@
 #include <QSet>
 #include <QTime>
 #include <QStatusBar>
+#include <QtConcurrentRun>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QThreadPool>
+#include <QMessageBox>
+#include <QMutex>
 
 #include "analyzer.h"
 #include "text_group.h"
@@ -78,7 +84,16 @@ public:
     void analyzeAll(QString text);
     bool reanalyzeBlock(Block* block);
     QString toText(bool noDocs = false) const;
-
+    
+    // paralelism
+    QFutureWatcher<TreeElement*> watcher;
+    QFuture<TreeElement*> future;
+    QMutex mutex;
+    TreeElement *groupRootEl;
+    bool runParalelized;
+    TreeElement* analazyAllInMaster (QString text);
+    void updateAllInMaster (TreeElement* rootEl);
+        
     // visualization
     void showInsertLine(InsertLine type, QPointF scenePos);
     QPainterPath shape() const;
@@ -110,6 +125,8 @@ public slots:
     void eraseChar(Block *block, int key);
     void moveFrom(Block *block, int key, int cursorPos);
     void updateSize();
+    TreeElement* analazyAllInThread (QString text);
+    void updateAllInThread ();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -123,7 +140,6 @@ protected:
 
 private:
     void setRoot(Block *newRoot);
-
     void moveCursorUpDown(Block *start, bool moveUp, int from);
     void moveCursorLeftRight(Block *start, bool moveRight);
 

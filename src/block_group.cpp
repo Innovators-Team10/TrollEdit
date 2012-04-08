@@ -8,6 +8,8 @@
 #include "main_window.h"
 #include "language_manager.h"
 
+#include <QMessageBox>
+
 const QString BlockGroup::BLOCK_MIME = "block_data";
 //const QPointF BlockGroup::OFFSET_IN_TL = QPointF(0, 0);  // inner offset, left and top
 //const QPointF BlockGroup::OFFSET_IN_BR = QPointF(0, 0);  // inner offset, right and bottom
@@ -21,7 +23,7 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
 {
     //this->analyzer = analyzer;
-    qDebug() << scene->main->getScriptBox()->currentText();
+//    qDebug() << scene->main->getScriptBox()->currentText();
 //    qDebug() << "filename split" << file.split(".")[1];
     qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
  //   qDebug() << "file" << file.split(".")[1];
@@ -66,6 +68,9 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     setAcceptDrops(true);
     setFlag(QGraphicsItem::ItemIsMovable);
     setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
+    
+    runParalelized = false;
+    groupRootEl = 0;
 
     time.start();
 
@@ -122,10 +127,18 @@ void BlockGroup::setRoot(Block *newRoot)
     clearSearchResults();
     root->updateBlock(false);
 
+//    QList<DocBlock*> docBlocksList = docBlocks();
+//    QList<QSharedPointer<DocBlock> *> pointerList;
+    
     foreach (DocBlock *dbl, docBlocks())
     {
+//        QSharedPointer<DocBlock> *pointerToDocBlock = new QSharedPointer<DocBlock>(dbl);
+//        pointerList.push_back(pointerToDocBlock);
+        
         dbl->updateBlock(false);
     }
+//    qDebug("pointerList - length - %d", pointerList.length());
+//    QtConcurrent::blockingMap(docBlocksList, this->updateDocBlockInMap());
 
     updateSize();
 }
@@ -860,30 +873,91 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
 void BlockGroup::analyzeAll(QString text)
 {
-    qDebug() << "\nBlockGroup::analyzeAll()";
-
+    qDebug() << "text size = " << text.size();
+    qDebug() << "runParalelized = " << runParalelized;
+    qDebug() << "maxThreadCount = " << QThreadPool::globalInstance()->maxThreadCount();
+    qDebug() << "currentThreadId(): " << QThread::currentThreadId(); 
+    
     if (text.isEmpty()) //! use snippet if text is empty
     {
         text = analyzer->getSnippet();
-        qDebug() << "\nDefault snippet used" << text;
+        qDebug() << "Default snippet used";
         getStatusBar()->showMessage("File reset - default text used", 2000);
 
         if (text.isEmpty()) text = "    ";
     }
     time.restart();
+    
+    try 
+    {
+        if (runParalelized == true) {
+            bool connected = QObject::connect(&watcher, SIGNAL(finished()), this, SLOT(updateAllInThread()));
+            future = QtConcurrent::run(this, &BlockGroup::analazyAllInThread, text);    
+            watcher.setFuture(future);
+            qDebug() << "Connected:" << connected;
+        }
+        else {
+            TreeElement* rootEl = analazyAllInMaster(text);
+            updateAllInMaster(rootEl);
+        }        
+    }
+    catch (...) 
+    {
+        QMessageBox::information(0,"Error","Error in AnalyzeAll!");
+    }
+}
 
-    // create new root element
-    TreeElement *rootEl = analyzer->analyzeFull(text);
-    qDebug("text analysis: %d", time.restart());
+//* this function is run in thread, when finished, slot for updateAllInThread is invoked
+TreeElement* BlockGroup::analazyAllInThread (QString text) 
+{
+    qDebug("analazyAllInThread");
+    mutex.lock();    
+    TreeElement* rootEl = analyzer->analyzeFull(text);
+    groupRootEl = rootEl;
+    mutex.unlock();
+   
+    return rootEl;
+}
 
+//* this function is run directly in master, while he is waiting, returns Root Element of analyzed text
+TreeElement* BlockGroup::analazyAllInMaster (QString text)  
+{
+    qDebug("analazyAllInMaster");
+    runParalelized = true;
+    return analyzer->analyzeFull(text);
+}
+
+//NotImplemented
+void BlockGroup::updateAllInThread () 
+{
+    if (groupRootEl != 0) {
+        mutex.lock();
+        Block *newRoot = new Block(groupRootEl, 0, this);
+        mutex.unlock();
+        setRoot(newRoot);
+        
+        qDebug("root update: %d", time.restart());
+    }
+    else {
+        qDebug("groupRootEl is null");
+    }
+    qDebug("updateAllInThread");
+}
+
+void BlockGroup::updateAllInMaster (TreeElement* rootEl) 
+{
     // create new root
     Block *newRoot = new Block(rootEl, 0, this);
     qDebug("root creation: %d", time.restart());
-
+    
     // set new root
     setRoot(newRoot);
     qDebug("root update: %d", time.restart());
+    
+    qDebug("updateAllInMaster");
+    return;
 }
+
 
 QString BlockGroup::toText(bool noDocs) const
 {

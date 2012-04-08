@@ -582,6 +582,7 @@ void DocumentScene::wheelEvent(QGraphicsSceneWheelEvent *event)
         //currentGroup->setVisible(false);
         currentGroup->highlightON_OFF();
         qDebug()<< "highlightON_OFF()";
+        qDebug("delta: %f", delta);
         update();
 
         if (delta > 0)
@@ -596,6 +597,28 @@ void DocumentScene::wheelEvent(QGraphicsSceneWheelEvent *event)
     else
     {
         event->ignore();
+    }
+}
+
+void DocumentScene::adjustScale(qreal delta)
+{
+    if (currentGroup == 0)
+    {
+        qDebug("adjustScale ignored");
+        return;
+    }
+    else
+    {
+        currentGroup->highlightON_OFF();
+        qDebug()<< "highlightON_OFF()";
+        qDebug("delta: %f", delta);
+        update();
+        if (delta > 0)
+            currentGroup->setScale(currentGroup->scale() * delta);
+
+        if (delta < 0)
+            currentGroup->setScale(currentGroup->scale() / -delta);
+        adjustSceneRect();
     }
 }
 
@@ -614,7 +637,6 @@ void DocumentScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     }
 
     QGraphicsScene::mouseDoubleClickEvent(event);
-
 }
 
 void DocumentScene::update(const QRectF &rect)
