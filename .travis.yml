@@ -29,7 +29,7 @@ after_script:
 # Notify the me if needed
 notifications:
   recipients:
-    - drahosp@gmail.com
+    - tp-team-10@googlegroups.com
   email:
     on_success: change
     on_failure: always
