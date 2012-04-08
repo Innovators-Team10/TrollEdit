@@ -5,10 +5,10 @@
 #include <QMessageBox>
 #include <QDebug>
 
-const QString GRAMMAR_DIR = "/../share/trolledit/grammars";
-const QString DEFAULT_GRAMMAR = "/../share/trolledit/grammars/default_grammar.lua";
-const QString CONFIG_FILE = "/../share/trolledit/grammars/config.lua";
-const QString SNIPPET_FILE = "/../share/trolledit/grammars/snippets.lua";
+#define GRAMMAR_DIR "/../share/trolledit/grammars"
+#define DEFAULT_GRAMMAR "/../share/trolledit/grammars/default_grammar.lua"
+#define CONFIG_FILE "/../share/trolledit/grammars/config.lua"
+#define SNIPPET_FILE "/../share/trolledit/grammars/snippets.lua"
 
 LanguageManager::LanguageManager(QString programPath)
 {
