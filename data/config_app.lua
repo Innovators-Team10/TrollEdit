@@ -86,7 +86,7 @@ style = "QMainWindow {"
                     .."QToolButton {"
                         .."padding: 2px;"
                         .."background-color: transparent;"
-                        .."min-width: 35px;"
+                        .."min-width: 20px;"
                     .."}"
 
                     .."QToolButton:hover {"

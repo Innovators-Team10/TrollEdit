@@ -344,7 +344,7 @@ void MainWindow::createActions()
     setRightDockAction->setCheckable(true);
     connect(setRightDockAction, SIGNAL(triggered()), this, SLOT(setRightDock()));
 
-    // full screen
+    // fullscreen
     QIcon fullScreenIcon(":/icons/fullScreen.png");
     fullScreenAction = new QAction(fullScreenIcon,tr("&FullScreen"), this);
     fullScreenAction->setShortcut(tr("F8"));
@@ -444,7 +444,12 @@ void MainWindow::createActions()
     connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
     actionList.append(selectAllAction);
 
-// attach file    QIcon attachIcon(":/icons/spin.png");    attachFileAction = new QAction(attachIcon,tr("&Attach file"), this);    attachFileAction->setStatusTip(tr("Attach file"));    connect(attachFileAction, SIGNAL(triggered()), this, SLOT(attachFile()));
+    //attach file
+    QIcon attachIcon(":/icons/spin.png");
+    attachFileAction = new QAction(attachIcon,tr("&Attach file"), this);
+    attachFileAction->setStatusTip(tr("Attach file"));
+    connect(attachFileAction, SIGNAL(triggered()), this, SLOT(attachFile()));
+
     // find
     QIcon findIcon(":/icons/find.png");
     findAction = new QAction(findIcon,tr("&Find"), this);
@@ -523,7 +528,6 @@ void MainWindow::createMenus()
     editMenu->addAction(deleteAction);
     editMenu->addAction(selectAllAction);
     editMenu->addSeparator();
-    
     editMenu->addAction(findAction);
     editMenu->addAction(find_ReplaceAction);
 
@@ -674,7 +678,7 @@ void MainWindow::createToolBars()
 {
     try
     {
-        // format toolbar
+        // basic toolbar
         formatToolBar = addToolBar(tr("Basic"));
         formatToolBar->setMovable(true);
 
@@ -1356,7 +1360,6 @@ void MainWindow::toolsToolbar()
 void MainWindow::editorToolbar()
 {
     createEditorToolbars();
-    //QMessageBox::information(this,"title","On Function is working!");
 }
 
 // bottom dock
@@ -1395,11 +1398,19 @@ void MainWindow::setRightDock()
 // full screen
 void MainWindow::fullScreen()
 {
-    this->showMaximized();
-    formatToolBar->hide();
-    editorToolbars->hide();
-    toolsToolbars->hide();
-    formatingToolbars->hide();
+    try
+    {
+        this->showMaximized();
+        formatToolBar->hide();
+        /*editorToolbars->hide();
+        toolsToolbars->hide();
+        formatingToolbars->hide();*/
+    }
+    catch(...)
+    {
+        //nothing
+    }
+
 }
 
 // new window
