@@ -103,7 +103,7 @@ else ()
 endif ()
 
 # Find QT4
-find_package ( Qt4 COMPONENTS QtMain QtCore QtGui REQUIRED )
+find_package ( Qt4 COMPONENTS QtMain QtCore QtGui QtWebKit REQUIRED )
 include ( ${QT_USE_FILE} )
 
 # -----------------
