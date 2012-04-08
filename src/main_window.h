@@ -244,7 +244,6 @@ private:
     QLineEdit *findLineEdit;
     QHBoxLayout *layout;
 
-
     QWidget *notepad;
 
     QDialog *aboutVersionWindow;

@@ -7,7 +7,6 @@
         <file alias="image">image.png</file>
         <file alias="weblink">weblink.png</file>
         <file alias="splash">splashScreen.png</file>
-        <file>exit.png</file>
     </qresource>
     <qresource prefix="/files">
         <file>shortcuts.ini</file>

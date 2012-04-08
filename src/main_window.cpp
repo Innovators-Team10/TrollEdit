@@ -10,6 +10,7 @@
 #include <QtGui>
 #include <QString>
 #include <QTextStream>
+#include <QtWebKit>
 
 
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
@@ -1549,14 +1550,22 @@ void MainWindow::homePage()
     QDesktopServices::openUrl(QUrl("http://innovators-team10.github.com"));
 }
 
-// html help
+// html help - ešte dorobit
 void MainWindow::help()
 {
-    /*QWebView *view = new QWebView();
-         view->load(QUrl("http://qt.nokia.com/"));
-         view->show();*/
+    QWidget *okno = new QWidget();
+    QWebView *view = new QWebView(okno);
+    QToolBar *helpToolBar = new QToolBar(tr("&Navigation"),okno);
 
-    QDesktopServices::openUrl(QUrl("http://innovators-team10.github.com/user-manual.html"));
+    helpToolBar->addAction(view->pageAction(QWebPage::Back));
+    helpToolBar->addAction(view->pageAction(QWebPage::Forward));
+    helpToolBar->addAction(view->pageAction(QWebPage::Reload));
+    helpToolBar->addAction(view->pageAction(QWebPage::Stop));
+
+    view->load(QUrl("http://innovators-team10.github.com/user-manual.html"));
+    okno->resize(800,600);
+    okno->setWindowTitle("On-line help");
+    okno->show();
 }
 
 // check new update
@@ -1644,7 +1653,7 @@ void MainWindow::readSettings()
 {
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     QPoint pos = settings.value("pos", QPoint(100, 100)).toPoint();
-    QSize size = settings.value("size", QSize(850, 700)).toSize();
+    QSize size = settings.value("size", QSize(500, 300)).toSize();
     resize(size);
     move(pos);
 
