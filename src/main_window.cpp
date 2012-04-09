@@ -166,7 +166,8 @@ void MainWindow::createActions(DocumentScene *scene)
     QIcon newIcon(":/m/new"); newIcon.addFile(":/s/new"); // works
     newAction = new QAction(newIcon, tr("&New"), this);
     textstring = file.readLine();
-    textstring.remove(6,1);
+    QString sizeOfWord = QString::number(textstring.size());
+    textstring.resize(sizeOfWord-1);
     newAction->setShortcut((textstring));
     newAction->setToolTip(tr("Create a new file"));
     connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
@@ -183,7 +184,6 @@ void MainWindow::createActions(DocumentScene *scene)
 
     // revert
     revertAction = new QAction(tr("&Revert"), this); // ??? is this used ???
-        textstring = file.readLine();
 //    QIcon revertIcon(":/m/open"); openIcon.addFile(":/s/open");
     revertAction = new QAction(tr("&Revert"), this);
         textstring = file.readLine();
