@@ -84,9 +84,9 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
     // process rest of the AST
     if (element->isLeaf()) //! leaf - create text area
     {
-        qDebug() << "text " << element->getType() << " par: " << element->allowsParagraphs()  ;
+        //qDebug() << "text " << element->getType() << " par: " << element->allowsParagraphs()  ;
         myTextItem = new TextItem(element->getType(), this, element->allowsParagraphs(), element->isPaired());
-        qDebug() << "this " << myTextItem;
+        //qDebug() << "this " << myTextItem;
     }
     else //! non-leaf - create rest of the tree
     {
@@ -1355,8 +1355,8 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 
     if (pointed) //! hover background
     {
-        QColor color = Qt::gray;
-        color.setAlpha(70);
+        QColor color = Qt::red;
+        color.setAlpha(80);
         painter->fillPath(path, color);
     }
 
@@ -1373,7 +1373,7 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 QColor Block::getHoverColor() const
 {
     if (element->isUnknown())
-        return Qt::red;
+        return Qt::green;
     else
         return Qt::blue;
 }

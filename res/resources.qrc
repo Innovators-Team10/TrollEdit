@@ -1,16 +1,15 @@
 <RCC>
     <qresource prefix="/">
         <file alias="minus">minus.png</file>
-        <file alias="plus">plus.png</file>
         <file alias="icon32">icon32.png</file>
         <file alias="icon16">icon16.png</file>
         <file alias="link">link.png</file>
         <file alias="text">text.png</file>
         <file alias="image">image.png</file>
         <file alias="weblink">weblink.png</file>
+        <file alias="splash">splashScreen.png</file>
     </qresource>
     <qresource prefix="/m">
-        <file alias="logo">logo.png</file>
         <file alias="area">area22.png</file>
         <file alias="close">close22.png</file>
         <file alias="new">new22.png</file>
@@ -23,7 +22,6 @@
         <file alias="edit">text-editor22.png</file>
         <file alias="clear">clean22.png</file>
         <file alias="search">search22.png</file>
-        <file alias="logo2">logo2.png</file>
     </qresource>
     <qresource prefix="/s">
         <file alias="area">area16.png</file>
@@ -38,5 +36,26 @@
         <file alias="exit">exit16.png</file>
         <file alias="edit">text-editor16.png</file>
         <file alias="clear">clean16.png</file>
+    </qresource>
+    <qresource prefix="/files">
+        <file>shortcuts.ini</file>
+        <file>aboutVersion.txt</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="newFile">new (2).png</file>
+        <file alias="saveFile">save (2).png</file>
+        <file alias="openFiles">open (2).png</file>
+        <file alias="text">textMode.png</file>
+        <file alias="areaScreen">area.png</file>
+        <file alias="closeFile">close.png</file>
+        <file alias="print">printPDF.png</file>
+        <file alias="clean">clear.png</file>
+        <file alias="search">lupa.png</file>
+        <file>plusTab.png</file>
+    </qresource>
+    <qresource prefix="/img">
+        <file alias="logoSmall">logo.png</file>
+        <file alias="logoBig">logo2.png</file>
+        <file alias="logoBiggest">logo3.png</file>
     </qresource>
 </RCC>

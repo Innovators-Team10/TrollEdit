@@ -178,7 +178,7 @@ void DocumentScene::saveGroup(QString fileName, BlockGroup *group, bool noDocs)
 
 void DocumentScene::saveGroupAs(BlockGroup *group)
 {
-    group=getBlockGroup();
+    //group=getBlockGroup();
 
     QString dir = QFileInfo(window->windowFilePath()).absoluteDir().absolutePath();
 
@@ -203,7 +203,8 @@ void DocumentScene::saveAllGroups()
 {
     foreach (BlockGroup *group, groups)
     {
-        saveGroup("", group);
+        saveGroup(group->fileName, group);
+//        saveGroup("", group); // povodna funkcia
     }
 }
 
@@ -352,7 +353,7 @@ void DocumentScene::selectGroup(BlockGroup *group)
     }
     if (currentGroup != group)
     {
-        currentGroup = group;        
+        currentGroup = group;
         updateNedded = true;
     }
     if (currentGroup != 0)
@@ -453,8 +454,12 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
         else
         {
-            QGraphicsItem *item = itemAt(event->scenePos());
-
+           QGraphicsItem *item = itemAt(event->scenePos());
+//            TextGroup* t = ((TextGroup*)(item));
+            //            if(qobject_cast<TextGroup*>(item)!=0){
+ //           if(t!=0){
+  //              selectGroup(t->block);
+  //          }
             if (item == 0)
             {
                 selectGroup();
@@ -502,6 +507,25 @@ void DocumentScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
             str.append(QString("Last line: %1").arg(currentGroup->lastLine));
 
+        }
+        else if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier){
+            QList<TreeElement*> list = rootEl->getDescendants();
+
+            foreach (TreeElement *el, list)
+            {
+                str.append("- ");
+
+                str.append(QString("%1").arg(el->getSpaces()));
+                str.append("  "+el->getType());
+                if(TreeElement::DYNAMIC){
+                    for(int i = 0; i < el->local_deep_AST; i++)
+                        str.append(QString("%1 ").arg(el->local_nodes_AST[i]));
+                    str.append(QString("child:%1 ").arg(el->childCount()));
+                }
+                if (el->isLineBreaking()) str.append("*");
+
+                str.append("\n");
+            }
         }
         else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
         {

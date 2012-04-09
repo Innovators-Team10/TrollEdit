@@ -60,6 +60,7 @@ QString LanguageManager::getLanguage(QString extens){
     QFileInfo defaultGrammar(programPath + DEFAULT_GRAMMAR);
     QFileInfo configFile(programPath + CONFIG_FILE);
     QFileInfo snippetFile(programPath + SNIPPET_FILE);
+    this->snippetFile=snippetFile.absoluteFilePath();
 
     foreach (QFileInfo file, grammars)
     {

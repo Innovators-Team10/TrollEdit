@@ -4,8 +4,10 @@
  * Contains the declaration of class MainWindow and it's funtions and identifiers
  *
  */
+
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
+
 
 #include <QMainWindow>
 #include <QtGui>
@@ -15,6 +17,7 @@
 #include <QPainter>
 #include <QList>
 #include <QTableView>
+
 
 typedef struct pokus
 {
@@ -50,6 +53,16 @@ signals:
     void apply(QBrush *brush, QPen *pen);
 
 private slots:
+    void closeGroupWrapper();
+    void revertGroupWrapper();
+    void saveGroupWrapper();
+    void saveGroupAsWrapper();
+    void saveAllGroupsWrapper();
+    void saveGroupAsWithoutDocWrapper();
+    void closeAllGroupsWrapper();
+    void showPreviewWrapper();
+    void cleanGroupWrapper();
+
     void newFile();
     void newTab();
     void closeTab(int );
@@ -58,16 +71,54 @@ private slots:
     void openRecentFile();
     void about();
     void help();
-    void settings();
+    void homePage();
+    void showLicense();
+    void update();
+    void aboutVersion();
+    void bugReport();
+    void settings(); // tato funkcia akože èo robi?
     void langChanged(QString);
     void search();
+    void options();
+    void taskList();
+    void twoMode();
+    void startUp();
+    void fullScreen();
+    void undo();
+    void redo();
+    void cut();
+    void copy();
+    void paste();
+    void delet();
+    void selectAll();
+    void find();
+    void find_Replace();
+    void showCmd();
+    void newWindow();
+    void zoomIn();
+    void zoomOut();
+    void split();
+    void snapshot();
+    void bugList();
+
+    void basicToolbar();
+    void formatingToolbar();
+    void webToolbar();
+    void editorToolbar();
+    void setBottomDock();
+    void setRightDock();
+
+    void setLanguageLua();
+    void setLanguageC();
+    void setLanguageXml();
 
     void printPdf();
+    void swMetrics();
     void showPrintableArea();
     void setShort();
     void savedShortcuts();
     void closeShortcuts();
-        void wInit();
+    void wInit();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -75,9 +126,8 @@ protected:
 private:
     enum { MaxRecentFiles = 6 };
     QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
-    void setCurrentFile(DocumentScene *scene);
 
-    QAction *aboutQtAction;
+    // for file menu
     QAction *newAction;
     QAction *newTabAction;
     QAction *openAction;
@@ -96,37 +146,101 @@ private:
     QAction *clearAction;
     QAction *exitAction;
 
+    // for edit menu
+    QAction *undoAction;
+    QAction *redoAction;
     QAction *cutAction;
     QAction *copyAction;
     QAction *pasteAction;
     QAction *deleteAction;
+    QAction *selectAllAction;
+    QAction *findAction;
+    QAction *find_ReplaceAction;
 
-    QAction *settingsAction;
+    QAction *settingsAction;  // to je t zbytocne uplne aj tak nic nerobi tak  funkcia
 
+    // for help menu
+    QAction *homePageAction;
     QAction *helpAction;
     QAction *aboutAction;
-        QAction *shortAction;
+    QAction *updateAction;
+    QAction *versionAction;
+    QAction *bugReportAction;
+    QAction *showLicenseAction;
+
+    // for view menu
+    QAction *twoModeAction;
+    QAction *startUpAction;
+    QAction *fullScreenAction;
+    QAction *newWindowAction;
+    QAction *zoomInAction;
+    QAction *zoomOutAction;
+    QAction *splitAction;
+    QAction *basicToolbarAction;
+    QAction *formatingToolbarAction;
+    QAction *webToolbarAction;
+    QAction *editorToolbarAction;
+    QAction *setBottomDockAction;
+    QAction *setRightDockAction;
+
+    // for tools menu
+    QAction *shortAction;
+    QAction *optionsAction;
+    QAction *metricsAction;
+    QAction *setCAction;
+    QAction *setLuaAction;
+    QAction *setXmlAction;
+    QAction *showCmdAction;
+    QAction *snapshotAction;
+    QAction *bugListAction;
+    QAction *taskListAction;
 
     QAction *textBoldAction;
     QAction *textItalicAction;
     QAction *textUnderlineAction;
 
+    // items for menu
     QMenu *fileMenu;
     QMenu *editMenu;
-    QMenu *optionsMenu;
+    QMenu *viewMenu;
+    QMenu *tollsMenu;
     QMenu *helpMenu;
+    QMenu *generateMenu;
+    QMenu *toolbarsMenu;
+    QMenu *languageMenu;
+    QMenu *setToolbarsMenu;
+    QMenu *panelsMenu;
 
     QToolBar *formatToolBar;
-    // QTabBar *tabBar; // is not (and should not be) used ???
     QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
-    QLabel *searchLabel;
+    QLabel *logoLabel;
     QDialog *set_shortcuts;
 
+    // for function a find
+    QDialog *findWindow;
+
+
+    QDialog *aboutVersionWindow;
+    QLabel *aboutVersionLabel;
+    QVBoxLayout *outer;
+    QTextEdit *aboutVersionTextEdit;
+
+    QDialog *setOptions;
+    QListWidget *zoznam;
+
+    //for dock panels
+    QDockWidget *dock;
+    QTextEdit *text;
+    QDockWidget *dock1;
+    QTextEdit *text1;
+
+
     LanguageManager *langManager;
- //   DocumentScene *scene;
+
+    //DocumentScene *scene;
     QHash<QString, QPair<QFont, QColor> > *highlightFormats;
 
     QPrinter *printer;
@@ -137,7 +251,8 @@ private:
 
     QGraphicsView* createView();
     QTableWidget *m_table;
-    void createActions(DocumentScene *scene);
+
+    void createActions();
     void createMenus();
     void createGlobalActions();
     void disconnectAll();
@@ -149,7 +264,7 @@ private:
 
     void showArea();
     void hideArea();
-        QPointF startPoint;
+    QPointF startPoint;
     BlockGroup *selectedGroup;
 
     void readSettings();
