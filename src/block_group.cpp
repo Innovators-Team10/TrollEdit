@@ -1,3 +1,12 @@
+/** 
+* @file block_group.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class BlockGroup and it's functions and identifiers.
+*/
+
 #include "block_group.h"
 #include "text_group.h"
 #include "block.h"
@@ -92,6 +101,11 @@ void BlockGroup::setContent(QString content)
     docScene->update();
 }
 
+/**
+ * Set given root to be new block root.
+ * Function sets new root and calls updateBlock to update each root in new hierarchy.
+ * @see updateBlock()
+ */
 void BlockGroup::setRoot(Block *newRoot)
 {
     if (newRoot == 0)
@@ -127,6 +141,11 @@ void BlockGroup::setRoot(Block *newRoot)
     clearSearchResults();
     root->updateBlock(false);
 
+    /**
+     * @todo Parallelism for updateBlock(). Divide foreach loop and objects in docBlocks into more threads.
+     * Problem - problem using pointers/references in QtConcurrent :(
+     * @todo Add decision whether to use paralleled computation or not
+     */
 //    QList<DocBlock*> docBlocksList = docBlocks();
 //    QList<QSharedPointer<DocBlock> *> pointerList;
     
@@ -907,7 +926,12 @@ void BlockGroup::analyzeAll(QString text)
     }
 }
 
-//* this function is run in thread, when finished, slot for updateAllInThread is invoked
+/** Function to run analyzis of text in worker thread on background. 
+ * This function is run in thread, when finished, slot for updateAllInThread is invoked.
+ * Called most of the time.
+ * @see updateAllInThread()
+ * @return returns Root Element of analyzed text - not used
+ */
 TreeElement* BlockGroup::analazyAllInThread (QString text) 
 {
     qDebug("analazyAllInThread");
@@ -919,7 +943,11 @@ TreeElement* BlockGroup::analazyAllInThread (QString text)
     return rootEl;
 }
 
-//* this function is run directly in master, while he is waiting, returns Root Element of analyzed text
+/** Function to run analyzis of text in master thread. 
+ * This function is run directly in master, while he is waiting. Blocking, application has to wait for result.
+ * Run when creating / opening new file.
+ * @return returns Root Element of analyzed text
+ */
 TreeElement* BlockGroup::analazyAllInMaster (QString text)  
 {
     qDebug("analazyAllInMaster");
@@ -927,7 +955,10 @@ TreeElement* BlockGroup::analazyAllInMaster (QString text)
     return analyzer->analyzeFull(text);
 }
 
-//NotImplemented
+/** Function to update blocks based on analyzed text in worker thread.
+ * This function is invoked after analysis in thread is done.
+ * New Root element is set and all blocks are updated.
+ */
 void BlockGroup::updateAllInThread () 
 {
     if (groupRootEl != 0) {
@@ -944,6 +975,10 @@ void BlockGroup::updateAllInThread ()
     qDebug("updateAllInThread");
 }
 
+/** Function to update blocks based on analyzed text in master thread.
+ * This function is invoked after analysis is done. 
+ * New Root element is set and all blocks are updated.
+ */
 void BlockGroup::updateAllInMaster (TreeElement* rootEl) 
 {
     // create new root

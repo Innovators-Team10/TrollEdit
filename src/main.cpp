@@ -1,3 +1,12 @@
+/** 
+* @file main.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class Main. Contains main function. Initialize Qt applicationin which editor is running.
+*/
+
 #include <QApplication>
 #include <QAction>
 #include "main_window.h"

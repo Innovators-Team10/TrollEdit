@@ -1,3 +1,12 @@
+/** 
+* @file main_window.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class MainWindow.
+*/
+
 #include "main_window.h"
 #include "ui_main_window.h"
 #include "document_scene.h"

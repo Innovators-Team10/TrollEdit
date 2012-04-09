@@ -1,3 +1,12 @@
+/** 
+* @file fold_button.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class FoldButton and it's functions and identifiers
+*/
+
 #include "fold_button.h"
 #include "block.h"
 #include "block_group.h"

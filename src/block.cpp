@@ -1,9 +1,11 @@
-/**
- * block.cpp
- *  ---------------------------------------------------------------------------
- * Contains the defintion of class Block and it's funtions and identifiers
- *
- */
+/** 
+* @file block.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class Block and it's functions and identifiers
+*/
 
 #include "block.h"
 #include "fold_button.h"

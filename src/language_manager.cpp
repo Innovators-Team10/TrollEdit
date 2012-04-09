@@ -1,3 +1,12 @@
+/** 
+* @file language_manager.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 1.0...
+* 
+* @section DESCRIPTION
+* Contains the defintion of class LanguageManager and it's functions and identifiers
+*/
+
 #include "language_manager.h"
 #include "analyzer.h"
 #include <QDir>
