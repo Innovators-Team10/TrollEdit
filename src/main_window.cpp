@@ -74,7 +74,7 @@ void MainWindow::closeAllGroupsWrapper(){
 }
 
 void MainWindow::showPreviewWrapper(){
-    getScene()->selectedGroup()->changeMode();
+    getScene()->selectedGroup()->changeMode(actionList);
 //    getScene()->showPreview(0); // povodny edit plain text, zobrazi okno s plain textom
 }
 
@@ -344,7 +344,7 @@ void MainWindow::createActions()
     setRightDockAction->setCheckable(true);
     connect(setRightDockAction, SIGNAL(triggered()), this, SLOT(setRightDock()));
 
-    // full screen
+    // fullscreen
     QIcon fullScreenIcon(":/icons/fullScreen.png");
     fullScreenAction = new QAction(fullScreenIcon,tr("&FullScreen"), this);
     fullScreenAction->setShortcut(tr("F8"));
@@ -387,44 +387,64 @@ void MainWindow::createActions()
     undoAction = new QAction(undoIcon, tr("&Undo"), this);
     undoAction->setShortcut(tr("CTRL+Z"));
     undoAction->setStatusTip(tr("Undo"));
-    connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+    undoAction->setEnabled(false);
+    connect(MainWindow::undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+    actionList.append(undoAction);
 
     // redo
     QIcon redoIcon(":/icons/redo.png");
     redoAction = new QAction(redoIcon, tr("&Redo"), this);
     redoAction->setShortcut(tr("CTRL+Y"));
     redoAction->setStatusTip(tr("Redo"));
+    redoAction->setEnabled(false);
     connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
+    actionList.append(redoAction);
 
     // cut
     QIcon cutIcon(":/icons/cut.png");
     cutAction = new QAction(cutIcon, tr("&Cut"), this);
     cutAction->setShortcut(tr("CTRL+X"));
     cutAction->setStatusTip(tr("Cut"));
+    cutAction->setEnabled(false);
     connect(cutAction, SIGNAL(triggered()), this, SLOT(cut()));
+    actionList.append(cutAction);
 
     // copy
     QIcon copyIcon(":/icons/copy.png");
     copyAction = new QAction(copyIcon,tr("&Copy"), this);
     copyAction->setShortcut(tr("CTRL+C"));
     copyAction->setStatusTip(tr("Copy"));
+    copyAction->setEnabled(false);
     connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
+    actionList.append(copyAction);
 
     // paste
     QIcon pasteIcon(":/icons/paste.png");
     pasteAction = new QAction(pasteIcon,tr("&Paste"), this);
     pasteAction->setShortcut(tr("CTRL+V"));
     pasteAction->setStatusTip(tr("Paste"));
+    pasteAction->setEnabled(false);
     connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+    actionList.append(pasteAction);
 
     // delete
     QIcon deleteIcon(":/icons/delete.png");
     deleteAction = new QAction(deleteIcon,tr("&Delete"), this);
     deleteAction->setShortcut(tr("DEL"));
     deleteAction->setStatusTip(tr("Delete"));
+    deleteAction->setEnabled(false);
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(delet()));
+    actionList.append(deleteAction);
 
-    // attach file
+    // selectAll
+    selectAllAction = new QAction(tr("&Select All"), this);
+    selectAllAction->setShortcut(tr("CTRL+A"));
+    selectAllAction->setStatusTip(tr("Select All"));
+    selectAllAction->setEnabled(false);
+    connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
+    actionList.append(selectAllAction);
+
+    //attach file
     QIcon attachIcon(":/icons/spin.png");
     attachFileAction = new QAction(attachIcon,tr("&Attach file"), this);
     attachFileAction->setStatusTip(tr("Attach file"));
@@ -464,8 +484,12 @@ void MainWindow::createActions()
     file.close();
 }
 
-
 // Items in MenuBar
+
+QList<QAction *> MainWindow::getActionList()
+{
+    return actionList;
+}
 
 void MainWindow::createMenus()
 {
@@ -502,8 +526,8 @@ void MainWindow::createMenus()
     editMenu->addAction(copyAction);
     editMenu->addAction(pasteAction);
     editMenu->addAction(deleteAction);
+    editMenu->addAction(selectAllAction);
     editMenu->addSeparator();
-    
     editMenu->addAction(findAction);
     editMenu->addAction(find_ReplaceAction);
 
@@ -654,7 +678,7 @@ void MainWindow::createToolBars()
 {
     try
     {
-        // format toolbar
+        // basic toolbar
         formatToolBar = addToolBar(tr("Basic"));
         formatToolBar->setMovable(true);
 
@@ -1226,34 +1250,38 @@ void MainWindow::openRecentFile()
 
 void MainWindow::undo()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->undo();
 }
 
 void MainWindow::redo()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->redo();
 }
 
 void MainWindow::cut()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->cut();
 }
 
 void MainWindow::copy()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->copy();
 }
 
 void MainWindow::paste()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->paste();
 }
 
 void MainWindow::delet()
 {
-  QMessageBox::information(this,"title","On Function is working!");
+    getScene()->selectedGroup()->getTextGroup()->deleteFunction();
 }
 
+void MainWindow::selectAll()
+{
+    getScene()->selectedGroup()->getTextGroup()->selectAll();
+}
 
 void MainWindow::find()
 {
@@ -1304,7 +1332,6 @@ void MainWindow::find_Replace()
 
 //FUNTIONS FOR VIEW MENU ---------------------------------------------------------------------------------
 
-
 // startUp screen
 void MainWindow::startUp()
 {
@@ -1333,7 +1360,6 @@ void MainWindow::toolsToolbar()
 void MainWindow::editorToolbar()
 {
     createEditorToolbars();
-    //QMessageBox::information(this,"title","On Function is working!");
 }
 
 // bottom dock
@@ -1372,11 +1398,19 @@ void MainWindow::setRightDock()
 // full screen
 void MainWindow::fullScreen()
 {
-    this->showMaximized();
-    formatToolBar->hide();
-    editorToolbars->hide();
-    toolsToolbars->hide();
-    formatingToolbars->hide();
+    try
+    {
+        this->showMaximized();
+        formatToolBar->hide();
+        /*editorToolbars->hide();
+        toolsToolbars->hide();
+        formatingToolbars->hide();*/
+    }
+    catch(...)
+    {
+        //nothing
+    }
+
 }
 
 // new window
