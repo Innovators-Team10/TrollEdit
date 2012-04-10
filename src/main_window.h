@@ -46,8 +46,7 @@ public:
     DocumentScene* getScene();
     LanguageManager* getLangManager();
     QComboBox* getScriptBox();
-    lua_State* getLuaState();
-
+	lua_State* getLuaState();	QList<QAction *> getActionList();
 
 public slots:
     void open(QString fileName);
@@ -95,6 +94,7 @@ private slots:
     void copy();
     void paste();
     void delet();
+    void selectAll();
     void find();
     void find_Replace();
     void showCmd();
@@ -169,6 +169,7 @@ private:
     QAction *copyAction;
     QAction *pasteAction;
     QAction *deleteAction;
+    QAction *selectAllAction;
     QAction *findAction;
     QAction *find_ReplaceAction;
 
@@ -271,6 +272,7 @@ private:
 
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
+    QList<QAction *> actionList;
 
     QGraphicsView* createView();
     QTableWidget *m_table;

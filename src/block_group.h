@@ -53,6 +53,7 @@ public:
     bool isModified() const {return modified;}
     void setModified(bool flag);
     void setContent(QString content);
+    void changeMode(QList<QAction *> actionList);
     void changeMode();
 
     // block management
@@ -67,6 +68,7 @@ public:
     Block* blockAt(QPointF scenePos) const;
     int lineAt(QPointF scenePos) const;
     Block *addTextCursorAt(QPointF scenePos);
+    TextGroup *getTextGroup();
 
     DocBlock *addDocBlock(QPointF scenePos);
     QList<DocBlock*> docBlocks() const;
