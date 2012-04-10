@@ -1,11 +1,12 @@
-/** 
+/**
 * @file main_window.cpp
 * @author Team 04 Ufopak + Team 10 Innovators
-* @version 
-* 
+* @version
+*
 * @section DESCRIPTION
 * Contains the defintion of class MainWindow.
 */
+
 
 #include "main_window.h"
 #include "ui_main_window.h"
@@ -316,11 +317,6 @@ void MainWindow::createActions()
     bugListAction->setStatusTip(tr("Show bug list"));
     connect(bugListAction, SIGNAL(triggered()), this, SLOT(bugList()));
 
-    // start page
-    startUpAction = new QAction(tr("&Start page"), this);
-    startUpAction->setStatusTip(tr("View StartUp screen"));
-    connect(startUpAction, SIGNAL(triggered()), this, SLOT(startUp()));
-
     // basic toolbar
     basicToolbarAction = new QAction(tr("&Basic"), this);
     basicToolbarAction->setStatusTip(tr("Set basic toolbar"));
@@ -544,7 +540,6 @@ void MainWindow::createMenus()
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(newWindowAction);
     viewMenu->addAction(plainEditAction);
-    viewMenu->addAction(startUpAction);
     viewMenu->addAction(fullScreenAction);
     viewMenu->addAction(splitAction);
     viewMenu->addSeparator();
@@ -555,7 +550,7 @@ void MainWindow::createMenus()
     setToolbarsMenu->addAction(toolsToolbarAction);
     setToolbarsMenu->addAction(editorToolbarAction);
     // submenu panels
-    panelsMenu = viewMenu->addMenu("&Panels");
+    panelsMenu = viewMenu->addMenu("&Output panels");
     panelsMenu->addAction(setBottomDockAction);
     panelsMenu->addAction(setRightDockAction);
     viewMenu->addSeparator();
@@ -1341,11 +1336,6 @@ void MainWindow::find_Replace()
 
 //FUNTIONS FOR VIEW MENU ---------------------------------------------------------------------------------
 
-// startUp screen
-void MainWindow::startUp()
-{
-    QMessageBox::information(this,"title","On Function is working!");
-}
 
 // basic toolbar
 void MainWindow::basicToolbar()
@@ -1593,10 +1583,10 @@ void MainWindow::homePage()
     QDesktopServices::openUrl(QUrl("http://innovators-team10.github.com"));
 }
 
-// html help - ešte dorobit
+// html help
 void MainWindow::help()
 {
-    QWidget *okno = new QWidget();
+    QDialog *okno = new QDialog();
     QWebView *view = new QWebView(okno);
     QToolBar *helpToolBar = new QToolBar(tr("&Navigation"),okno);
 
@@ -1604,9 +1594,10 @@ void MainWindow::help()
     helpToolBar->addAction(view->pageAction(QWebPage::Forward));
     helpToolBar->addAction(view->pageAction(QWebPage::Reload));
     helpToolBar->addAction(view->pageAction(QWebPage::Stop));
-
     view->load(QUrl("http://innovators-team10.github.com/user-manual.html"));
-    okno->resize(800,600);
+    view->resize(900,700);
+    okno->setFixedSize(900,700);
+    okno->setWindowIcon (QIcon(":/icons/help.png"));
     okno->setWindowTitle("On-line help");
     okno->show();
 }
