@@ -88,8 +88,9 @@ void MainWindow::createActions()
     QIcon newIcon(":/icons/newFile"); newIcon.addFile(":/s/new"); // works
     newAction = new QAction(newIcon, tr("&New"), this);
     textstring = file.readLine();
-    QString sizeOfWord = QString::number(textstring.size());
-    textstring.resize(sizeOfWord-1);
+    //QString sizeOfWord = QString::number(textstring.size());
+    //textstring.resize(sizeOfWord-1);
+    textstring.remove(6,1);
     newAction->setShortcut((textstring));
     newAction->setToolTip(tr("Create a new file"));
     connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
