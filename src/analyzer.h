@@ -13,6 +13,8 @@
 #include <QList>
 #include <QDebug>
 
+#include <QThreadPool>
+
 class TreeElement;
 
 extern "C" {
@@ -98,6 +100,7 @@ private:
     QString getParentAST();                         //! parent of current element in AST
 
     QMessageBox *msgBox; //! for (error) mesasage
+    
 };
 
 #endif // ANALYZER_H

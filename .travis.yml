@@ -31,5 +31,5 @@ notifications:
   recipients:
     - tp-team-10@googlegroups.com
   email:
-    on_success: change
+    on_success: always
     on_failure: always

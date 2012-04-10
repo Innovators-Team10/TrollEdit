@@ -1,9 +1,16 @@
-#include "text_group.h"
+/** 
+* @file text_group.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class TextGroup.
+*/
 
+#include "text_group.h"
 #include "document_scene.h"
 #include "block_group.h"
 #include "main_window.h"
-
 #include "tree_element.h"
 #include "block.h"
 #include "text_item.h"
