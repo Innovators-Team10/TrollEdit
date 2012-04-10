@@ -88,8 +88,6 @@ void MainWindow::createActions()
     QIcon newIcon(":/icons/newFile"); newIcon.addFile(":/s/new"); // works
     newAction = new QAction(newIcon, tr("&New"), this);
     textstring = file.readLine();
-    //QString sizeOfWord = QString::number(textstring.size());
-    //textstring.resize(sizeOfWord-1);
     textstring.remove(6,1);
     newAction->setShortcut((textstring));
     newAction->setToolTip(tr("Create a new file"));
@@ -108,7 +106,7 @@ void MainWindow::createActions()
     // revert
     revertAction = new QAction(tr("&Revert"), this); // ??? is this used ???
 //    QIcon revertIcon(":/m/open"); openIcon.addFile(":/s/open");
-    textstring = file.readLine();
+    //textstring = file.readLine();
 
     // QIcon revertIcon(":/m/open"); openIcon.addFile(":/s/open");
     revertAction = new QAction(tr("&Revert"), this);
@@ -183,6 +181,14 @@ void MainWindow::createActions()
         plainEditAction->setToolTip(tr("Edit file as plain text"));
         connect(plainEditAction, SIGNAL(triggered()), this, SLOT(showPreviewWrapper()));
         groupActions->addAction(plainEditAction);
+
+        // new Tab
+        newTabAction = new QAction(this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        newTabAction->setShortcut((textstring));
+        connect(newTabAction, SIGNAL(triggered()), this, SLOT(newTab()));
+        addAction(newTabAction);
 
         // clear search results
         QIcon clearIcon(":/m/clear"); saveIcon.addFile(":/s/clear");
@@ -375,54 +381,73 @@ void MainWindow::createActions()
 
     // undo
     undoAction = new QAction(tr("&Undo"), this);
-    undoAction->setShortcut(tr("CTRL+Z"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    undoAction->setShortcut((textstring));
     undoAction->setStatusTip(tr("Undo"));
     connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
 
     // redo
     redoAction = new QAction(tr("&Redo"), this);
-    redoAction->setShortcut(tr("CTRL+Y"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    redoAction->setShortcut((textstring));
     redoAction->setStatusTip(tr("Redo"));
     connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
 
     // cut
     cutAction = new QAction(tr("&Cut"), this);
-    cutAction->setShortcut(tr("CTRL+X"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    cutAction->setShortcut((textstring));
     cutAction->setStatusTip(tr("Cut"));
     connect(cutAction, SIGNAL(triggered()), this, SLOT(cut()));
 
     // copy
     copyAction = new QAction(tr("&Copy"), this);
-    copyAction->setShortcut(tr("CTRL+C"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    copyAction->setShortcut((textstring));
     copyAction->setStatusTip(tr("Copy"));
     connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
 
     // paste
     pasteAction = new QAction(tr("&Paste"), this);
-    pasteAction->setShortcut(tr("CTRL+V"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    pasteAction->setShortcut((textstring));
     pasteAction->setStatusTip(tr("Paste"));
     connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
 
     // delete
     deleteAction = new QAction(tr("&Delete"), this);
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    deleteAction->setShortcut(textstring);
     deleteAction->setStatusTip(tr("Delete"));
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(delet()));
 
     // selectAll
     selectAllAction = new QAction(tr("&Select All"), this);
-    selectAllAction->setShortcut(tr("CTRL+A"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    selectAllAction->setShortcut(textstring);
     selectAllAction->setStatusTip(tr("Select All"));
     connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
 
     // find
     findAction = new QAction(tr("&Find"), this);
-    findAction->setShortcut(tr("CTRL+F"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    findAction->setShortcut((textstring));
     findAction->setStatusTip(tr("Find"));
     connect(findAction, SIGNAL(triggered()), this, SLOT(find()));
 
     // find & replace
     find_ReplaceAction = new QAction(tr("&Find & Replace"), this);
-    find_ReplaceAction->setShortcut(tr("CTRL+R"));
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    find_ReplaceAction->setShortcut((textstring));
     find_ReplaceAction->setStatusTip(tr("Find and Replace"));
     connect(find_ReplaceAction, SIGNAL(triggered()), this, SLOT(find_Replace()));
 
@@ -542,7 +567,7 @@ void MainWindow::setShort()
     QPushButton *Savebutton = new QPushButton("OK", set_shortcuts);
     QPushButton *Closebutton = new QPushButton("Close", set_shortcuts);
 
-    m_table = new QTableWidget(7, 2, set_shortcuts);
+    m_table = new QTableWidget(17, 2, set_shortcuts);
 
     m_table->setHorizontalHeaderItem(0, new QTableWidgetItem("Function"));
     m_table->setHorizontalHeaderItem(1, new QTableWidgetItem("Shortcut"));
@@ -553,6 +578,17 @@ void MainWindow::setShort()
     m_table->setItem(4,0, new QTableWidgetItem("Close"));
     m_table->setItem(5,0, new QTableWidgetItem("Print"));
     m_table->setItem(6,0, new QTableWidgetItem("Edit plain text"));
+    m_table->setItem(7,0, new QTableWidgetItem("New tab"));
+    m_table->setItem(8,0, new QTableWidgetItem("Undo"));
+    m_table->setItem(9,0, new QTableWidgetItem("Redo"));
+    m_table->setItem(10,0, new QTableWidgetItem("Cut"));
+    m_table->setItem(11,0, new QTableWidgetItem("Copy"));
+    m_table->setItem(12,0, new QTableWidgetItem("Paste"));
+    m_table->setItem(13,0, new QTableWidgetItem("Delete"));
+    m_table->setItem(14,0, new QTableWidgetItem("Select all"));
+    m_table->setItem(15,0, new QTableWidgetItem("Find"));
+    m_table->setItem(16,0, new QTableWidgetItem("Find & raplace"));
+
 
     QFile file(":/files/shortcuts.ini");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -568,10 +604,10 @@ void MainWindow::setShort()
     }
 
     file.close();
-    m_table->resize(220,240);
-    set_shortcuts->resize(225,290);
-    Savebutton->move(20,250);
-    Closebutton->move(130,250);
+    m_table->resize(245,440);
+    set_shortcuts->resize(250,490);
+    Savebutton->move(30,450);
+    Closebutton->move(140,450);
     set_shortcuts->show();
 
     QObject::connect(Savebutton, SIGNAL(clicked()),this,SLOT(savedShortcuts()));
@@ -610,6 +646,26 @@ void MainWindow::savedShortcuts()
     printPdfAction->setShortcut((textstring));
     textstring = m_table->item(6,1)->text();
     plainEditAction->setShortcut((textstring));
+    textstring = m_table->item(7,1)->text();
+    newTabAction->setShortcut((textstring));
+    textstring = m_table->item(8,1)->text();
+    undoAction->setShortcut((textstring));
+    textstring = m_table->item(9,1)->text();
+    redoAction->setShortcut((textstring));
+    textstring = m_table->item(10,1)->text();
+    cutAction->setShortcut((textstring));
+    textstring = m_table->item(11,1)->text();
+    copyAction->setShortcut((textstring));
+    textstring = m_table->item(12,1)->text();
+    pasteAction->setShortcut((textstring));
+    textstring = m_table->item(13,1)->text();
+    deleteAction->setShortcut((textstring));
+    textstring = m_table->item(14,1)->text();
+    selectAllAction->setShortcut((textstring));
+    textstring = m_table->item(15,1)->text();
+    findAction->setShortcut((textstring));
+    textstring = m_table->item(16,1)->text();
+    find_ReplaceAction->setShortcut((textstring));
     set_shortcuts->close();
 }
 
