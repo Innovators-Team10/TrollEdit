@@ -1,7 +1,18 @@
+/** 
+* @file main.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class Main. Contains main function. Initialize Qt applicationin which editor is running.
+*/
+
 #include <QApplication>
 #include <QAction>
 #include "main_window.h"
 #include <QString>
+
+#define CONFIG_DIR "/../share/trolledit"
 
 extern "C" {
     #include "lua.h"
@@ -89,7 +100,7 @@ int main(int argc, char *argv[])
 
     // find the directory of the program
     QFileInfo program(argv[0]);
-    QString path = program.absoluteDir().path();
+    QString path = QApplication::applicationDirPath();
 
     MainWindow w(path);
     w.setWindowOpacity(0);
@@ -98,8 +109,7 @@ int main(int argc, char *argv[])
     lua_State *L = w.getLuaState();
     luaL_openlibs(L);
     int width, height; QString style;
-    const QString CONFIG_DIR = "/../share/trolledit";
-    QDir dir = QDir(QApplication::applicationDirPath() + CONFIG_DIR);
+    QDir dir = QDir(path + CONFIG_DIR);
     //QFileInfoList configs = dir.entryInfoList(QStringList("*.lua"), QDir::Files | QDir::NoSymLinks);
     QFileInfo configFile(dir.absolutePath()+ QDir::separator() + "config_app.lua");
 

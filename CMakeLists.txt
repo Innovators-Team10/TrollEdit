@@ -1,5 +1,5 @@
 # Copyright (C) 2012 TrollEdit.
-# Created by Peter Drahoö
+# Created by Peter Draho≈°
 # Redistribution and use of this file is allowed according to the terms of the MIT license.
 # For details see the COPYRIGHT file distributed with TrollEdit.
 
@@ -9,6 +9,7 @@ cmake_minimum_required ( VERSION 2.8 )
 # --------------
 # TrollEdit Info
 # --------------
+
 set ( TROLLEDIT_NAME "TrollEdit" )
 set ( TROLLEDIT_VERSION_MAJOR "0" )
 set ( TROLLEDIT_VERSION_MINOR "1" )
@@ -27,20 +28,23 @@ set ( TROLLEDIT_DOMAIN "${TROLLEDIT_DOMAIN_FIRST}.${TROLLEDIT_DOMAIN_SECOND}" )
 # Install destinations
 set ( INSTALL_BIN bin CACHE PATH "Where to install binaries to." )
 set ( INSTALL_DATA share/trolledit CACHE PATH "Directory for shared data." )
+set ( INSTALL_DEPS . )
+set ( INSTALL_PLUGIN bin)
+set ( INSTALL_QTCONF bin)
 
 # Warnings for Debug mode
-# if ( CMAKE_COMPILER_IS_GNUCXX OR APPLE )
-#        set ( CMAKE_CXX_FLAGS_DEBUG -Wall -Wextra -Werror )
-# endif ()
+if ( CMAKE_COMPILER_IS_GNUCXX )
+  set ( CMAKE_CXX_FLAGS_DEBUG -Wall -Wextra -Werror )
+endif ()
 
 # Default build type
 if ( NOT CMAKE_BUILD_TYPE )
-        set ( CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE )
+  set ( CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE )
 endif ()
 
 # Default install prefix
 if ( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
-    set ( CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/TrollEdit CACHE PATH "Installation Destination" FORCE )
+  set ( CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/TrollEdit CACHE PATH "Installation Destination" FORCE )
 endif ()
 
 # Build lua and lpeg libs if needed
@@ -71,7 +75,7 @@ if ( USE_BUILTIN_LUA )
       BINARY_DIR luajit
       CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=${DEP_BIN}
-
+        -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     )
     
   # Build lpeg
@@ -81,6 +85,7 @@ if ( USE_BUILTIN_LUA )
       BINARY_DIR lpeg
       CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=${DEP_BIN}
+        -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     )
     
   # Ensure correct order of build
@@ -105,40 +110,38 @@ include ( ${QT_USE_FILE} )
 # Platform Settings
 # -----------------
 
-# Apple specific overrides
+# Apple specific overrides, we build and app bundle
 if ( APPLE )
-  # Add option to build as bundle
-  option ( TROLLEDIT_BUILD_BUNDLE "Build Trolledit as Bundle" OFF )
-  
-  # Bundle specific settings
-  if ( TROLLEDIT_BUILD_BUNDLE )
-    # Executable settings
-    set ( TROLLEDIT_EXECUTABLE_TYPE MACOSX_BUNDLE )
-    set ( BUNDLE_APP "\${CMAKE_INSTALL_PREFIX}/${TROLLEDIT_NAME}.app" )
-    
-    # Override default install destinations
-    set ( INSTALL_BUNDLE . )
-    set ( INSTALL_BIN ${TROLLEDIT_NAME}.app/Contents/MacOS )
-    set ( INSTALL_DATA ${TROLLEDIT_NAME}.app/Contents/Resources )
-  
-    # Bundle settings
-    set ( MACOSX_BUNDLE_INFO_STRING "${TROLLEDIT_NAME} ${TROLLEDIT_VERSION}" )
-    set ( MACOSX_BUNDLE_BUNDLE_VERSION "${TROLLEDIT_NAME} ${TROLLEDIT_VERSION}" )
-    set ( MACOSX_BUNDLE_LONG_VERSION_STRING "${TROLLEDIT_NAME} ${TROLLEDIT_VERSION}" )
-    set ( MACOSX_BUNDLE_SHORT_VERSION_STRING "${TROLLEDIT_VERSION}" )
-    set ( MACOSX_BUNDLE_COPYRIGHT "${TROLLEDIT_COPYRIGHT_YEAR} ${TROLLEDIT_VENDOR}" )
-    set ( MACOSX_BUNDLE_ICON_FILE "trolledit.icns" )
-    set ( MACOSX_BUNDLE_GUI_IDENTIFIER "${TROLLEDIT_DOMAIN_SECOND}.${TROLLEDIT_DOMAIN_FIRST}.${TROLLEDIT_NAME}" )
-    set ( MACOSX_BUNDLE_BUNDLE_NAME "${TROLLEDIT_NAME}" )
-    
-    # CPack Settings  
-    set ( CPACK_GENERATOR "DragNDrop" )
-    set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/res/trolledit.icns" )
-    set ( CPACK_PACKAGE_FILE_NAME "${TROLLEDIT_NAME}-${TROLLEDIT_VERSION}" )
-    
-    # OSX Specific resurces
-    install ( FILES res/trolledit.icns DESTINATION ${INSTALL_DATA} )
-  endif ()
+  # Executable settings
+  set ( TROLLEDIT_EXECUTABLE_TYPE MACOSX_BUNDLE )
+  set ( BUNDLE_APP "\${CMAKE_INSTALL_PREFIX}/${TROLLEDIT_NAME}.app" )
+
+  # Override default install destinations into the bundle
+  set ( INSTALL_BUNDLE . )
+  set ( INSTALL_BIN     ${TROLLEDIT_NAME}.app/Contents/MacOS )
+  set ( INSTALL_DATA    ${TROLLEDIT_NAME}.app/Contents/share/trolledit )
+  set ( INSTALL_RES     ${TROLLEDIT_NAME}.app/Contents/Resources )
+  set ( INSTALL_DEPS    ${TROLLEDIT_NAME}.app/Contents )
+  set ( INSTALL_PLUGIN  ${TROLLEDIT_NAME}.app/Contents/MacOS)
+  set ( INSTALL_QTCONF  ${TROLLEDIT_NAME}.app/Contents/Resources)
+
+  # Bundle settings
+  set ( MACOSX_BUNDLE_INFO_STRING "${TROLLEDIT_NAME} ${TROLLEDIT_VERSION}" )
+  set ( MACOSX_BUNDLE_BUNDLE_VERSION "${TROLLEDIT_NAME} ${TROLLEDIT_VERSION}" )
+  set ( MACOSX_BUNDLE_LONG_VERSION_STRING "${TROLLEDIT_NAME} ${TROLLEDIT_VERSION}" )
+  set ( MACOSX_BUNDLE_SHORT_VERSION_STRING "${TROLLEDIT_VERSION}" )
+  set ( MACOSX_BUNDLE_COPYRIGHT "${TROLLEDIT_COPYRIGHT_YEAR} ${TROLLEDIT_VENDOR}" )
+  set ( MACOSX_BUNDLE_ICON_FILE "trolledit.icns" )
+  set ( MACOSX_BUNDLE_GUI_IDENTIFIER "${TROLLEDIT_DOMAIN_SECOND}.${TROLLEDIT_DOMAIN_FIRST}.${TROLLEDIT_NAME}" )
+  set ( MACOSX_BUNDLE_BUNDLE_NAME "${TROLLEDIT_NAME}" )
+
+  # CPack Settings
+  set ( CPACK_GENERATOR "DragNDrop" )
+  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/res/trolledit.icns" )
+  set ( CPACK_PACKAGE_FILE_NAME "${TROLLEDIT_NAME}-${TROLLEDIT_VERSION}" )
+
+  # OSX Specific resurces
+  install ( FILES res/trolledit.icns DESTINATION ${INSTALL_RES} )
 endif ()
 
 # Windows specific overrides
@@ -164,10 +167,6 @@ endif ()
 # ---------------
 # Build TrollEdit
 # ---------------
-
-# Definitions
-add_definitions ( -DTROLLEDIT_VERSION=\"${TROLLEDIT_VERSION}\" )
-add_definitions ( -DTROLLEDIT_RESOURCES=\"../${INSTALL_DATA}\" )
 
 # Include Paths
 include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${LUA_INCLUDE_DIR} )
@@ -198,22 +197,6 @@ target_link_libraries ( ${TROLLEDIT_NAME}
   ${QT_LIBRARIES} 
   ${LUA_LIBRARY} )
 
-# Make sure dependencies are built first
-if ( USE_BUILTIN_LUA )
-  # Make sure dependencies are built
-  add_dependencies ( ${TROLLEDIT_NAME} dep_luajit )
-  
-  # If not bundling make sure we have rpath set to the built in library
-  if ( NOT TROLLEDIT_BUILD_BUNDLE )
-    # RPath functionality (relative paths to libraries)
-    set ( CMAKE_SKIP_BUILD_RPATH FALSE )
-    set ( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
-    set ( CMAKE_INSTALL_RPATH $ORIGIN/../lib )
-    set ( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
-    set ( CMAKE_INSTALL_NAME_DIR @executable_path/../lib )
-  endif ()
-endif ()
-  
 # -------
 # Install
 # -------
@@ -228,30 +211,42 @@ install ( FILES ${TROLLEDIT_LICENSE} ${TROLLEDIT_README}
 install ( DIRECTORY data/ 
   DESTINATION ${INSTALL_DATA} )
 
-# Include QT4 libraries in Apple bundle
-if ( WIN32 OR TROLLEDIT_BUILD_BUNDLE )
-  # Install Lua modules
-  install ( DIRECTORY ${DEP_BIN}/lib/lua 
-    DESTINATION ${INSTALL_DATA} )
-	
+# Install built in Lua unless we are building an OSX Bundle
+if ( USE_BUILTIN_LUA )
+  # Make sure dependencies are built
+  add_dependencies ( ${TROLLEDIT_NAME} dep_luajit )
+
+  # Install all dependencies
+  install ( DIRECTORY ${DEP_BIN}/
+    DESTINATION ${INSTALL_DEPS}
+    COMPONENT Runtime
+    USE_SOURCE_PERMISSIONS
+  )
+endif ()
+
+# Include QT4 libraries in Apple bundle and on Windows
+if ( WIN32 OR APPLE )
+  # Install Qt Plugins
+  install ( DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${INSTALL_PLUGIN}/plugins COMPONENT Runtime )
+
+  # Install Qt Config
+  install ( CODE "
+    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_QTCONF}/qt.conf\" \"\")
+    " COMPONENT Runtime)
+
   # Search Dirs
-  string ( REPLACE "/lib" "/bin" QT_RUNTIME_DIR ${QT_LIBRARY_DIR} )
-  set ( BUNDLE_DIRS "${QT_LIBRARY_DIR}" "${QT_RUNTIME_DIR}" "${DEP_BIN}/bin" "${DEP_BIN}/lib" )
+  #string ( REPLACE "/lib" "/bin" QT_RUNTIME_DIR ${QT_LIBRARY_DIR} )
+  set ( BUNDLE_DIRS ${QT_LIBRARY_DIRS} ${DEP_BIN}/bin ${DEP_BIN}/lib )
 
   # Bundle libraries
   install ( CODE "
-    include(BundleUtilities)
-    fixup_bundle(\"${BUNDLE_APP}\" \"\" \"${BUNDLE_DIRS}\")
+    file ( GLOB_RECURSE LUA_PLUGINS
+        \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_DEPS}/lib/lua/*${CMAKE_SHARED_MODULE_SUFFIX}\" )
+    file ( GLOB_RECURSE BUNDLE_PLUGINS
+        \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" )
+    include ( BundleUtilities )
+    fixup_bundle ( \"${BUNDLE_APP}\" \"\${BUNDLE_PLUGINS};\${LUA_PLUGINS}\" \"${BUNDLE_DIRS}\" )
     " COMPONENT Runtime )
-endif ()
-
-# Install built in Lua unless we are building an OSX Bundle
-if ( USE_BUILTIN_LUA AND NOT TROLLEDIT_BUILD_BUNDLE )
-  # Install all dependencies
-  install ( DIRECTORY ${DEP_BIN}/ 
-    DESTINATION . 
-    USE_SOURCE_PERMISSIONS
-	)
 endif ()
 
 # -------

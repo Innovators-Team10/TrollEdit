@@ -1,3 +1,12 @@
+/** 
+* @file tree_element.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class TreeElement.
+*/
+
 #include "tree_element.h"
 #include "block.h"
 #include "doc_block.h"
