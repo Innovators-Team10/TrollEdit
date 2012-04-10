@@ -86,7 +86,6 @@ private slots:
     void search2();
     void options();
     void taskList();
-    void startUp();
     void fullScreen();
     void undo();
     void redo();
@@ -183,7 +182,6 @@ private:
     QAction *showLicenseAction;
 
     // for view menu
-    QAction *startUpAction;
     QAction *fullScreenAction;
     QAction *newWindowAction;
     QAction *zoomInAction;
