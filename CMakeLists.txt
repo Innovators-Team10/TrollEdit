@@ -11,9 +11,9 @@ cmake_minimum_required ( VERSION 2.8 )
 # --------------
 
 set ( TROLLEDIT_NAME "TrollEdit" )
-set ( TROLLEDIT_VERSION_MAJOR "0" )
-set ( TROLLEDIT_VERSION_MINOR "1" )
-set ( TROLLEDIT_VERSION_PATCH "0" )
+set ( TROLLEDIT_VERSION_MAJOR "1" )
+set ( TROLLEDIT_VERSION_MINOR "3" )
+set ( TROLLEDIT_VERSION_PATCH "3" )
 set ( TROLLEDIT_VERSION "${TROLLEDIT_VERSION_MAJOR}.${TROLLEDIT_VERSION_MINOR}.${TROLLEDIT_VERSION_PATCH}" )
 set ( TROLLEDIT_VENDOR "TrollEdit Dev Team" )
 set ( TROLLEDIT_COPYRIGHT_YEAR "2012" )
@@ -34,12 +34,12 @@ set ( INSTALL_QTCONF bin)
 
 # Warnings for Debug mode
 if ( CMAKE_COMPILER_IS_GNUCXX )
-  set ( CMAKE_CXX_FLAGS_DEBUG -Wall -Wextra -Werror )
+  set ( CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Werror" )
 endif ()
 
 # Default build type
 if ( NOT CMAKE_BUILD_TYPE )
-  set ( CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE )
+  set ( CMAKE_BUILD_TYPE "MinSizeRel" CACHE STRING "" FORCE )
 endif ()
 
 # Default install prefix
@@ -94,7 +94,7 @@ if ( USE_BUILTIN_LUA )
   # Define LUA_ variables
   set ( LUA_LIBRARY ${DEP_BIN}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}lua${CMAKE_SHARED_LIBRARY_SUFFIX} )
   if ( WIN32 )
-    set ( LUA_LIBRARY ${DEP_BIN}/bin/liblua.dll )
+    set ( LUA_LIBRARY ${DEP_BIN}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}lua${CMAKE_SHARED_LIBRARY_SUFFIX} )
   endif ()
   set ( LUA_INCLUDE_DIR ${DEP_BIN}/include )
 else ()
@@ -151,22 +151,31 @@ if ( WIN32 )
   set ( BUNDLE_APP "\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN}/${TROLLEDIT_NAME}.exe" )
   
   # CPack settings
-  set ( CPACK_GENERATOR "NSIS" )
+  set ( CPACK_GENERATOR "NSIS" )  
   set ( CPACK_PACKAGE_INSTALL_DIRECTORY "${TROLLEDIT_NAME}" )
   set ( CPACK_PACKAGE_FILE_NAME "${TROLLEDIT_NAME}-${TROLLEDIT_VERSION}" )
   set ( CPACK_PACKAGE_EXECUTABLES "${TROLLEDIT_NAME}" "${TROLLEDIT_NAME}" )
   set ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}\\\\LICENSE.txt" )
-  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit.ico" )
+  
+  # NSIS branding
   set ( CPACK_NSIS_INSTALLED_ICON_NAME "${INSTALL_BIN}\\\\${TROLLEDIT_NAME}${CMAKE_EXECUTABLE_SUFFIX}" )
-  set ( CPACK_NSIS_DISPLAY_NAME "${TROLLEDIT_NAME} - Graphically Enhanced Text Editor" )
+  set ( CPACK_NSIS_DISPLAY_NAME "${TROLLEDIT_NAME}" )
   set ( CPACK_NSIS_HELP_LINK "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
   set ( CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
   set ( CPACK_NSIS_CONTACT "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
+  set ( CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit.ico" )
+  set ( CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit.ico" )
+  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\logo2.png" )
 endif ()
 
 # ---------------
 # Build TrollEdit
 # ---------------
+
+# Definitions
+add_definitions ( 
+  -DTROLLEDIT_VERSION=\"${TROLLEDIT_VERSION}\" 
+)
 
 # Include Paths
 include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${LUA_INCLUDE_DIR} )
@@ -203,8 +212,8 @@ target_link_libraries ( ${TROLLEDIT_NAME}
 
 # Trolledit and data
 install ( TARGETS ${TROLLEDIT_NAME} 
-  BUNDLE DESTINATION ${INSTALL_BUNDLE} COMPONENT Runtime
-  RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT Runtime )
+  BUNDLE DESTINATION ${INSTALL_BUNDLE} COMPONENT TrollEdit
+  RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT TrollEdit )
   
 install ( FILES ${TROLLEDIT_LICENSE} ${TROLLEDIT_README} 
   DESTINATION ${INSTALL_DATA} )
@@ -219,7 +228,7 @@ if ( USE_BUILTIN_LUA )
   # Install all dependencies
   install ( DIRECTORY ${DEP_BIN}/
     DESTINATION ${INSTALL_DEPS}
-    COMPONENT Runtime
+    COMPONENT Dependencies
     USE_SOURCE_PERMISSIONS
   )
 endif ()
@@ -227,26 +236,26 @@ endif ()
 # Include QT4 libraries in Apple bundle and on Windows
 if ( WIN32 OR APPLE )
   # Install Qt Plugins
-  install ( DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${INSTALL_PLUGIN}/plugins COMPONENT Runtime )
+  #install ( DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${INSTALL_PLUGIN}/plugins COMPONENT TrollEdit )
 
   # Install Qt Config
-  install ( CODE "
-    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_QTCONF}/qt.conf\" \"\")
-    " COMPONENT Runtime)
+  #install ( CODE "
+  #  file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_QTCONF}/qt.conf\" \"\")
+  #  " COMPONENT TrollEdit)
 
   # Search Dirs
-  #string ( REPLACE "/lib" "/bin" QT_RUNTIME_DIR ${QT_LIBRARY_DIR} )
-  set ( BUNDLE_DIRS ${QT_LIBRARY_DIRS} ${DEP_BIN}/bin ${DEP_BIN}/lib )
+  string ( REPLACE "/lib" "/bin" QT_RUNTIME_DIR ${QT_LIBRARY_DIR} )
+  set ( BUNDLE_DIRS ${QT_LIBRARY_DIR} ${QT_RUNTIME_DIR} ${DEP_BIN}/bin ${DEP_BIN}/lib )
 
   # Bundle libraries
   install ( CODE "
     file ( GLOB_RECURSE LUA_PLUGINS
         \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_DEPS}/lib/lua/*${CMAKE_SHARED_MODULE_SUFFIX}\" )
-    file ( GLOB_RECURSE BUNDLE_PLUGINS
-        \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" )
+    #file ( GLOB_RECURSE BUNDLE_PLUGINS
+    #    \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" )
     include ( BundleUtilities )
     fixup_bundle ( \"${BUNDLE_APP}\" \"\${BUNDLE_PLUGINS};\${LUA_PLUGINS}\" \"${BUNDLE_DIRS}\" )
-    " COMPONENT Runtime )
+    " COMPONENT TrollEdit )
 endif ()
 
 # -------
