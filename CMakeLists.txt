@@ -212,8 +212,8 @@ target_link_libraries ( ${TROLLEDIT_NAME}
 
 # Trolledit and data
 install ( TARGETS ${TROLLEDIT_NAME} 
-  BUNDLE DESTINATION ${INSTALL_BUNDLE} COMPONENT TrollEdit
-  RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT TrollEdit )
+  BUNDLE DESTINATION ${INSTALL_BUNDLE} COMPONENT Runtime
+  RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT Runtime )
   
 install ( FILES ${TROLLEDIT_LICENSE} ${TROLLEDIT_README} 
   DESTINATION ${INSTALL_DATA} )
@@ -228,20 +228,25 @@ if ( USE_BUILTIN_LUA )
   # Install all dependencies
   install ( DIRECTORY ${DEP_BIN}/
     DESTINATION ${INSTALL_DEPS}
-    COMPONENT Dependencies
+    COMPONENT Runtime
     USE_SOURCE_PERMISSIONS
   )
 endif ()
 
 # Include QT4 libraries in Apple bundle and on Windows
 if ( WIN32 OR APPLE )
-  # Install Qt Plugins
-  #install ( DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${INSTALL_PLUGIN}/plugins COMPONENT TrollEdit )
-
-  # Install Qt Config
-  #install ( CODE "
-  #  file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_QTCONF}/qt.conf\" \"\")
-  #  " COMPONENT TrollEdit)
+  # On Apple plugins need to be bundled
+  if ( APPLE )
+    # Install Qt Plugins
+    install ( DIRECTORY "${QT_PLUGINS_DIR}/imageformats" 
+      DESTINATION ${INSTALL_PLUGIN}/plugins
+      COMPONENT Runtime )
+  
+    # Install Qt Config
+    install ( CODE "
+      file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_QTCONF}/qt.conf\" \"\")
+      " COMPONENT Runtime)
+  endif ()
 
   # Search Dirs
   string ( REPLACE "/lib" "/bin" QT_RUNTIME_DIR ${QT_LIBRARY_DIR} )
@@ -251,11 +256,11 @@ if ( WIN32 OR APPLE )
   install ( CODE "
     file ( GLOB_RECURSE LUA_PLUGINS
         \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_DEPS}/lib/lua/*${CMAKE_SHARED_MODULE_SUFFIX}\" )
-    #file ( GLOB_RECURSE BUNDLE_PLUGINS
-    #    \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" )
+    file ( GLOB_RECURSE BUNDLE_PLUGINS
+        \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" )
     include ( BundleUtilities )
     fixup_bundle ( \"${BUNDLE_APP}\" \"\${BUNDLE_PLUGINS};\${LUA_PLUGINS}\" \"${BUNDLE_DIRS}\" )
-    " COMPONENT TrollEdit )
+    " COMPONENT Runtime )
 endif ()
 
 # -------
