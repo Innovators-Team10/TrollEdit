@@ -1,3 +1,12 @@
+/** 
+* @file fold_button.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class DocumentTabs and it's functions and identifiers
+*/
+
 #include "document_tabs.h"
 #include "main_window.h"
 

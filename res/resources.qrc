@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file alias="minus">minus.png</file>
         <file alias="icon32">icon32.png</file>
         <file alias="icon16">icon16.png</file>
         <file alias="link">link.png</file>
@@ -9,53 +8,50 @@
         <file alias="weblink">weblink.png</file>
         <file alias="splash">splashScreen.png</file>
     </qresource>
-    <qresource prefix="/m">
-        <file alias="area">area22.png</file>
-        <file alias="close">close22.png</file>
-        <file alias="new">new22.png</file>
-        <file alias="open">open22.png</file>
-        <file alias="print">print22.png</file>
-        <file alias="save">save22.png</file>
-        <file alias="save-as">save-as22.png</file>
-        <file alias="settings">settings22.png</file>
-        <file alias="help">help22.png</file>
-        <file alias="edit">text-editor22.png</file>
-        <file alias="clear">clean22.png</file>
-        <file alias="search">search22.png</file>
-    </qresource>
-    <qresource prefix="/s">
-        <file alias="area">area16.png</file>
-        <file alias="close">close16.png</file>
-        <file alias="new">new16.png</file>
-        <file alias="open">open16.png</file>
-        <file alias="print">print16.png</file>
-        <file alias="save">save16.png</file>
-        <file alias="save-as">save-as16.png</file>
-        <file alias="settings">settings16.png</file>
-        <file alias="help">help16.png</file>
-        <file alias="exit">exit16.png</file>
-        <file alias="edit">text-editor16.png</file>
-        <file alias="clear">clean16.png</file>
-    </qresource>
     <qresource prefix="/files">
         <file>shortcuts.ini</file>
         <file>aboutVersion.txt</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="newFile">new (2).png</file>
-        <file alias="saveFile">save (2).png</file>
-        <file alias="openFiles">open (2).png</file>
-        <file alias="text">textMode.png</file>
-        <file alias="areaScreen">area.png</file>
-        <file alias="closeFile">close.png</file>
-        <file alias="print">printPDF.png</file>
-        <file alias="clean">clear.png</file>
-        <file alias="search">lupa.png</file>
         <file>plusTab.png</file>
+        <file>undo.png</file>
+        <file>redo.png</file>
+        <file>cut.png</file>
+        <file>paste.png</file>
+        <file>copy.png</file>
+        <file>help.png</file>
+        <file>closeFile.png</file>
+        <file>new.png</file>
+        <file>open.png</file>
+        <file>seeting.png</file>
+        <file>print.png</file>
+        <file>save.png</file>
+        <file>plus.png</file>
+        <file>info.png</file>
+        <file>spin.png</file>
+        <file>snapshot.png</file>
+        <file>chart.png</file>
+        <file alias="close">close (2).png</file>
+        <file alias="textMode">textmode (2).png</file>
+        <file>home.png</file>
+        <file>find.png</file>
+        <file>cmd.png</file>
+        <file>taskList.png</file>
+        <file>saveAll.png</file>
+        <file>exit.png</file>
+        <file>minus.png</file>
+        <file>delete.png</file>
+        <file>bugList.png</file>
+        <file>fullScreen.png</file>
+        <file>printArea.png</file>
+        <file>bold.png</file>
+        <file>italic.png</file>
     </qresource>
     <qresource prefix="/img">
         <file alias="logoSmall">logo.png</file>
         <file alias="logoBig">logo2.png</file>
         <file alias="logoBiggest">logo3.png</file>
+        <file alias="newWay">newWay_text.png</file>
+        <file alias="startScreen">startPage-logo.png</file>
     </qresource>
 </RCC>

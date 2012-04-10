@@ -18,6 +18,11 @@
 #include <QList>
 #include <QTableView>
 
+extern "C" {
+    #include "lua.h"
+    #include "lualib.h"
+    #include "lauxlib.h"
+}
 
 typedef struct pokus
 {
@@ -41,8 +46,7 @@ public:
     DocumentScene* getScene();
     LanguageManager* getLangManager();
     QComboBox* getScriptBox();
-
-
+	lua_State* getLuaState();	QList<QAction *> getActionList();
 
 public slots:
     void open(QString fileName);
@@ -76,13 +80,12 @@ private slots:
     void update();
     void aboutVersion();
     void bugReport();
-    void settings(); // tato funkcia akože èo robi?
+
     void langChanged(QString);
     void search();
+    void search2();
     void options();
     void taskList();
-    void twoMode();
-    void startUp();
     void fullScreen();
     void undo();
     void redo();
@@ -102,12 +105,20 @@ private slots:
     void bugList();
 
     void basicToolbar();
-    void formatingToolbar();
-    void webToolbar();
+    void formatToolbars();
+    void toolsToolbar();
     void editorToolbar();
     void setBottomDock();
     void setRightDock();
+    void createEditorToolbars();
+    void createToolsToolbars();
+    void createFormatingToolbars();
 
+    void changeFont();
+    void sizeFont();
+    void setBold();
+    void setItalic();
+    void attachFile();
     void setLanguageLua();
     void setLanguageC();
     void setLanguageXml();
@@ -124,9 +135,10 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private:
+    lua_State* L;                   //! load configuration from lua
     enum { MaxRecentFiles = 6 };
     QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
-
+    
     // for file menu
     QAction *newAction;
     QAction *newTabAction;
@@ -145,6 +157,9 @@ private:
     QAction *separatorAction;
     QAction *clearAction;
     QAction *exitAction;
+    QAction *attachFileAction;
+    QAction *setBoldAction;
+    QAction *setItalicAction;
 
     // for edit menu
     QAction *undoAction;
@@ -157,8 +172,6 @@ private:
     QAction *findAction;
     QAction *find_ReplaceAction;
 
-    QAction *settingsAction;  // to je t zbytocne uplne aj tak nic nerobi tak  funkcia
-
     // for help menu
     QAction *homePageAction;
     QAction *helpAction;
@@ -169,16 +182,14 @@ private:
     QAction *showLicenseAction;
 
     // for view menu
-    QAction *twoModeAction;
-    QAction *startUpAction;
     QAction *fullScreenAction;
     QAction *newWindowAction;
     QAction *zoomInAction;
     QAction *zoomOutAction;
     QAction *splitAction;
     QAction *basicToolbarAction;
-    QAction *formatingToolbarAction;
-    QAction *webToolbarAction;
+    QAction *formatToolbarAction;
+    QAction *toolsToolbarAction;
     QAction *editorToolbarAction;
     QAction *setBottomDockAction;
     QAction *setRightDockAction;
@@ -212,16 +223,27 @@ private:
     QMenu *panelsMenu;
 
     QToolBar *formatToolBar;
+    QToolBar *editorToolbars;
+    QToolBar *toolsToolbars;
+    QToolBar *formatingToolbars;
+
     QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
-    QLabel *logoLabel;
     QDialog *set_shortcuts;
+
+    QFontComboBox *setFont;
+    QComboBox *setSizeFont;
 
     // for function a find
     QDialog *findWindow;
+    QPushButton *findButton;
+    QLabel *findLabel;
+    QLineEdit *findLineEdit;
+    QHBoxLayout *layout;
 
+    QWidget *notepad;
 
     QDialog *aboutVersionWindow;
     QLabel *aboutVersionLabel;
@@ -248,10 +270,12 @@ private:
 
     QGraphicsLineItem *line;
     QList<QGraphicsLineItem *> list;
+    QList<QAction *> actionList;
 
     QGraphicsView* createView();
     QTableWidget *m_table;
 
+    void initLuaState();
     void createActions();
     void createMenus();
     void createGlobalActions();
