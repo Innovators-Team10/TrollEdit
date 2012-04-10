@@ -34,11 +34,6 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
     readSettings();
 
     updateRecentFileActions();
-    QIcon icon = QIcon();
-    //icon.addFile(":/icon16.png");
-    icon.addFile(":/icon32.png");
-    setWindowIcon(icon);
-    //setCurrentFile(0);
 }
 
 //! create lua state
@@ -485,7 +480,6 @@ void MainWindow::createActions()
     printableAreaAction = new QAction(areaIcon, tr("Show Printable Area"), this);
     printableAreaAction->setToolTip(tr("Show margins of printable area"));
     connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
-    printableAreaAction->setCheckable(true);
     file.close();
 }
 
@@ -720,11 +714,9 @@ void MainWindow::createToolBars()
                                        "}");
         connect(searchLineEdit, SIGNAL(editingFinished()), this, SLOT(search()));
         formatToolBar->addWidget(searchLineEdit);
-
         formatToolBar->addAction(clearAction);
         formatToolBar->addAction(aboutAction);
         formatToolBar->addAction(helpAction);
-
     }
 
     catch(...)
@@ -841,8 +833,6 @@ void MainWindow::setItalic()
 }
 
 
-
-
 QGraphicsView* MainWindow::createView()
 {
     QGraphicsView *view = new QGraphicsView();
@@ -852,7 +842,6 @@ QGraphicsView* MainWindow::createView()
     connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
     connect(scene, SIGNAL(fileSelected(BlockGroup*)),
             this, SLOT(setCurrentFile(BlockGroup*))); // CHECK
-
     view->setScene(scene);
     return view;
 }
@@ -885,18 +874,30 @@ void MainWindow::newTab()
 
 void MainWindow::newFile()
 {
-    newTab();
-    qDebug("newFile()");
-    DocumentScene* dScene=getScene();
-    if(dScene==0){ // this should not ever happen
-        qDebug("newFile() Error: dScene = null");
-        return;
-    }else{
-        dScene->newGroup(scriptsBox->currentText());
-        setCurrentFile(dScene->selectedGroup());
-        scriptsBox->setCurrentIndex(0); // select item in scriptsBox on C (in future select previously used item etc...)
+    //check tab, if tab is Start page open new tab
+    if(tabWidget->currentIndex()==0)
+    {
+        newTab();
+    }
+    else if (tabWidget->currentIndex()!=0)
+    {
+
+        qDebug("newFile()");
+        DocumentScene* dScene=getScene();
+        if(dScene==0)  // this should not ever happen
+        {
+            qDebug("newFile() Error: dScene = null");
+            return;
+        }
+        else
+        {
+            dScene->newGroup(scriptsBox->currentText());
+            setCurrentFile(dScene->selectedGroup());
+            scriptsBox->setCurrentIndex(0); // select item in scriptsBox on C (in future select previously used item etc...)
+        }
     }
 }
+
 
 LanguageManager* MainWindow::getLangManager(){
     return this->langManager;
@@ -1054,11 +1055,17 @@ void MainWindow::setCurrentFile(BlockGroup *group)
 
 void MainWindow::open()
 {
-    newTab();
-    QString fileFilters = tr("All files (*)");
-    QString dir = QFileInfo(windowFilePath()).absoluteDir().absolutePath();
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), dir, fileFilters); // CHECK
-    open(fileName);
+    if(tabWidget->currentIndex()==0)
+    {
+        newTab();
+    }
+    else if (tabWidget->currentIndex()!=0)
+    {
+        QString fileFilters = tr("All files (*)");
+        QString dir = QFileInfo(windowFilePath()).absoluteDir().absolutePath();
+        QString fileName = QFileDialog::getOpenFileName(this, tr("Open file"), dir, fileFilters); // CHECK
+        open(fileName);
+    }
 }
 
 void MainWindow::open(QString fileName)
@@ -1212,8 +1219,7 @@ void MainWindow::showPrintableArea()
             list.append(line);
             endpage += pagelength;
         }
-
-        showArea();
+            showArea();
     }
     else
     {
@@ -1594,10 +1600,10 @@ void MainWindow::help()
     helpToolBar->addAction(view->pageAction(QWebPage::Forward));
     helpToolBar->addAction(view->pageAction(QWebPage::Reload));
     helpToolBar->addAction(view->pageAction(QWebPage::Stop));
-    view->load(QUrl("http://innovators-team10.github.com/user-manual.html"));
+    view->load(QUrl("http://innovators-team10.github.com/u-manual_simple.html"));
     view->resize(900,700);
     okno->setFixedSize(900,700);
-    okno->setWindowIcon (QIcon(":/icons/help.png"));
+    okno->setWindowIcon (QIcon(":/icon16"));
     okno->setWindowTitle("On-line help");
     okno->show();
 }
