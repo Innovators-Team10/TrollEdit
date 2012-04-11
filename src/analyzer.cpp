@@ -30,38 +30,38 @@ const int Analyzer::DEFAULT_STACK_DEEP = 8;
 
 QString exception;
 
-static void stackDump (lua_State *L) {          //! print stack to debug
-    int i;
-    int top = lua_gettop(L);
-    qDebug("-------STACK--------|");
-    for (i = 1; i <= top; i++) { /* repeat for each level */
-        int t = lua_type(L, i);
-        switch (t) {
-        case LUA_TSTRING: { /* strings */
-            qDebug("%d. string: '%s'\t|", i, lua_tostring(L, i));
-            break;
-        }
-        case LUA_TBOOLEAN: { /* booleans */
-            qDebug("%d. %s\t|", i, lua_toboolean(L, i) ? "true" : "false");
-            break;
-        }
-        case LUA_TNUMBER: { /* numbers */
-            qDebug("%d. numbers %g\t|", i, lua_tonumber(L, i));
-            break;
-        }
-        case LUA_TFUNCTION: { /* numbers */
-            qDebug("%d. function %s\t|", i, lua_tostring(L, i) );
-            break;
-        }
-        default: { /* other values*/
-            qDebug("%d. other %s\t|", i, lua_typename(L, t));
-            break;
-        }
-        }
-  //          qDebug("--------------------|"); /* put a separator */
-    }
-    qDebug("");
-}
+//static void stackDump (lua_State *L) {          //! print stack to debug
+//    int i;
+//    int top = lua_gettop(L);
+//    qDebug("-------STACK--------|");
+//    for (i = 1; i <= top; i++) { /* repeat for each level */
+//        int t = lua_type(L, i);
+//        switch (t) {
+//        case LUA_TSTRING: { /* strings */
+//            qDebug("%d. string: '%s'\t|", i, lua_tostring(L, i));
+//            break;
+//        }
+//        case LUA_TBOOLEAN: { /* booleans */
+//            qDebug("%d. %s\t|", i, lua_toboolean(L, i) ? "true" : "false");
+//            break;
+//        }
+//        case LUA_TNUMBER: { /* numbers */
+//            qDebug("%d. numbers %g\t|", i, lua_tonumber(L, i));
+//            break;
+//        }
+//        case LUA_TFUNCTION: { /* numbers */
+//            qDebug("%d. function %s\t|", i, lua_tostring(L, i) );
+//            break;
+//        }
+//        default: { /* other values*/
+//            qDebug("%d. other %s\t|", i, lua_typename(L, t));
+//            break;
+//        }
+//        }
+//  //          qDebug("--------------------|"); /* put a separator */
+//    }
+//    qDebug("");
+//}
 
 /**
  * Analyzer class contructor, that initializes Lua and loads Lua base libraries
@@ -320,7 +320,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
       if(DYNAMIC){
           root = nextElementAST();
           root->analyzer = this;
-          stackDump(L);
+//          stackDump(L);
           qDebug() << "------------DYNAMIC--------------";
       }else{
           root = createTreeFromLuaStack();
@@ -541,42 +541,42 @@ TreeElement *Analyzer::createTreeFromLuaStack()
 
 TreeElement *Analyzer::reanalyzeString(TreeElement *el, QString grammar, QString input)
 {
-    stackDump(L);
+//    stackDump(L);
     setIndexAST(el->local_deep_AST,el->local_nodes_AST);
-    stackDump(L);
+//    stackDump(L);
     int last = lua_tonumber(L, -3) - 1;
     lua_pop(L, 3);
     //lua_pushstring(L, "reanalys_table");
     //luaL_dofile(L, qPrintable(scriptName));     //! load the script
-    stackDump(L);
-    lua_getglobal (L, "lpeg");                  //! table to be indexed
-    stackDump(L);
-    lua_getfield(L, -1, "match");               //! function to be called: 'lpeg.match'
-    stackDump(L);
-    lua_remove(L, -2);                          //! remove 'lpeg' from the stack
-    stackDump(L);
-    lua_getglobal (L, qPrintable(grammar));     //! 1st argument
-    stackDump(L);
-    lua_pushstring(L, qPrintable(input));       //! 2nd argument
-    stackDump(L);
+//    stackDump(L);
+//    lua_getglobal (L, "lpeg");                  //! table to be indexed
+//    stackDump(L);
+//    lua_getfield(L, -1, "match");               //! function to be called: 'lpeg.match'
+//    stackDump(L);
+//    lua_remove(L, -2);                          //! remove 'lpeg' from the stack
+//    stackDump(L);
+//    lua_getglobal (L, qPrintable(grammar));     //! 1st argument
+//    stackDump(L);
+//    lua_pushstring(L, qPrintable(input));       //! 2nd argument
+//    stackDump(L);
     int err = lua_pcall(L, 2, 1, 0);            //! call with 2 arguments and 1 result, no error function
-    stackDump(L);
+//    stackDump(L);
     if (err != 0)
     {
         throw "Error in grammar \"" + grammar + "\" in script \"" + scriptName + "\"";
     }
     lua_rawseti(L, -2, last);
-    stackDump(L);
+//    stackDump(L);
     //lua_rawset(L, -3);
     //stackDump(L);
-    lua_pushnumber(L, last);
-    stackDump(L);
-    lua_next(L, -2);
-    stackDump(L);
-    lua_pushnil(L);
-    stackDump(L);
-    lua_next(L,-2);
-    stackDump(L);
+//    lua_pushnumber(L, last);
+//    stackDump(L);
+//    lua_next(L, -2);
+//    stackDump(L);
+//    lua_pushnil(L);
+//    stackDump(L);
+//    lua_next(L,-2);
+//    stackDump(L);
 
     TreeElement *root = 0;
 

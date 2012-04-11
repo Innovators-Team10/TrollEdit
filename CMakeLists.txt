@@ -33,9 +33,9 @@ set ( INSTALL_PLUGIN bin)
 set ( INSTALL_QTCONF bin)
 
 # Warnings for Debug mode
-if ( CMAKE_COMPILER_IS_GNUCXX )
-  set ( CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Werror" )
-endif ()
+#if ( CMAKE_COMPILER_IS_GNUCXX )
+#  set ( CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Werror" )
+#endif ()
 
 # Default build type
 if ( NOT CMAKE_BUILD_TYPE )
