@@ -539,6 +539,13 @@ TreeElement *Analyzer::createTreeFromLuaStack()
     return root;
 }
 
+/**
+ * Reanalyze element and replace him in AST (lua stack)
+ * @param el from element get position in AST (lua stack)
+ * @param grammar use to analyse input string in LPeg
+ * @param input text for analyse
+ * @return reanalysed element
+ */
 TreeElement *Analyzer::reanalyzeString(TreeElement *el, QString grammar, QString input)
 {
 //    stackDump(L);
@@ -584,17 +591,34 @@ TreeElement *Analyzer::reanalyzeString(TreeElement *el, QString grammar, QString
     return root;
 }
 
-void Analyzer::resetAST(){
-    while(lua_gettop(L) > 9 ){ //pre zachovanie konzistencie zasobnika mazeme stary AST
+/**
+ * Reset AST (lua stack) to size DEFAULT_STACK_DEEP
+ * @return void
+ */
+void Analyzer::resetAST(){     //! TODO: add Analyzer::DEFAULT_STACK_DEEP
+    while(lua_gettop(L) > 9 ){ //! pre zachovanie konzistencie zasobnika mazeme stary AST
         lua_remove(L, -1);
     }
 //    nextElementAST();
 }
 
+/**
+ * Set global position in AST at deep and order
+ * @see getElementAST(int deep, int* nodes)
+ * @param deep
+ * @param nodes
+ * @return element at deep and in order from nodes
+ */
 TreeElement *Analyzer::setIndexAST(int deep, int *nodes){
     return getElementAST(deep, nodes);
 }
 
+/**
+ * Set local position to global in AST
+ * @param deep
+ * @param nodes
+ * @return void
+ */
 void Analyzer::checkLocationAST(int deep, int* nodes){
     if( deep != glob_deep_AST  ){ //!
         setIndexAST(deep, nodes);
@@ -609,6 +633,11 @@ void Analyzer::checkLocationAST(int deep, int* nodes){
     }
 }
 
+/**
+ * Next element from actual AST
+ * @see getElementAST()
+ * @return element next element
+ */
 TreeElement *Analyzer::nextElementAST()
 {
 //    qDebug("nextElementAST()");
@@ -635,6 +664,10 @@ TreeElement *Analyzer::nextElementAST()
     return root;
 }
 
+/**
+ * Return element from actual AST
+ * @return element
+ */
 TreeElement *Analyzer::getElementAST()
 {
     TreeElement *root = 0;
@@ -676,6 +709,10 @@ TreeElement *Analyzer::getElementAST()
     return root;
 }
 
+/**
+ * Return element from actual AST
+ * @return element at deep and in order from nodes
+ */
 TreeElement *Analyzer::getElementAST(int deep, int* nodes )
 {
     TreeElement *root = 0;
