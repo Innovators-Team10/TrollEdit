@@ -972,7 +972,6 @@ void MainWindow::createTabs()
     dScene->addPixmap(QPixmap(":/img/startScreen"));
     QPixmap obr(":/img/newWay");
     dScene->addPixmap(obr)->setPos(184,335);
-
     createMenus();
     createToolBars();
     statusBar();
