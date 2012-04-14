@@ -12,6 +12,8 @@
 #include "ui_main_window.h"
 #include "document_scene.h"
 #include "language_manager.h"
+#include "setting.h"
+#include "abouttrolledit.h"
 #include "analyzer.h"
 #include "block_group.h"
 #include <QTableWidget>
@@ -92,7 +94,7 @@ void MainWindow::createActions()
     groupActions = new QActionGroup(this);
 
     //! loading file for shurtcuts
-    QFile file(":/files/shortcuts.ini");
+    QFile file(":/files/shortcutsFile");
 
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -235,11 +237,6 @@ void MainWindow::createActions()
     aboutAction->setToolTip(tr("Show application's about box"));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 
-    //! license
-    showLicenseAction = new QAction(tr("&License"), this);
-    showLicenseAction->setToolTip(tr("TrollEdit license"));
-    connect(showLicenseAction, SIGNAL(triggered()), this, SLOT(showLicense()));
-
     //! update
     updateAction = new QAction(tr("&Check for update"), this);
     updateAction->setToolTip(tr("Check new updates"));
@@ -250,11 +247,6 @@ void MainWindow::createActions()
     homePageAction = new QAction(homeIcon,tr("&Home page"), this);
     homePageAction->setToolTip(tr("Open home page of TrollEdit"));
     connect(homePageAction, SIGNAL(triggered()), this, SLOT(homePage()));
-
-    //! about this version
-    versionAction = new QAction(tr("&About this version"), this);
-    versionAction->setToolTip(tr("View news on this a version"));
-    connect(versionAction, SIGNAL(triggered()), this, SLOT(aboutVersion()));
 
     //! bugs report
     bugReportAction = new QAction(tr("&Report bug"), this);
@@ -577,10 +569,8 @@ void MainWindow::createMenus()
     helpMenu->addSeparator();
     helpMenu->addAction(helpAction);
     helpMenu->addAction(aboutAction);
-    helpMenu->addAction(showLicenseAction);
     helpMenu->addSeparator();
     helpMenu->addAction(updateAction);
-    helpMenu->addAction(versionAction);
     helpMenu->addAction(bugReportAction);
 }
 
@@ -604,7 +594,7 @@ void MainWindow::setShort()
     m_table->setItem(5,0, new QTableWidgetItem("Print"));
     m_table->setItem(6,0, new QTableWidgetItem("Edit plain text"));
 
-    QFile file(":/files/shortcuts.ini");
+    QFile file(":/files/shortcutsFile");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -631,7 +621,7 @@ void MainWindow::setShort()
 
 void MainWindow::savedShortcuts()
 {
-    QFile file("shortcuts.ini");
+    QFile file(":/files/shortcutsFile");
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         QMessageBox::information(0,"error",file.errorString());
@@ -1416,7 +1406,7 @@ void MainWindow::newWindow()
     QMessageBox::information(this,"title","On Function is working!");
 }
 
-//§ zoom in
+//! zoom in
 void MainWindow::zoomIn()
 {
     getScene()->adjustScale(1.2);
@@ -1518,60 +1508,8 @@ void MainWindow::showCmd()
 //! about TrollEdit
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About TrollEdit"),
-                       tr("<p><img src=\":/img/logoBig\" aling=\"center\" width=\"\"/></p>"
-
-                          "</br>"
-                          "<p><b>What is TrollEdit?</b></p>"
-                          "<p>TrollEdit is a Qt based text editor developed by students at <a href=\"http://www.fiit.stuba.sk/generate_page.php?page_id=749\">Slovak University of Technology.</a>"
-                          "The main goal of the project is to teach students open source deveopmnet and team management."
-                          "TrollEdit itself is an experiment to utilize full AST code analysis during writing of code."
-                          "This can have benefits in various common tasks such as moving blocks of code, syntax checking,"
-                          "syntax highlighting etc."
-                          "</p>"
-
-                          "<p>Version: 1.3.3.3</p>"
-                          "<p>Copyright (C) 2012 TrollEdit</p>"
-                          "<p></p>"
-                          "<p><a href=\"http://innovators-team10.github.com/\">Visit our web  </a></p>"
-                          "<p><a href=\"mailto:tp-team-10@googlegroups.com\">  Send feedaback</a></p>"
-                          )
-                       );
-}
-
-//! license
-void MainWindow::showLicense()
-{
-    QMessageBox::about(this, tr("License"),
-                       tr("<p><img src=\":/img/logoBig\" aling=\"center\" width=\"\"/></p>"
-
-                          "</br>"
-                          "<p><b>Troll Edit License</b></p>"
-                          "<p>TrollEdit is licensed under the terms of the MIT license reproduced below."
-                          "This means that TrollEdit is free software and can be used for both academic"
-                          "and commercial purposes at absolutely no cost.</p>"
-                          "<p>------------------------------------------------</p>"
-
-                          "<p>Copyright (C) 2012 TrollEdit.</p>"
-
-                          "<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and"
-                          "associated documentation files (the 'Software'), to deal in the Software without restriction, including"
-                          " without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell"
-                          "copies of the Software, and to permit persons to whom the Software is furnished to do so, subject "
-                          "to the following conditions:</p>"
-
-                          "<p>The above copyright notice and this permission notice shall be included in all copies or"
-                          "substantial portions of the Software.</p>"
-
-                          "<p>THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING"
-                          "BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND"
-                          "NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES"
-                          "OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR"
-                          "IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>"
-                          "<p>-------------------------------------------------------------------------------</p>"
-                          )
-                       );
-
+    aboutTrollEdit *aboutWindow = new aboutTrollEdit;
+    aboutWindow->showWindow();
 }
 
 //! show TrollEdit web page
@@ -1592,6 +1530,7 @@ void MainWindow::help()
         helpToolBar->addAction(view->pageAction(QWebPage::Reload));
         helpToolBar->addAction(view->pageAction(QWebPage::Stop));
         view->load(QUrl("http://innovators-team10.github.com/u-manual_simple.html"));
+        view->resize(1000,500);
         tabWidget->setTabText(tabWidget->currentIndex(),"On-line help");
         QIcon helpsIcon(":/icons/help.png");
         tabWidget->setTabIcon(tabWidget->currentIndex(),helpsIcon);
@@ -1605,34 +1544,6 @@ void MainWindow::update()
     QMessageBox::information(this,"title","On Function is working!");
 }
 
-//! about this version
-void MainWindow::aboutVersion()
-{
-    aboutVersionWindow = new QDialog();
-    aboutVersionLabel= new QLabel(aboutVersionWindow);
-    aboutVersionLabel->setPixmap(QPixmap(":/img/logoSmall"));
-    aboutVersionTextEdit = new QTextEdit(aboutVersionWindow);
-
-    outer = new QVBoxLayout();
-    outer->addWidget(aboutVersionLabel);
-    outer->addWidget(aboutVersionTextEdit);
-    aboutVersionWindow->setLayout(outer);
-
-    // open file
-    QFile sfile(":/files/aboutVersion.txt");
-    if(sfile.open(QFile::ReadOnly | QFile::Text))
-    {
-        QTextStream in(&sfile);
-        QString text= in.readAll();
-        sfile.close();
-        aboutVersionTextEdit->setPlainText(text);
-        aboutVersionTextEdit->setReadOnly(true);
-    }
-
-    aboutVersionWindow ->setWindowTitle("About this version");
-    aboutVersionWindow->resize(510,350);
-    aboutVersionWindow ->show();
-}
 
 // for send bugs report
 void MainWindow::bugReport()

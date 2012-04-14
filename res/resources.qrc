@@ -9,10 +9,11 @@
         <file alias="splash">splashScreen.png</file>
         <file alias="plus">foldPlus.png</file>
         <file alias="minus">foldMinus.png</file>
+        <file>TrollEdit_logo.ico</file>
     </qresource>
     <qresource prefix="/files">
-        <file>shortcuts.ini</file>
-        <file>aboutVersion.txt</file>
+        <file alias="shortcutsFile">ConfigFiles/shortcuts.ini</file>
+        <file alias="aboutThisVersion">ConfigFiles/aboutVersion.conf</file>
     </qresource>
     <qresource prefix="/icons">
         <file>plusTab.png</file>
