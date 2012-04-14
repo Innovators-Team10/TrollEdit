@@ -163,9 +163,9 @@ if ( WIN32 )
   set ( CPACK_NSIS_HELP_LINK "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
   set ( CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
   set ( CPACK_NSIS_CONTACT "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
-  set ( CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit.ico" )
-  set ( CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit.ico" )
-  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\logo2.png" )
+  set ( CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit_install.ico" )
+  set ( CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit_uninstall.ico" )
+  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\logo2.bmp" )
 endif ()
 
 # ---------------

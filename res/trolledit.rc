@@ -11,11 +11,11 @@ BEGIN
             VALUE "Comments", "www.trolledit.org"
             VALUE "CompanyName", "trolledit.org"
             VALUE "FileDescription", "TrollEdit - Graphically Enhanced Text Editor."
-            VALUE "FileVersion", "0.1.0"
+            VALUE "FileVersion", "1.3.0"
             VALUE "LegalCopyright", "Copyright © TrollEdit."
             VALUE "OriginalFilename", "trolledit.exe"
             VALUE "ProductName", "TrollEdit - Graphically Enhanced Text Editor."
-            VALUE "ProductVersion", "0.1.0"
+            VALUE "ProductVersion", "1.3.3"
             VALUE "PrivateBuild", "Official Build"
         END
     END
