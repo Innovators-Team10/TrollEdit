@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     //w.setStyleSheet();
     splashScreen.show();
-    w.resize(1024,768);
+    w.resize(1200,650);
     w.setWindowIcon (QIcon(":/icon16"));
     w.show();
 

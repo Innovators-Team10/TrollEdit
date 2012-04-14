@@ -1580,23 +1580,23 @@ void MainWindow::homePage()
     QDesktopServices::openUrl(QUrl("http://innovators-team10.github.com"));
 }
 
-//! html help
+//! html help in new tab
 void MainWindow::help()
 {
-    QDialog *okno = new QDialog();
-    QWebView *view = new QWebView(okno);
-    QToolBar *helpToolBar = new QToolBar(tr("&Navigation"),okno);
+        newTab();
+        QWebView *view = new QWebView();
+        QToolBar *helpToolBar = new QToolBar(tr("&Navigation"),view);
 
-    helpToolBar->addAction(view->pageAction(QWebPage::Back));
-    helpToolBar->addAction(view->pageAction(QWebPage::Forward));
-    helpToolBar->addAction(view->pageAction(QWebPage::Reload));
-    helpToolBar->addAction(view->pageAction(QWebPage::Stop));
-    view->load(QUrl("http://innovators-team10.github.com/u-manual_simple.html"));
-    view->resize(900,700);
-    okno->setFixedSize(900,700);
-    okno->setWindowIcon (QIcon(":/icon16"));
-    okno->setWindowTitle("On-line help");
-    okno->show();
+        helpToolBar->addAction(view->pageAction(QWebPage::Back));
+        helpToolBar->addAction(view->pageAction(QWebPage::Forward));
+        helpToolBar->addAction(view->pageAction(QWebPage::Reload));
+        helpToolBar->addAction(view->pageAction(QWebPage::Stop));
+        view->load(QUrl("http://innovators-team10.github.com/u-manual_simple.html"));
+        tabWidget->setTabText(tabWidget->currentIndex(),"On-line help");
+        QIcon helpsIcon(":/icons/help.png");
+        tabWidget->setTabIcon(tabWidget->currentIndex(),helpsIcon);
+        DocumentScene* dScene=getScene();
+        dScene->addWidget(view);
 }
 
 //! check new update
