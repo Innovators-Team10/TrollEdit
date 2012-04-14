@@ -19,8 +19,8 @@ FoldButton::FoldButton(Block *parentBlock)
     Q_ASSERT(parentBlock != 0);
 
     setAcceptHoverEvents(true);
-    plus = QPixmap(":/minus");
-    minus = QPixmap(":/plus");
+    plus = QPixmap(":/plus");
+    minus = QPixmap(":/minus");
     myBlock = parentBlock;
     foldText = "";
 
