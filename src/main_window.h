@@ -245,6 +245,9 @@ private:
 
     QWidget *notepad;
 
+    QDirModel *model;
+    QTreeView *tree ;
+
     QDialog *aboutVersionWindow;
     QLabel *aboutVersionLabel;
     QVBoxLayout *outer;
@@ -257,7 +260,6 @@ private:
     QDockWidget *dock;
     QTextEdit *text;
     QDockWidget *dock1;
-    QTextEdit *text1;
 
 
     LanguageManager *langManager;
