@@ -875,14 +875,13 @@ void MainWindow::newTab()
 void MainWindow::newFile()
 {
     //check tab, if tab is Start page open new tab
-    if(tabWidget->currentIndex()==0)
+    if((tabWidget->tabText(tabWidget->currentIndex())).compare("Start page")==0)
     {
         newTab();
+        newFile();
     }
-    else if (tabWidget->currentIndex()!=0)
+    else
     {
-
-        qDebug("newFile()");
         DocumentScene* dScene=getScene();
         if(dScene==0)  // this should not ever happen
         {
@@ -927,18 +926,14 @@ void MainWindow::langChanged(QString newLang)
 }
 
 void MainWindow::closeTab(int position){
-    if(tabWidget->count()==1){
-        return;
-    }
-    tabWidget->removeTab(position);
+    if((tabWidget->tabText(position)).compare("Start page")==0) return;
+    else tabWidget->removeTab(position);
 }
 
 void MainWindow::tabChanged(int position)
 {
-    qDebug("tabChanged()");
     BlockGroup *group=getScene()->selectedGroup();
         if(group==0){
-            qDebug("tabChanged() group=0");
             setCurrentFile(0);
             return;
         }
@@ -977,7 +972,6 @@ void MainWindow::createTabs()
     dScene->addPixmap(QPixmap(":/img/startScreen"));
     QPixmap obr(":/img/newWay");
     dScene->addPixmap(obr)->setPos(184,335);
-
     createMenus();
     createToolBars();
     statusBar();
@@ -1020,11 +1014,13 @@ void MainWindow::setCurrentFile(BlockGroup *group)
         setWindowFilePath(fileName);
         groupActions->setEnabled(false);
         searchLineEdit->setEnabled(false);
+        scriptsBox->setEnabled(true);
     }
     else
     {
         groupActions->setEnabled(true);
         searchLineEdit->setEnabled(true);
+        scriptsBox->setEnabled(false);
 
         if (scriptsBox->currentText() != lang)
         {
@@ -1055,9 +1051,10 @@ void MainWindow::setCurrentFile(BlockGroup *group)
 
 void MainWindow::open()
 {
-    if(tabWidget->currentIndex()==0)
+    if((tabWidget->tabText(tabWidget->currentIndex())).compare("Start page")==0)
     {
         newTab();
+        open();
     }
     else if (tabWidget->currentIndex()!=0)
     {
