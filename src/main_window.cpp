@@ -1002,13 +1002,13 @@ void MainWindow::setCurrentFile(BlockGroup *group)
         setWindowFilePath(fileName);
         groupActions->setEnabled(false);
         searchLineEdit->setEnabled(false);
-        scriptsBox->setEnabled(true);
+//        scriptsBox->setEnabled(true);
     }
     else
     {
         groupActions->setEnabled(true);
         searchLineEdit->setEnabled(true);
-        scriptsBox->setEnabled(false);
+//        scriptsBox->setEnabled(false);
 
         if (scriptsBox->currentText() != lang)
         {
