@@ -9,7 +9,6 @@
         <file alias="splash">splashScreen.png</file>
         <file alias="plus">foldPlus.png</file>
         <file alias="minus">foldMinus.png</file>
-        <file>trollEdit_logo.ico</file>
     </qresource>
     <qresource prefix="/files">
         <file alias="shortcutsFile">ConfigFiles/shortcuts.ini</file>
