@@ -15,6 +15,7 @@ aboutTrollEdit::~aboutTrollEdit()
 
 void aboutTrollEdit::showWindow()
 {
+    this->setFixedSize(758,479);
     this->show();
 }
 
