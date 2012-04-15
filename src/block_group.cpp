@@ -143,13 +143,13 @@ void BlockGroup::setRoot(Block *newRoot)
 
     /**
      * @todo Parallelism for updateBlock(). Divide foreach loop and objects in docBlocks into more threads.
-     * Problem - problem using pointers/references in QtConcurrent :(
-     * @todo Add decision whether to use paralleled computation or not
+     * Problem - problem using pointers/references in QtConcurrent::Map :(
+     * @todo Add decision whether to use parallelized computation or not
      */
-//    QList<DocBlock*> docBlocksList = docBlocks();
+    QList<DocBlock*> docBlocksList = docBlocks();
 //    QList<QSharedPointer<DocBlock> *> pointerList;
     
-    foreach (DocBlock *dbl, docBlocks())
+    foreach (DocBlock *dbl, docBlocksList)
     {
 //        QSharedPointer<DocBlock> *pointerToDocBlock = new QSharedPointer<DocBlock>(dbl);
 //        pointerList.push_back(pointerToDocBlock);
@@ -910,9 +910,9 @@ void BlockGroup::analyzeAll(QString text)
     try 
     {
         if (runParalelized == true) {
-            bool connected = QObject::connect(&watcher, SIGNAL(finished()), this, SLOT(updateAllInThread()));
+            bool connected = QObject::connect(&watcher, SIGNAL(finished()), this, SLOT(updateAllInThreads()));
             future = QtConcurrent::run(this, &BlockGroup::analazyAllInThread, text);    
-            watcher.setFuture(future);
+            watcher.setFuture(future); //! this is the line, on which function is run in thread
             qDebug() << "Connected:" << connected;
         }
         else {
@@ -959,7 +959,7 @@ TreeElement* BlockGroup::analazyAllInMaster (QString text)
  * This function is invoked after analysis in thread is done.
  * New Root element is set and all blocks are updated.
  */
-void BlockGroup::updateAllInThread () 
+void BlockGroup::updateAllInThreads () 
 {
     if (groupRootEl != 0) {
         mutex.lock();

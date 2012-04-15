@@ -45,8 +45,6 @@ static int setstyle(lua_State *L) {
     return 0;                         /* number of results in LUA*/
 }
 
-
-
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -80,12 +78,13 @@ int main(int argc, char *argv[])
     qDebug() << configFile.absoluteFilePath() << "width: " << width << " height: " << height << "\n style: " << style;
     //window size
     w.resize(width, height);
+    
     //CSS style
     //w.setStyleSheet(style);
 
     //w.setStyleSheet();
     splashScreen.show();
-    w.resize(1200,650);
+ 
     w.setWindowIcon (QIcon(":/icon16"));
     w.show();
 
@@ -95,6 +94,7 @@ int main(int argc, char *argv[])
 
     //    w.newFile();
     //    w.open("../input/in.c"); // TEMP
+    
     // open all files given as parameters
     for (int i = 1; i < argc; i++)
         w.open(argv[i]);
