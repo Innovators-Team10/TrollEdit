@@ -12,3 +12,9 @@ setting::~setting()
 {
     delete ui;
 }
+
+void setting::showSetting()
+{
+    this->setFixedSize(758,479);
+    this->show();
+}

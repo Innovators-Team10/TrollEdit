@@ -1397,7 +1397,6 @@ void MainWindow::fullScreen()
     {
         //nothing
     }
-
 }
 
 //! new window
@@ -1470,11 +1469,8 @@ void MainWindow::bugList()
 //! options
 void MainWindow::options()
 {
-     setOptions = new QDialog();
-
-     setOptions->setWindowTitle("Options");
-     setOptions->resize(520,390);
-     setOptions->show();
+    setting *windowOption = new setting;
+    windowOption->showSetting();
 }
 
 //! sw metrics
