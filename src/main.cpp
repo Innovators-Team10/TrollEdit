@@ -1,13 +1,23 @@
+/** 
+* @file main.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class Main. Contains main function. Initialize Qt applicationin which editor is running.
+*/
+
 #include <QApplication>
 #include <QAction>
 #include "main_window.h"
 #include <QString>
 
+#define CONFIG_DIR "/../share/trolledit"
+
 extern "C" {
     #include "lua.h"
     #include "lualib.h"
     #include "lauxlib.h"
-    int luaopen_lpeg (lua_State *L);
 }
 
 static MainWindow* window;
@@ -90,17 +100,16 @@ int main(int argc, char *argv[])
 
     // find the directory of the program
     QFileInfo program(argv[0]);
-    QString path = program.absoluteDir().path();
+    QString path = QApplication::applicationDirPath();
 
     MainWindow w(path);
     w.setWindowOpacity(0);
 
     // Load config from config_app.lua
-    lua_State *L = luaL_newstate();
+    lua_State *L = w.getLuaState();
     luaL_openlibs(L);
     int width, height; QString style;
-    const QString CONFIG_DIR = "/../share/trolledit";
-    QDir dir = QDir(QApplication::applicationDirPath() + CONFIG_DIR);
+    QDir dir = QDir(path + CONFIG_DIR);
     //QFileInfoList configs = dir.entryInfoList(QStringList("*.lua"), QDir::Files | QDir::NoSymLinks);
     QFileInfo configFile(dir.absolutePath()+ QDir::separator() + "config_app.lua");
 
@@ -116,6 +125,8 @@ int main(int argc, char *argv[])
 
     //w.setStyleSheet();
     splashScreen.show();
+    w.resize(1220,600);
+    w.setWindowIcon (QIcon(":/icon16"));
     w.show();
 
     QTimer::singleShot(2000, &splashScreen, SLOT(close()));

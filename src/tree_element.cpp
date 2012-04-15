@@ -1,3 +1,12 @@
+/** 
+* @file tree_element.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class TreeElement.
+*/
+
 #include "tree_element.h"
 #include "block.h"
 #include "doc_block.h"
@@ -482,7 +491,7 @@ QString TreeElement::getText(bool noComments) const
         if (docBl == 0 || !noComments)
             text.append("\n");                      //! add line break if needed
     }
-qDebug() << text;
+//qDebug() << text;
     return text;
 }
 

@@ -1,3 +1,12 @@
+/** 
+* @file language_manager.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 1.0...
+* 
+* @section DESCRIPTION
+* Contains the defintion of class LanguageManager and it's functions and identifiers
+*/
+
 #include "language_manager.h"
 #include "analyzer.h"
 #include <QDir>
@@ -5,10 +14,10 @@
 #include <QMessageBox>
 #include <QDebug>
 
-const QString GRAMMAR_DIR = "/../share/trolledit/grammars";
-const QString DEFAULT_GRAMMAR = "/../share/trolledit/grammars/default_grammar.lua";
-const QString CONFIG_FILE = "/../share/trolledit/grammars/config.lua";
-const QString SNIPPET_FILE = "/../share/trolledit/grammars/snippets.lua";
+#define GRAMMAR_DIR "/../share/trolledit/grammars"
+#define DEFAULT_GRAMMAR "/../share/trolledit/grammars/default_grammar.lua"
+#define CONFIG_FILE "/../share/trolledit/grammars/config.lua"
+#define SNIPPET_FILE "/../share/trolledit/grammars/snippets.lua"
 
 LanguageManager::LanguageManager(QString programPath)
 {
@@ -74,7 +83,7 @@ QString LanguageManager::getLanguage(QString extens){
 
                 foreach (QString ext, extensions)
                 {
-                    if(extens==ext){
+                    if(extens==ext || ext=="txt"){ //! default last grammar must be txt
                         return file.absoluteFilePath();
                     }
                 }

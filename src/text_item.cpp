@@ -1,3 +1,12 @@
+/** 
+* @file text_item.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class TextItem.
+*/
+
 #include "text_item.h"
 #include "block.h"
 #include "block_group.h"

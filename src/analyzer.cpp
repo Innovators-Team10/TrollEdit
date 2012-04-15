@@ -1,9 +1,11 @@
-/**
- * analyzer.cpp
- *  ---------------------------------------------------------------------------
- * Contains the defintion of class Analyzer and it's funtions and identifiers
- *
- */
+/** 
+* @file analyzer.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version
+* 
+* @section DESCRIPTION
+* Contains the defintion of class Analyzer and it's functions and identifiers
+*/
 
 #include "analyzer.h"
 #include "tree_element.h"
@@ -62,8 +64,7 @@ static void stackDump (lua_State *L) {          //! print stack to debug
 }
 
 /**
- * Analyzer class contructor, that initializes Lua and
- * loads Lua base libraries
+ * Analyzer class contructor, that initializes Lua and loads Lua base libraries
  *
  * @param script script as a string
  */
