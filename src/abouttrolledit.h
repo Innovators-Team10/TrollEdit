@@ -19,6 +19,8 @@ public:
 private:
     Ui::aboutTrollEdit *ui;
 
+    QTextEdit  *textEdit_5;
+
 public slots:
     void showWindow();
     void loadVersionInfo();

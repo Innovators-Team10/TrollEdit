@@ -1,5 +1,6 @@
 #include "abouttrolledit.h"
 #include "ui_abouttrolledit.h"
+#include <QtGui>
 
 aboutTrollEdit::aboutTrollEdit(QWidget *parent) :
     QWidget(parent),
@@ -17,35 +18,20 @@ void aboutTrollEdit::showWindow()
 {
     this->setFixedSize(758,479);
     this->show();
+    loadVersionInfo();
 }
 
-
+//! load conf. file for info this version
 void aboutTrollEdit::loadVersionInfo()
 {
-    //ešte dokonèit treba
-
-    /*aboutVersionWindow = new QDialog();
-    aboutVersionLabel= new QLabel(aboutVersionWindow);
-    aboutVersionLabel->setPixmap(QPixmap(":/img/logoSmall"));
-    aboutVersionTextEdit = new QTextEdit(aboutVersionWindow);
-
-    outer = new QVBoxLayout();
-    outer->addWidget(aboutVersionLabel);
-    outer->addWidget(aboutVersionTextEdit);
-    aboutVersionWindow->setLayout(outer);
-
-    // open file
     QFile sfile(":/files/aboutThisVersion");
     if(sfile.open(QFile::ReadOnly | QFile::Text))
     {
         QTextStream in(&sfile);
         QString text= in.readAll();
         sfile.close();
-        aboutVersionTextEdit->setPlainText(text);
-        aboutVersionTextEdit->setReadOnly(true);
+        ui->textEdit_5->setPlainText(text);
     }
 
-    aboutVersionWindow ->setWindowTitle("About this version");
-    aboutVersionWindow->resize(510,350);
-    aboutVersionWindow ->show();*/
-}
+
+} //! END of aboutTrollEDit
