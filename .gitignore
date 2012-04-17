@@ -3,3 +3,5 @@ TrollEdit
 qtcreator_*
 .DS_Store
 /CMakeLists.txt.user
+src/trolledit.h
+

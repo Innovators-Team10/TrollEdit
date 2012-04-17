@@ -11,6 +11,7 @@ cmake_minimum_required ( VERSION 2.8 )
 # --------------
 
 set ( TROLLEDIT_NAME "TrollEdit" )
+set ( TROLLEDIT_LONGNAME "TrollEdit - Graphically Enhanced Text Editor" )
 set ( TROLLEDIT_VERSION_MAJOR "1" )
 set ( TROLLEDIT_VERSION_MINOR "3" )
 set ( TROLLEDIT_VERSION_PATCH "3" )
@@ -172,10 +173,10 @@ endif ()
 # Build TrollEdit
 # ---------------
 
-# Definitions
-add_definitions ( 
-  -DTROLLEDIT_VERSION=\"${TROLLEDIT_VERSION}\" 
-)
+# Generate trolledit.h
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/src/trolledit.h.in 
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/trolledit.h
+                 @ONLY )
 
 # Include Paths
 include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${LUA_INCLUDE_DIR} )
