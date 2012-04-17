@@ -108,8 +108,8 @@ style = "QMainWindow {"
                     .."QStatusBar{ "
                         .."color: black;"
                     .."}"
-                .."QMessageBox::about {"
-                .."background-color: #C2C2C2;"
+                .."QMessageBox{" 
+                .."background-color: silver;"
                 .."}"
 
 setstyle(style)
