@@ -141,23 +141,12 @@ void BlockGroup::setRoot(Block *newRoot)
     clearSearchResults();
     root->updateBlock(false);
 
-    /**
-     * @todo Parallelism for updateBlock(). Divide foreach loop and objects in docBlocks into more threads.
-     * Problem - problem using pointers/references in QtConcurrent::Map :(
-     * @todo Add decision whether to use parallelized computation or not
-     */
     QList<DocBlock*> docBlocksList = docBlocks();
-//    QList<QSharedPointer<DocBlock> *> pointerList;
     
     foreach (DocBlock *dbl, docBlocksList)
     {
-//        QSharedPointer<DocBlock> *pointerToDocBlock = new QSharedPointer<DocBlock>(dbl);
-//        pointerList.push_back(pointerToDocBlock);
-        
         dbl->updateBlock(false);
     }
-//    qDebug("pointerList - length - %d", pointerList.length());
-//    QtConcurrent::blockingMap(docBlocksList, this->updateDocBlockInMap());
 
     updateSize();
 }
