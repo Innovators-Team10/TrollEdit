@@ -124,8 +124,6 @@ void MainWindow::createActions()
     connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
     //! revert
-    revertAction = new QAction(tr("&Revert"), this); // ??? is this used ???
-    textstring = file.readLine();
     revertAction = new QAction(tr("&Revert"), this);
     textstring = file.readLine();
     textstring.remove(6,1);

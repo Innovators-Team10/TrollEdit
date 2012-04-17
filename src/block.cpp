@@ -1040,7 +1040,7 @@ void Block::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 }
 
 void Block::updateBlock(bool doAnimation)
-        // used to update everything from root up
+        // used to update everything from root down
         // updates line numbers, geometry and foldbutton
 {
     // update line

@@ -185,7 +185,7 @@ void Arrow::paint(QPainter *painter, const QStyleOptionGraphicsItem *,
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawLine(line1);
     painter->drawLine(line2);
-    painter->drawLine(cornerLine1);
-     painter->drawLine(cornerLine2);
+//    painter->drawLine(cornerLine1);
+    painter->drawLine(cornerLine2);
     painter->drawPolygon(arrowHead);
 }
