@@ -54,6 +54,7 @@ public:
     QColor getHoverColor() const;
 
     // udaters
+    void updateBlockInMap(DocBlock* element);
     // reimplemented from block
     void updateBlock(bool doAnimation = true);
     void updateGeometryAfter(bool doAnimation = true);

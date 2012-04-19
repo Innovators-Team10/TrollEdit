@@ -1,9 +1,11 @@
-/**
- * analyzer.cpp
- *  ---------------------------------------------------------------------------
- * Contains the defintion of class Analyzer and it's funtions and identifiers
- *
- */
+/** 
+* @file analyzer.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version
+* 
+* @section DESCRIPTION
+* Contains the defintion of class Analyzer and it's functions and identifiers
+*/
 
 #include "analyzer.h"
 #include "tree_element.h"
@@ -28,42 +30,41 @@ const int Analyzer::DEFAULT_STACK_DEEP = 8;
 
 QString exception;
 
-static void stackDump (lua_State *L) {          //! print stack to debug
-    int i;
-    int top = lua_gettop(L);
-    qDebug("-------STACK--------|");
-    for (i = 1; i <= top; i++) { /* repeat for each level */
-        int t = lua_type(L, i);
-        switch (t) {
-        case LUA_TSTRING: { /* strings */
-            qDebug("%d. string: '%s'\t|", i, lua_tostring(L, i));
-            break;
-        }
-        case LUA_TBOOLEAN: { /* booleans */
-            qDebug("%d. %s\t|", i, lua_toboolean(L, i) ? "true" : "false");
-            break;
-        }
-        case LUA_TNUMBER: { /* numbers */
-            qDebug("%d. numbers %g\t|", i, lua_tonumber(L, i));
-            break;
-        }
-        case LUA_TFUNCTION: { /* numbers */
-            qDebug("%d. function %s\t|", i, lua_tostring(L, i) );
-            break;
-        }
-        default: { /* other values*/
-            qDebug("%d. other %s\t|", i, lua_typename(L, t));
-            break;
-        }
-        }
-  //          qDebug("--------------------|"); /* put a separator */
-    }
-    qDebug("");
-}
+//static void stackDump (lua_State *L) {          //! print stack to debug
+//    int i;
+//    int top = lua_gettop(L);
+//    qDebug("-------STACK--------|");
+//    for (i = 1; i <= top; i++) { /* repeat for each level */
+//        int t = lua_type(L, i);
+//        switch (t) {
+//        case LUA_TSTRING: { /* strings */
+//            qDebug("%d. string: '%s'\t|", i, lua_tostring(L, i));
+//            break;
+//        }
+//        case LUA_TBOOLEAN: { /* booleans */
+//            qDebug("%d. %s\t|", i, lua_toboolean(L, i) ? "true" : "false");
+//            break;
+//        }
+//        case LUA_TNUMBER: { /* numbers */
+//            qDebug("%d. numbers %g\t|", i, lua_tonumber(L, i));
+//            break;
+//        }
+//        case LUA_TFUNCTION: { /* numbers */
+//            qDebug("%d. function %s\t|", i, lua_tostring(L, i) );
+//            break;
+//        }
+//        default: { /* other values*/
+//            qDebug("%d. other %s\t|", i, lua_typename(L, t));
+//            break;
+//        }
+//        }
+//  //          qDebug("--------------------|"); /* put a separator */
+//    }
+//    qDebug("");
+//}
 
 /**
- * Analyzer class contructor, that initializes Lua and
- * loads Lua base libraries
+ * Analyzer class contructor, that initializes Lua and loads Lua base libraries
  *
  * @param script script as a string
  */
@@ -319,7 +320,7 @@ TreeElement *Analyzer::analyzeString(QString grammar, QString input)
       if(DYNAMIC){
           root = nextElementAST();
           root->analyzer = this;
-          stackDump(L);
+//          stackDump(L);
           qDebug() << "------------DYNAMIC--------------";
       }else{
           root = createTreeFromLuaStack();
@@ -538,44 +539,51 @@ TreeElement *Analyzer::createTreeFromLuaStack()
     return root;
 }
 
+/**
+ * Reanalyze element and replace him in AST (lua stack)
+ * @param el from element get position in AST (lua stack)
+ * @param grammar use to analyse input string in LPeg
+ * @param input text for analyse
+ * @return reanalysed element
+ */
 TreeElement *Analyzer::reanalyzeString(TreeElement *el, QString grammar, QString input)
 {
-    stackDump(L);
+//    stackDump(L);
     setIndexAST(el->local_deep_AST,el->local_nodes_AST);
-    stackDump(L);
+//    stackDump(L);
     int last = lua_tonumber(L, -3) - 1;
     lua_pop(L, 3);
     //lua_pushstring(L, "reanalys_table");
     //luaL_dofile(L, qPrintable(scriptName));     //! load the script
-    stackDump(L);
-    lua_getglobal (L, "lpeg");                  //! table to be indexed
-    stackDump(L);
-    lua_getfield(L, -1, "match");               //! function to be called: 'lpeg.match'
-    stackDump(L);
-    lua_remove(L, -2);                          //! remove 'lpeg' from the stack
-    stackDump(L);
-    lua_getglobal (L, qPrintable(grammar));     //! 1st argument
-    stackDump(L);
-    lua_pushstring(L, qPrintable(input));       //! 2nd argument
-    stackDump(L);
+//    stackDump(L);
+//    lua_getglobal (L, "lpeg");                  //! table to be indexed
+//    stackDump(L);
+//    lua_getfield(L, -1, "match");               //! function to be called: 'lpeg.match'
+//    stackDump(L);
+//    lua_remove(L, -2);                          //! remove 'lpeg' from the stack
+//    stackDump(L);
+//    lua_getglobal (L, qPrintable(grammar));     //! 1st argument
+//    stackDump(L);
+//    lua_pushstring(L, qPrintable(input));       //! 2nd argument
+//    stackDump(L);
     int err = lua_pcall(L, 2, 1, 0);            //! call with 2 arguments and 1 result, no error function
-    stackDump(L);
+//    stackDump(L);
     if (err != 0)
     {
         throw "Error in grammar \"" + grammar + "\" in script \"" + scriptName + "\"";
     }
     lua_rawseti(L, -2, last);
-    stackDump(L);
+//    stackDump(L);
     //lua_rawset(L, -3);
     //stackDump(L);
-    lua_pushnumber(L, last);
-    stackDump(L);
-    lua_next(L, -2);
-    stackDump(L);
-    lua_pushnil(L);
-    stackDump(L);
-    lua_next(L,-2);
-    stackDump(L);
+//    lua_pushnumber(L, last);
+//    stackDump(L);
+//    lua_next(L, -2);
+//    stackDump(L);
+//    lua_pushnil(L);
+//    stackDump(L);
+//    lua_next(L,-2);
+//    stackDump(L);
 
     TreeElement *root = 0;
 
@@ -583,17 +591,34 @@ TreeElement *Analyzer::reanalyzeString(TreeElement *el, QString grammar, QString
     return root;
 }
 
-void Analyzer::resetAST(){
-    while(lua_gettop(L) > 9 ){ //pre zachovanie konzistencie zasobnika mazeme stary AST
+/**
+ * Reset AST (lua stack) to size DEFAULT_STACK_DEEP
+ * @return void
+ */
+void Analyzer::resetAST(){     //! TODO: add Analyzer::DEFAULT_STACK_DEEP
+    while(lua_gettop(L) > 9 ){ //! pre zachovanie konzistencie zasobnika mazeme stary AST
         lua_remove(L, -1);
     }
 //    nextElementAST();
 }
 
+/**
+ * Set global position in AST at deep and order
+ * @see getElementAST(int deep, int* nodes)
+ * @param deep
+ * @param nodes
+ * @return element at deep and in order from nodes
+ */
 TreeElement *Analyzer::setIndexAST(int deep, int *nodes){
     return getElementAST(deep, nodes);
 }
 
+/**
+ * Set local position to global in AST
+ * @param deep
+ * @param nodes
+ * @return void
+ */
 void Analyzer::checkLocationAST(int deep, int* nodes){
     if( deep != glob_deep_AST  ){ //!
         setIndexAST(deep, nodes);
@@ -608,6 +633,11 @@ void Analyzer::checkLocationAST(int deep, int* nodes){
     }
 }
 
+/**
+ * Next element from actual AST
+ * @see getElementAST()
+ * @return element next element
+ */
 TreeElement *Analyzer::nextElementAST()
 {
 //    qDebug("nextElementAST()");
@@ -634,6 +664,10 @@ TreeElement *Analyzer::nextElementAST()
     return root;
 }
 
+/**
+ * Return element from actual AST
+ * @return element
+ */
 TreeElement *Analyzer::getElementAST()
 {
     TreeElement *root = 0;
@@ -675,6 +709,10 @@ TreeElement *Analyzer::getElementAST()
     return root;
 }
 
+/**
+ * Return element from actual AST
+ * @return element at deep and in order from nodes
+ */
 TreeElement *Analyzer::getElementAST(int deep, int* nodes )
 {
     TreeElement *root = 0;

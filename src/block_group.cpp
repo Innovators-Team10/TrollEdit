@@ -1,3 +1,12 @@
+/** 
+* @file block_group.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class BlockGroup and it's functions and identifiers.
+*/
+
 #include "block_group.h"
 #include "text_group.h"
 #include "block.h"
@@ -7,6 +16,8 @@
 #include "document_scene.h"
 #include "main_window.h"
 #include "language_manager.h"
+
+#include <QMessageBox>
 
 const QString BlockGroup::BLOCK_MIME = "block_data";
 //const QPointF BlockGroup::OFFSET_IN_TL = QPointF(0, 0);  // inner offset, left and top
@@ -21,7 +32,7 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     : QGraphicsRectItem(0, scene)
 {
     //this->analyzer = analyzer;
-    qDebug() << scene->main->getScriptBox()->currentText();
+//    qDebug() << scene->main->getScriptBox()->currentText();
 //    qDebug() << "filename split" << file.split(".")[1];
     qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
  //   qDebug() << "file" << file.split(".")[1];
@@ -66,6 +77,9 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     setAcceptDrops(true);
     setFlag(QGraphicsItem::ItemIsMovable);
     setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
+    
+    runParalelized = false;
+    groupRootEl = 0;
 
     time.start();
 
@@ -87,6 +101,11 @@ void BlockGroup::setContent(QString content)
     docScene->update();
 }
 
+/**
+ * Set given root to be new block root.
+ * Function sets new root and calls updateBlock to update each root in new hierarchy.
+ * @see updateBlock()
+ */
 void BlockGroup::setRoot(Block *newRoot)
 {
     if (newRoot == 0)
@@ -122,7 +141,9 @@ void BlockGroup::setRoot(Block *newRoot)
     clearSearchResults();
     root->updateBlock(false);
 
-    foreach (DocBlock *dbl, docBlocks())
+    QList<DocBlock*> docBlocksList = docBlocks();
+    
+    foreach (DocBlock *dbl, docBlocksList)
     {
         dbl->updateBlock(false);
     }
@@ -180,6 +201,11 @@ void BlockGroup::setBlockIn(Block *block, int line)
     }
 
     lastLine = line;
+}
+
+TextGroup* BlockGroup::getTextGroup()
+{
+    return this->txt;
 }
 
 bool BlockGroup::addFoldable(Block *block)
@@ -589,6 +615,38 @@ void BlockGroup::moveCursorUpDown(Block *start, bool moveUp, int from)
     selectBlock(target, true);
 }
 
+// changes the mode and disables/enables the editing actions in the menu
+void BlockGroup::changeMode(QList<QAction *> actionList)
+{
+    if(isVisible())
+    {
+        txt->setPlainText(this->toText());
+        txt->setPos(this->pos().x(),this->pos().y());
+        txt->setScale(this->scale());
+        txt->setFocus();
+        txt->setVisible(true);
+        this->setVisible(false);
+        docScene->selectGroup(this);
+        docScene->update();
+
+        for (int i=0; i<actionList.size(); i++)
+            actionList.at(i)->setEnabled(true);
+    }
+    else
+    {
+        txt->setVisible(false);
+        this->setContent(txt->toPlainText());
+        this->setPos(txt->pos().x(),txt->pos().y());
+        this->updateSize();
+        this->setVisible(true);
+        this->updateSize();
+        docScene->update();
+
+        for (int i=0; i<actionList.size(); i++)
+            actionList.at(i)->setEnabled(false);
+    }
+}
+
 void BlockGroup::changeMode(){
     if(isVisible()){
         txt->setPlainText(this->toText());
@@ -715,6 +773,15 @@ void BlockGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     {
         painter->setPen(pen());
         painter->drawRect(rect().adjusted(2,2,-2,-2));
+
+        QFont font = painter->font() ;
+        font.setPointSize ( 12 );
+        font.setWeight(QFont::DemiBold);
+        painter->setFont(font);
+        QStringList list = this->getFilePath().split(QString(QDir::separator()));
+        QPoint new_point = QPoint(widget->pos().x() - 10 ,widget->pos().y() - 5);
+        painter->drawText(new_point, list.at(list.size()-1) );
+        scene()->update();
     }
 }
 
@@ -823,30 +890,107 @@ bool BlockGroup::reanalyzeBlock(Block *block)
 
 void BlockGroup::analyzeAll(QString text)
 {
-    qDebug() << "\nBlockGroup::analyzeAll()";
-
+    qDebug() << "text size = " << text.size();
+    qDebug() << "runParalelized = " << runParalelized;
+    qDebug() << "maxThreadCount = " << QThreadPool::globalInstance()->maxThreadCount();
+    qDebug() << "currentThreadId(): " << QThread::currentThreadId(); 
+    
     if (text.isEmpty()) //! use snippet if text is empty
     {
         text = analyzer->getSnippet();
-        qDebug() << "\nDefault snippet used" << text;
+        qDebug() << "Default snippet used";
         getStatusBar()->showMessage("File reset - default text used", 2000);
 
         if (text.isEmpty()) text = "    ";
     }
     time.restart();
+    
+    try 
+    {
+        if (runParalelized == true) {
+            bool connected = QObject::connect(&watcher, SIGNAL(finished()), this, SLOT(updateAllInThreads()));
+            future = QtConcurrent::run(this, &BlockGroup::analazyAllInThread, text);    
+            watcher.setFuture(future); //! this is the line, on which function is run in thread
+            qDebug() << "Connected:" << connected;
+        }
+        else {
+            TreeElement* rootEl = analazyAllInMaster(text);
+            updateAllInMaster(rootEl);
+        }        
+    }
+    catch (...) 
+    {
+        QMessageBox::information(0,"Error","Error in AnalyzeAll!");
+    }
+}
 
-    // create new root element
-    TreeElement *rootEl = analyzer->analyzeFull(text);
-    qDebug("text analysis: %d", time.restart());
+/** Function to run analyzis of text in worker thread on background. 
+ * This function is run in thread, when finished, slot for updateAllInThread is invoked.
+ * Called most of the time.
+ * @see updateAllInThread()
+ * @return returns Root Element of analyzed text - not used
+ */
+TreeElement* BlockGroup::analazyAllInThread (QString text) 
+{
+    qDebug("analazyAllInThread");
+    mutex.lock();    
+    TreeElement* rootEl = analyzer->analyzeFull(text);
+    groupRootEl = rootEl;
+    mutex.unlock();
+   
+    return rootEl;
+}
 
+/** Function to run analyzis of text in master thread. 
+ * This function is run directly in master, while he is waiting. Blocking, application has to wait for result.
+ * Run when creating / opening new file.
+ * @return returns Root Element of analyzed text
+ */
+TreeElement* BlockGroup::analazyAllInMaster (QString text)  
+{
+    qDebug("analazyAllInMaster");
+    runParalelized = true;
+    return analyzer->analyzeFull(text);
+}
+
+/** Function to update blocks based on analyzed text in worker thread.
+ * This function is invoked after analysis in thread is done.
+ * New Root element is set and all blocks are updated.
+ */
+void BlockGroup::updateAllInThreads () 
+{
+    if (groupRootEl != 0) {
+        mutex.lock();
+        Block *newRoot = new Block(groupRootEl, 0, this);
+        mutex.unlock();
+        setRoot(newRoot);
+        
+        qDebug("root update: %d", time.restart());
+    }
+    else {
+        qDebug("groupRootEl is null");
+    }
+    qDebug("updateAllInThread");
+}
+
+/** Function to update blocks based on analyzed text in master thread.
+ * This function is invoked after analysis is done. 
+ * New Root element is set and all blocks are updated.
+ */
+void BlockGroup::updateAllInMaster (TreeElement* rootEl) 
+{
     // create new root
     Block *newRoot = new Block(rootEl, 0, this);
     qDebug("root creation: %d", time.restart());
-
+    
     // set new root
     setRoot(newRoot);
     qDebug("root update: %d", time.restart());
+    
+    qDebug("updateAllInMaster");
+    return;
 }
+
 
 QString BlockGroup::toText(bool noDocs) const
 {
@@ -941,7 +1085,7 @@ void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
-            changeMode();
+            changeMode(getTextGroup()->scene->getWindow()->getActionList());
             event->accept();
         }
     }

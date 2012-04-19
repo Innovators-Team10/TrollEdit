@@ -1,9 +1,12 @@
-/**
- * analyzer.cpp
- *  ---------------------------------------------------------------------------
- * Contains the defintion of class Arrow and it's funtions and identifiers
- *
- */
+/** 
+* @file arrow.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class Arrow and it's functions and identifiers
+*/
+
 #include <QtGui>
 #include <math.h>
 
@@ -182,7 +185,7 @@ void Arrow::paint(QPainter *painter, const QStyleOptionGraphicsItem *,
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawLine(line1);
     painter->drawLine(line2);
-    painter->drawLine(cornerLine1);
-     painter->drawLine(cornerLine2);
+//    painter->drawLine(cornerLine1);
+    painter->drawLine(cornerLine2);
     painter->drawPolygon(arrowHead);
 }

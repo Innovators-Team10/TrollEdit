@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>setting</class>
+ <widget class="QWidget" name="setting">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>757</width>
+    <height>509</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Options</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../res/resources.qrc">
+    <normaloff>:/icon16</normaloff>:/icon16</iconset>
+  </property>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>741</width>
+     <height>491</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QTabBar::tab 
+{
+           background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1 stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+           border: 1px solid silver;
+
+           border-top-left-radius: 7px;
+           border-top-right-radius: 7px;
+           min-width: 18ex;
+           padding: 5px; 
+}
+
+QTabBar::tab:selected, QTabBar::tab:hover
+{
+                        background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+						stop: 0 #fafafa, stop: 0.4 #f4f4f4, stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);
+}
+
+QTabBar::tab:selected
+{
+                        border-color: #9B9B9B;
+						border-bottom-color: red;
+}
+
+QTabBar::tab:!selected 
+{
+                      margin-top: 2px;
+  }</string>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>General</string>
+    </attribute>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>Tab 2</string>
+    </attribute>
+   </widget>
+   <widget class="QWidget" name="tab_3">
+    <attribute name="title">
+     <string>Page</string>
+    </attribute>
+   </widget>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../res/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

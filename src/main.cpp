@@ -1,13 +1,23 @@
+/** 
+* @file main.cpp
+* @author Team 04 Ufopak + Team 10 Innovators
+* @version 
+* 
+* @section DESCRIPTION
+* Contains the defintion of class Main. Contains main function. Initialize Qt applicationin which editor is running.
+*/
+
 #include <QApplication>
 #include <QAction>
 #include "main_window.h"
 #include <QString>
 
+#define CONFIG_DIR "/../share/trolledit"
+
 extern "C" {
     #include "lua.h"
     #include "lualib.h"
     #include "lauxlib.h"
-    int luaopen_lpeg (lua_State *L);
 }
 
 static MainWindow* window;
@@ -35,48 +45,6 @@ static int setstyle(lua_State *L) {
     return 0;                         /* number of results in LUA*/
 }
 
-static void stackDump (lua_State *L)
-{
-    int i;
-    int top = lua_gettop(L);
-
-    qDebug("-------STACK--------|");
-    for (i = 1; i <= top; i++) { /* repeat for each level */
-        int t = lua_type(L, i);
-        switch (t)
-        {
-            case LUA_TSTRING:
-            { /* strings */
-                qDebug("%d. string: '%s'\t|", i, lua_tostring(L, i));
-                break;
-            }
-            case LUA_TBOOLEAN:
-            { /* booleans */
-                qDebug("%d. %s\t|", i, lua_toboolean(L, i) ? "true" : "false");
-                break;
-            }
-            case LUA_TNUMBER:
-            { /* numbers */
-                qDebug("%d. numbers %g\t|", i, lua_tonumber(L, i));
-                break;
-            }
-            case LUA_TFUNCTION:
-            { /* numbers */
-                qDebug("%d. function %s\t|", i, lua_tostring(L, i) );
-                break;
-            }
-            default:
-            { /* other values*/
-            qDebug("%d. other %s\t|", i, lua_typename(L, t));
-            break;
-            }
-        }
-        // qDebug("--------------------|"); /* put a separator */
-    }
-    qDebug("");
-}
-
-
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -90,17 +58,16 @@ int main(int argc, char *argv[])
 
     // find the directory of the program
     QFileInfo program(argv[0]);
-    QString path = program.absoluteDir().path();
+    QString path = QApplication::applicationDirPath();
 
     MainWindow w(path);
     w.setWindowOpacity(0);
 
     // Load config from config_app.lua
-    lua_State *L = luaL_newstate();
+    lua_State *L = w.getLuaState();
     luaL_openlibs(L);
     int width, height; QString style;
-    const QString CONFIG_DIR = "/../share/trolledit";
-    QDir dir = QDir(QApplication::applicationDirPath() + CONFIG_DIR);
+    QDir dir = QDir(path + CONFIG_DIR);
     //QFileInfoList configs = dir.entryInfoList(QStringList("*.lua"), QDir::Files | QDir::NoSymLinks);
     QFileInfo configFile(dir.absolutePath()+ QDir::separator() + "config_app.lua");
 
@@ -111,11 +78,14 @@ int main(int argc, char *argv[])
     qDebug() << configFile.absoluteFilePath() << "width: " << width << " height: " << height << "\n style: " << style;
     //window size
     w.resize(width, height);
+    
     //CSS style
     //w.setStyleSheet(style);
 
     //w.setStyleSheet();
     splashScreen.show();
+ 
+    w.setWindowIcon (QIcon(":/icon16"));
     w.show();
 
     QTimer::singleShot(2000, &splashScreen, SLOT(close()));
@@ -124,6 +94,7 @@ int main(int argc, char *argv[])
 
     //    w.newFile();
     //    w.open("../input/in.c"); // TEMP
+    
     // open all files given as parameters
     for (int i = 1; i < argc; i++)
         w.open(argv[i]);

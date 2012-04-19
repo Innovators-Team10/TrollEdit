@@ -24,7 +24,16 @@ public:
 
     DocumentScene *scene;
     BlockGroup *block;
-    void changeMode();
+    QGraphicsRectItem *rc;
+    void copy();
+    void paste();
+    void cut();
+    void deleteFunction();
+    void selectAll();
+    void undo();
+    void redo();
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 signals:
 

@@ -1,6 +1,6 @@
 -- configuration file
-width = 640
-height = 480
+width = 1200
+height = 675
 style = "QMainWindow {"
                         .."color: black;"
                         .."background-color: #C2C2C2;"
@@ -9,19 +9,19 @@ style = "QMainWindow {"
                      .."}"
 
                     .."QTabWidget::tab-bar {"
-                        .."left: 2px; /* odsadenie od plus*/"
+                        .."left: 2px;"
                     .."}"
 
                     .."QTabBar::tab {"
                         .."background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
 						.."stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,"
 						.."stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);"
-                        .."border: 1px solid silver; /* vrchne oramovanie tabu*/"
+                        .."border: 1px solid silver;"
 
                         .."border-top-left-radius: 7px;"
                         .."border-top-right-radius: 7px;"
                         .."min-width: 18ex;"
-                        .."padding: 5px; /*vyska tabu*/"
+                        .."padding: 5px;"
                     .."}"
 
                     .."QTabBar::tab:selected, QTabBar::tab:hover {"
@@ -40,7 +40,7 @@ style = "QMainWindow {"
 					.."}"
 
                     .."QMenu {"
-						.."background-color: #D6DADE; /*vnutro menu*/"
+						.."background-color: #D6DADE;"
                         .."color: white;"
                     .."}"
 
@@ -86,7 +86,7 @@ style = "QMainWindow {"
                     .."QToolButton {"
                         .."padding: 2px;"
                         .."background-color: transparent;"
-                        .."min-width: 35px;"
+                        .."min-width: 20px;"
                     .."}"
 
                     .."QToolButton:hover {"
@@ -102,16 +102,14 @@ style = "QMainWindow {"
                     .."}"
 
                     .."QToolButton:disabled {"
-                        .."background: transparent"
-                        .."fx: 0.4, fy: -0.1,"
-                        .."radius: 1.35, stop: 0 #777, stop: 1 #333);"
+                        .."background: transparent;"
                     .."}"
 
                     .."QStatusBar{ "
                         .."color: black;"
                     .."}"
-                .."QMessageBox {"
-                .."background-color:silver;"
+                .."QMessageBox{" 
+                .."background-color: silver;"
                 .."}"
 
 setstyle(style)
