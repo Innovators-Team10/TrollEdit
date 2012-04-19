@@ -597,13 +597,13 @@ void DocumentScene::wheelEvent(QGraphicsSceneWheelEvent *event)
         if (delta > 0)
         {
             currentGroup->setScale(currentGroup->scale() * delta);
-            currentGroup->getTextGroup()->setScale(currentGroup->getTextGroup()->scale() * delta);
+            currentGroup->getTextGroup()->rc->setScale(currentGroup->getTextGroup()->rc->scale() * delta);
         }
 
         if (delta < 0)
         {
             currentGroup->setScale(currentGroup->scale() / -delta);
-            currentGroup->getTextGroup()->setScale(currentGroup->getTextGroup()->scale() / -delta);
+            currentGroup->getTextGroup()->rc->setScale(currentGroup->getTextGroup()->rc->scale() / -delta);
         }
 
         event->accept();
@@ -836,19 +836,22 @@ void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
     }
     else if (event->mimeData()->hasText())
     {
-        QString str = event->mimeData()->text();
-        str = str.mid(0, 4);
-
-        if (str.operator ==("http") || str.operator >=("www"))
+        if(currentGroup->isVisible())
         {
+            QString str = event->mimeData()->text();
+            str = str.mid(0, 4);
+
+            if (str.operator ==("http") || str.operator >=("www"))
+            {
+                docBlock = currentGroup->addDocBlock(event->scenePos());
+                docBlock->addWebLink(event->mimeData()->text());
+
+                return;
+            }
+
             docBlock = currentGroup->addDocBlock(event->scenePos());
-            docBlock->addWebLink(event->mimeData()->text());
-
-            return;
+            docBlock->addText(event->mimeData()->text());
         }
-
-        docBlock = currentGroup->addDocBlock(event->scenePos());
-        docBlock->addText(event->mimeData()->text());
     }
 
     if (docBlock != 0)
