@@ -24,6 +24,7 @@ public:
 
     DocumentScene *scene;
     BlockGroup *block;
+    QGraphicsRectItem *rc;
     void copy();
     void paste();
     void cut();
@@ -31,6 +32,8 @@ public:
     void selectAll();
     void undo();
     void redo();
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 signals:
 

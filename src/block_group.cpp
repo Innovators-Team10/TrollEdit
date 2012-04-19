@@ -773,6 +773,15 @@ void BlockGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     {
         painter->setPen(pen());
         painter->drawRect(rect().adjusted(2,2,-2,-2));
+
+        QFont font = painter->font() ;
+        font.setPointSize ( 12 );
+        font.setWeight(QFont::DemiBold);
+        painter->setFont(font);
+        QStringList list = this->getFilePath().split(QString(QDir::separator()));
+        QPoint new_point = QPoint(widget->pos().x() - 10 ,widget->pos().y() - 5);
+        painter->drawText(new_point, list.at(list.size()-1) );
+        scene()->update();
     }
 }
 
