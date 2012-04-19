@@ -621,9 +621,13 @@ void BlockGroup::changeMode(QList<QAction *> actionList)
     if(isVisible())
     {
         txt->setPlainText(this->toText());
-        txt->setPos(this->pos().x(),this->pos().y());
+//        txt->setPos(this->pos());
+        txt->rc->setPos(this->pos());
+        txt->rc->setRect(txt->boundingRect().adjusted(-10,-10,+10,+10));
+        txt->rc->setScale(this->scale());
         txt->setScale(this->scale());
         txt->setFocus();
+        txt->rc->setVisible(true);
         txt->setVisible(true);
         this->setVisible(false);
         docScene->selectGroup(this);
@@ -634,9 +638,10 @@ void BlockGroup::changeMode(QList<QAction *> actionList)
     }
     else
     {
+        txt->rc->setVisible(false);
         txt->setVisible(false);
         this->setContent(txt->toPlainText());
-        this->setPos(txt->pos().x(),txt->pos().y());
+        this->setPos(txt->rc->pos());
         this->updateSize();
         this->setVisible(true);
         this->updateSize();
