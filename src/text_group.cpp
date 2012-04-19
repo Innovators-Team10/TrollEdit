@@ -32,10 +32,12 @@ TextGroup::TextGroup(BlockGroup *block, DocumentScene *scene)
     QFont *f = new QFont(temp->textItem()->font());
     this->setFont(*f);
 
-//    QPen pen = QPen(Qt::DashLine);
-//    pen.setColor(Qt::red);
-//    rc = scene->addRect(boundingRect(),pen,Qt::NoBrush);
-//    rc->setFlags(QGraphicsItem::ItemIsMovable );
+    QPen pen = QPen(Qt::DashLine);
+    pen.setColor(Qt::lightGray);
+    rc = scene->addRect(block->boundingRect(),pen,Qt::NoBrush);
+    rc->setFlags(QGraphicsItem::ItemIsMovable );
+    this->setParentItem(rc);
+    this->setFlag(QGraphicsItem::ItemIsMovable, false);
 }
 
 TextGroup::~TextGroup()
@@ -104,13 +106,13 @@ void TextGroup::redo()
 
 void TextGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    if( this->hasFocus() || this->isUnderMouse() ){
+//        this->setPos(0,0);
+        rc->setRect(this->boundingRect().adjusted(-10,-10,+10,+10));
+    if( (this->hasFocus() || this->isUnderMouse()) || (rc->hasFocus() || rc->isUnderMouse()) ){
         QPen pen = QPen(Qt::DashLine);
         pen.setColor(Qt::red);
         painter->setPen(pen);
         painter->drawRect(boundingRect().adjusted(-10,-10,+10,+10));
-        //rc->setRect(boundingRect().adjusted(-10,-10,+10,+10));
-        //rc->setPos(this->pos());
 
         QFont font = painter->font() ;
         font.setPointSize ( 8 );
@@ -119,9 +121,8 @@ void TextGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         QStringList list = block->getFilePath().split(QString(QDir::separator()));
         QPoint new_point = QPoint(widget->pos().x() - 7 ,widget->pos().y() - 2);
         painter->drawText(new_point, list.at(list.size()-1) );
-
-        scene->update();
     }
+        scene->update();
 
     QGraphicsTextItem::paint(painter, option, widget);
 }
