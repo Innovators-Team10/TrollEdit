@@ -2,7 +2,7 @@
  
 TrollEdit - Graphically Enhanced Text Editor
 -----
-[![Build Status](https://secure.travis-ci.org/Innovators-Team10/TrollEdit.png?branch=master)](http://travis-ci.org/Innovators-Team10/TrollEdit)
+[![Build Status](https://secure.travis-ci.org/Innovators-Team10/TrollEdit.png?branch=dev)](http://travis-ci.org/Innovators-Team10/TrollEdit)
 
 TrollEdit is a Qt based text editor developed by students at Slovak University of Technology.
 
