@@ -139,7 +139,7 @@ if ( APPLE )
 
   # CPack Settings
   set ( CPACK_GENERATOR "DragNDrop" )
-  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/res/trolledit_pkg.ico" )
+  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/res/trolledit_pkg.icns" )
   set ( CPACK_PACKAGE_FILE_NAME "${TROLLEDIT_NAME}-${TROLLEDIT_VERSION}" )
 
   # OSX Specific resurces
