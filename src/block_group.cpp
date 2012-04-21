@@ -76,7 +76,8 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     computeTextSize();
     setAcceptDrops(true);
     setFlag(QGraphicsItem::ItemIsMovable);
-    setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
+    setPen(QPen(QBrush(Qt::black),1, Qt::DashLine)); //also color for filename
+    
     
     runParalelized = false;
     groupRootEl = 0;
@@ -89,10 +90,10 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
 
 BlockGroup::~BlockGroup()
 {
+    delete txt->rc;
     docScene = 0;
     root = 0;
-    txt->setVisible(false);
-    txt=0;
+    txt = 0;
 }
 
 void BlockGroup::setContent(QString content)
@@ -621,9 +622,11 @@ void BlockGroup::changeMode(QList<QAction *> actionList)
     if(isVisible())
     {
         txt->setPlainText(this->toText());
-        txt->setPos(this->pos().x(),this->pos().y());
-        txt->setScale(this->scale());
+        txt->rc->setPos(this->pos());
+        txt->rc->setScale(this->scale());
+        txt->rc->setRect(txt->boundingRect().adjusted(-10,-10,+10,+10));
         txt->setFocus();
+        txt->rc->setVisible(true);
         txt->setVisible(true);
         this->setVisible(false);
         docScene->selectGroup(this);
@@ -634,9 +637,10 @@ void BlockGroup::changeMode(QList<QAction *> actionList)
     }
     else
     {
+        txt->rc->setVisible(false);
         txt->setVisible(false);
         this->setContent(txt->toPlainText());
-        this->setPos(txt->pos().x(),txt->pos().y());
+        this->setPos(txt->rc->pos());
         this->updateSize();
         this->setVisible(true);
         this->updateSize();

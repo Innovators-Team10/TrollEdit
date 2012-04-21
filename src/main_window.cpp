@@ -27,13 +27,428 @@
 #include <QTextStream>
 #include <QtWebKit>
 
+#define CONFIG_DIR "/../share/trolledit"
+
+extern "C" {
+    #include "lua.h"
+    #include "lualib.h"
+    #include "lauxlib.h"
+}
+
+static MainWindow *p_window;
+
+void loadConfig(lua_State *L, const char *fname, int *w, int *h, QString *style) {
+    if (luaL_loadfile(L, fname) || lua_pcall(L, 0, 0, 0))
+        qDebug() << "cannot run config. file: " <<  lua_tostring(L, -1);
+    lua_getglobal(L, "style");
+    lua_getglobal(L, "width");
+    lua_getglobal(L, "height");
+    if (!lua_isstring(L, -3))
+        qDebug() << "'style' should be a string\n";
+    if (!lua_isnumber(L, -2))
+        qDebug() << "'width' should be a number\n";
+    if (!lua_isnumber(L, -1))
+        qDebug() << "'height' should be a number\n";
+    *style = lua_tostring(L, -3);
+    *w = lua_tointeger(L, -2);
+    *h = lua_tointeger(L, -1);
+}
+
+static int setstyle(lua_State *L) {
+    QString str = lua_tostring(L, 1); /* get argument */
+    p_window->setStyleSheet(str);
+    return 0;                         /* number of results in LUA*/
+}
+
+//...Shortcuts
+static int l_newAction(lua_State *L) {
+    QString str = lua_tostring(L, 1);
+    QString tool_str = lua_tostring(L, 2);
+
+    //! new
+    QIcon newIcon(":/icons/new.png");
+    p_window->newAction = new QAction(newIcon, "&New", p_window);
+    p_window->newAction->setShortcut(str);
+    p_window->newAction->setToolTip(tool_str);//tr("Create a new file")
+    p_window->connect(p_window->newAction, SIGNAL(triggered()), p_window, SLOT(newFile()));
+    p_window->addAction(p_window->newAction);
+    return 0;
+}
+
+static int l_openAction(lua_State *L) {
+    QString str = lua_tostring(L, 1);
+    QString tool_str = lua_tostring(L, 2);
+
+    //! open
+    QIcon openIcon(":/icons/open.png");
+    p_window->openAction = new QAction(openIcon, "&Open...", p_window);
+    p_window->openAction->setShortcut(str);
+    p_window->openAction->setToolTip(tool_str);//tr("Open an existing file"));
+    p_window->connect(p_window->openAction, SIGNAL(triggered()), p_window, SLOT(open()));;
+    return 0;
+}
+
+static int l_revertAction(lua_State *L) {
+    QString str = lua_tostring(L, 1);
+    QString tool_str = lua_tostring(L, 2);
+
+    //! revert
+    p_window->revertAction = new QAction("&Revert", p_window);
+    p_window->revertAction->setShortcut(str);
+    p_window->revertAction->setToolTip(tool_str);//tr("Revert to last save"));
+    p_window->connect(p_window->revertAction, SIGNAL(triggered()), p_window, SLOT(revertGroupWrapper()));
+    p_window->groupActions->addAction(p_window->revertAction);
+    return 0;
+}
+
+/*
+    groupActions = new QActionGroup(this);
+
+    //! save
+    QIcon saveIcon(":/icons/save.png"); // works (only for 1 scene)
+    saveAction = new QAction(saveIcon, tr("&Save"), this);
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    saveAction->setShortcut((textstring));
+    saveAction->setToolTip(tr("Save file"));
+    connect(saveAction, SIGNAL(triggered()), this, SLOT(saveGroupWrapper()));
+    groupActions->addAction(saveAction);
+
+
+    //! save as
+    QIcon saveAsIcon(":/icons/save.png");  // probably same as saveAction
+    saveAsAction = new QAction(saveAsIcon, tr("Save &As..."), this);
+    saveAsAction->setToolTip(tr("Save file as..."));
+    connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWrapper()));
+    groupActions->addAction(saveAsAction);
+
+
+        saveAsNoDocAction = new QAction(tr("Save Without Comments"), this); // ??? is this used ???
+        saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
+        connect(saveAsNoDocAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWithoutDocWrapper()));
+        groupActions->addAction(saveAsNoDocAction);
+
+        //! save all
+        QIcon saveAllIcon(":/icons/saveAll.png");
+        saveAllAction = new QAction(saveAllIcon,tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
+        saveAllAction->setToolTip(tr("Save all files"));
+        connect(saveAllAction, SIGNAL(triggered()), this, SLOT(saveAllGroupsWrapper()));
+
+        //! close
+        QIcon closeIcon(":/icons/closeFile.png");
+        closeAction = new QAction(closeIcon, tr("&Close File"), this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        closeAction->setShortcut((textstring));
+        closeAction->setToolTip(tr("Close file"));
+        connect(closeAction, SIGNAL(triggered()), this, SLOT(closeGroupWrapper()));
+        groupActions->addAction(closeAction);
+
+        //! close all
+        closeAllAction = new QAction(tr("Close All"), this);
+        closeAllAction->setToolTip(tr("Close all files"));
+        connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroupsWrapper()));
+
+        //! print pdf
+        QIcon printIcon(":/icons/print.png");
+        printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        printPdfAction->setShortcut((textstring));
+        printPdfAction->setToolTip(tr("Print scene to PDF"));
+        connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
+        groupActions->addAction(printPdfAction);
+
+        //! show plain text editor
+        QIcon editIcon(":/icons/textMode");
+        plainEditAction = new QAction(editIcon, tr("&Edit Plain Text"), this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        plainEditAction->setShortcut((textstring));
+        plainEditAction->setToolTip(tr("Edit file as plain text"));
+        connect(plainEditAction, SIGNAL(triggered()), this, SLOT(showPreviewWrapper()));
+        groupActions->addAction(plainEditAction);
+
+        //! clear search results
+        QIcon clearIcon(":/icons/close");
+        clearAction = new QAction(clearIcon, tr("Clea&n Search"), this);
+        //clearAction->setShortcut(tr("CTRL+S"));
+        clearAction->setToolTip(tr("Clean search results"));
+        connect(clearAction, SIGNAL(triggered()), this, SLOT(cleanGroupWrapper()));
+        groupActions->addAction(clearAction);
+
+
+    //! recent files
+    for (int i = 0; i < MaxRecentFiles; ++i)
+    {
+        recentFileActions[i] = new QAction(this);
+        recentFileActions[i]->setVisible(false);
+        connect(recentFileActions[i], SIGNAL(triggered()),
+                this, SLOT(openRecentFile()));
+    }
+
+    //! exit
+    QIcon exitIcon(":/icons/exit.png");
+    exitAction = new QAction(exitIcon, tr("E&xit"), this);
+    exitAction->setToolTip(tr("Quit the application?"));
+    connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
+
+    //! help
+    QIcon helpIcon(":/icons/help.png");
+    helpAction = new QAction(helpIcon, tr("&Help - online"), this);
+    helpAction->setShortcut(tr("F1"));
+    helpAction->setToolTip(tr("Show application help"));
+    connect(helpAction, SIGNAL(triggered()), this, SLOT(help()));
+
+    //! about
+    QIcon aboutIcon(":/icons/info.png");
+    aboutAction = new QAction(aboutIcon,tr("&About"), this);
+    aboutAction->setToolTip(tr("Show application's about box"));
+    connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
+
+    //! update
+    updateAction = new QAction(tr("&Check for update"), this);
+    updateAction->setToolTip(tr("Check new updates"));
+    connect(updateAction, SIGNAL(triggered()), this, SLOT(update()));
+
+    //! home page
+    QIcon homeIcon(":/icons/home.png");
+    homePageAction = new QAction(homeIcon,tr("&Home page"), this);
+    homePageAction->setToolTip(tr("Open home page of TrollEdit"));
+    connect(homePageAction, SIGNAL(triggered()), this, SLOT(homePage()));
+
+    //! bugs report
+    bugReportAction = new QAction(tr("&Report bug"), this);
+    bugReportAction->setToolTip(tr("Send report about a bug"));
+    connect(bugReportAction, SIGNAL(triggered()), this, SLOT(bugReport()));
+
+    //! shortcuts
+    shortAction = new QAction(tr("&Shortcuts"), this);
+    shortAction->setStatusTip(tr("Setting shortcuts"));
+    connect(shortAction, SIGNAL(triggered()), this, SLOT(setShort()));
+
+    //! set Lua language
+    setLuaAction = new QAction(tr("&Lua"), this);
+    setLuaAction->setStatusTip(tr("Set Lua language"));
+    connect(setLuaAction, SIGNAL(triggered()), this, SLOT(setLanguageLua()));
+
+    //! set C language
+    setCAction = new QAction(tr("&C"), this);
+    setCAction->setStatusTip(tr("Set C language"));
+    connect(setCAction, SIGNAL(triggered()), this, SLOT(setLanguageC()));
+
+    //! set Xml language
+    setXmlAction = new QAction(tr("&Xml"), this);
+    setXmlAction->setStatusTip(tr("Set Xml language"));
+    connect(setXmlAction, SIGNAL(triggered()), this, SLOT(setLanguageXml()));
+
+    //! generate snapshot
+    snapshotAction = new QAction(tr("&Snapshot"), this);
+    snapshotAction->setStatusTip(tr("Generate snapshot"));
+    connect( snapshotAction, SIGNAL(triggered()), this, SLOT(snapshot()));
+
+    //! options
+    QIcon optionIcon(":/icons/seeting.png");
+    optionsAction = new QAction(optionIcon,tr("&Options"), this);
+    optionsAction->setStatusTip(tr("Setting main funkcionality"));
+    connect(optionsAction, SIGNAL(triggered()), this, SLOT(options()));
+
+    //! sw metrics
+    QIcon metricsIcon(":/icons/chart.png");
+    metricsAction = new QAction(metricsIcon,tr("&SW metrics"), this);
+    metricsAction->setStatusTip(tr("Dispaly of sw metrics"));
+    connect(metricsAction, SIGNAL(triggered()), this, SLOT(swMetrics()));
+
+    //! task list
+    QIcon taskIcon(":/icons/taskList.png");
+    taskListAction = new QAction(taskIcon,tr("&Task list"), this);
+    taskListAction->setStatusTip(tr("Show task list"));
+    connect(taskListAction, SIGNAL(triggered()), this, SLOT(taskList()));
+
+    //! bug list
+    QIcon bugIcon(":/icons/bugList.png");
+    bugListAction = new QAction(bugIcon,tr("&Bug list"), this);
+    bugListAction->setStatusTip(tr("Show bug list"));
+    connect(bugListAction, SIGNAL(triggered()), this, SLOT(bugList()));
+
+    //! basic toolbar
+    basicToolbarAction = new QAction(tr("&Basic"), this);
+    basicToolbarAction->setStatusTip(tr("Set basic toolbar"));
+    connect(basicToolbarAction, SIGNAL(triggered()), this, SLOT(basicToolbar()));
+
+    //! format toolbar
+    formatToolbarAction = new QAction(tr("&Format"), this);
+    formatToolbarAction->setStatusTip(tr("Set format toolbar"));
+    connect(formatToolbarAction, SIGNAL(triggered()), this, SLOT(formatToolbars()));
+
+    //! tools toolbar
+    toolsToolbarAction = new QAction(tr("&Tools"), this);
+    toolsToolbarAction->setStatusTip(tr("Set tools toolbar"));
+    connect(toolsToolbarAction, SIGNAL(triggered()), this, SLOT(toolsToolbar()));
+
+    //! editor toolbar
+    editorToolbarAction = new QAction(tr("&Editor"), this);
+    editorToolbarAction->setStatusTip(tr("Set editor toolbar"));
+    connect(editorToolbarAction, SIGNAL(triggered()), this, SLOT(editorToolbar()));
+
+    //! bottom dock panel
+    setBottomDockAction = new QAction(tr("&Bottom dock"), this);
+    setBottomDockAction->setStatusTip(tr("View bottom dock panel"));
+    setBottomDockAction->setCheckable(true);
+    connect(setBottomDockAction, SIGNAL(triggered()), this, SLOT(setBottomDock()));
+
+    //! bottom right dock panel
+    setRightDockAction = new QAction(tr("&Right dock"), this);
+    setRightDockAction->setStatusTip(tr("View right dock panel"));
+    setRightDockAction->setCheckable(true);
+    connect(setRightDockAction, SIGNAL(triggered()), this, SLOT(setRightDock()));
+
+    //! fullscreen
+    QIcon fullScreenIcon(":/icons/fullScreen.png");
+    fullScreenAction = new QAction(fullScreenIcon,tr("&FullScreen"), this);
+    fullScreenAction->setShortcut(tr("F8"));
+    fullScreenAction->setCheckable(true);
+    fullScreenAction->setStatusTip(tr("View full screen"));
+    connect(fullScreenAction, SIGNAL(triggered()), this, SLOT(fullScreen()));
+
+    //! new window
+    newWindowAction = new QAction(tr("&New window"), this);
+    newWindowAction->setStatusTip(tr("Create new instance an application "));
+    connect(newWindowAction, SIGNAL(triggered()), this, SLOT(newWindow()));
+
+    //! zoom in
+    QIcon zoomIncon(":/icons/plus.png");
+    zoomInAction = new QAction(zoomIncon,tr("&Zoom In"), this);
+    zoomInAction->setStatusTip(tr("Zoom in"));
+    connect(zoomInAction, SIGNAL(triggered()), this, SLOT(zoomIn()));
+
+    //! zoom out
+    QIcon zoomOutIcon(":/icons/minus.png");
+    zoomOutAction = new QAction(zoomOutIcon,tr("&Zoom Out"), this);
+    zoomOutAction->setStatusTip(tr("Zoom out "));
+    connect(zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
+
+    //! split
+    splitAction = new QAction(tr("&Split"), this);
+    splitAction->setStatusTip(tr("Split a workspace "));
+    splitAction->setCheckable(true);
+    connect(splitAction, SIGNAL(triggered()), this, SLOT(split()));
+
+    //! CMD
+    QIcon cmdIcon(":/icons/cmd.png");
+    showCmdAction = new QAction(cmdIcon,tr("&CMD"), this);
+    showCmdAction->setCheckable(true);
+    showCmdAction->setStatusTip(tr("Run command line"));
+    connect(showCmdAction, SIGNAL(triggered()), this, SLOT(showCmd()));
+
+    //! undo
+    QIcon undoIcon(":/icons/undo.png");
+    undoAction = new QAction(undoIcon, tr("&Undo"), this);
+    undoAction->setShortcut(tr("CTRL+Z"));
+    undoAction->setStatusTip(tr("Undo"));
+    undoAction->setEnabled(false);
+    connect(MainWindow::undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+    actionList.append(undoAction);
+
+    //! redo
+    QIcon redoIcon(":/icons/redo.png");
+    redoAction = new QAction(redoIcon, tr("&Redo"), this);
+    redoAction->setShortcut(tr("CTRL+Y"));
+    redoAction->setStatusTip(tr("Redo"));
+    redoAction->setEnabled(false);
+    connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
+    actionList.append(redoAction);
+
+    //! cut
+    QIcon cutIcon(":/icons/cut.png");
+    cutAction = new QAction(cutIcon, tr("&Cut"), this);
+    cutAction->setShortcut(tr("CTRL+X"));
+    cutAction->setStatusTip(tr("Cut"));
+    cutAction->setEnabled(false);
+    connect(cutAction, SIGNAL(triggered()), this, SLOT(cut()));
+    actionList.append(cutAction);
+
+    //! copy
+    QIcon copyIcon(":/icons/copy.png");
+    copyAction = new QAction(copyIcon,tr("&Copy"), this);
+    copyAction->setShortcut(tr("CTRL+C"));
+    copyAction->setStatusTip(tr("Copy"));
+    copyAction->setEnabled(false);
+    connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
+    actionList.append(copyAction);
+
+    //! paste
+    QIcon pasteIcon(":/icons/paste.png");
+    pasteAction = new QAction(pasteIcon,tr("&Paste"), this);
+    pasteAction->setShortcut(tr("CTRL+V"));
+    pasteAction->setStatusTip(tr("Paste"));
+    pasteAction->setEnabled(false);
+    connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+    actionList.append(pasteAction);
+
+    //! delete
+    QIcon deleteIcon(":/icons/delete.png");
+    deleteAction = new QAction(deleteIcon,tr("&Delete"), this);
+    deleteAction->setShortcut(tr("DEL"));
+    deleteAction->setStatusTip(tr("Delete"));
+    deleteAction->setEnabled(false);
+    connect(deleteAction, SIGNAL(triggered()), this, SLOT(delet()));
+    actionList.append(deleteAction);
+
+    //! selectAll
+    selectAllAction = new QAction(tr("&Select All"), this);
+    selectAllAction->setShortcut(tr("CTRL+A"));
+    selectAllAction->setStatusTip(tr("Select All"));
+    selectAllAction->setEnabled(false);
+    connect(selectAllAction, SIGNAL(triggered()), this, SLOT(selectAll()));
+    actionList.append(selectAllAction);
+
+    //! attach file
+    QIcon attachIcon(":/icons/spin.png");
+    attachFileAction = new QAction(attachIcon,tr("&Attach file"), this);
+    attachFileAction->setStatusTip(tr("Attach file"));
+    connect(attachFileAction, SIGNAL(triggered()), this, SLOT(attachFile()));
+
+    //! find
+    QIcon findIcon(":/icons/find.png");
+    findAction = new QAction(findIcon,tr("&Find"), this);
+    findAction->setShortcut(tr("CTRL+F"));
+    findAction->setStatusTip(tr("Find"));
+    connect(findAction, SIGNAL(triggered()), this, SLOT(find()));
+
+    //! find & replace
+    find_ReplaceAction = new QAction(tr("&Find & Replace"), this);
+    find_ReplaceAction->setShortcut(tr("CTRL+R"));
+    find_ReplaceAction->setStatusTip(tr("Find and Replace"));
+    connect(find_ReplaceAction, SIGNAL(triggered()), this, SLOT(find_Replace()));
+
+    //! set bold font
+    QIcon boldIcon(":/icons/bold.png");
+    setBoldAction = new QAction(boldIcon,tr("&Bold font"), this);
+    setBoldAction->setStatusTip(tr("Set bold font"));
+    connect(setBoldAction, SIGNAL(triggered()), this, SLOT(setBold()));
+
+    //! set italic font
+    QIcon italicIcon(":/icons/italic.png");
+    setItalicAction = new QAction(italicIcon,tr("&italic font"), this);
+    setItalicAction->setStatusTip(tr("Set italic font"));
+    connect(setItalicAction, SIGNAL(triggered()), this, SLOT(setItalic()));
+
+    //! show printable area
+    QIcon areaIcon(":/icons/printArea.png");
+    printableAreaAction = new QAction(areaIcon, tr("Show Printable Area"), this);
+    printableAreaAction->setToolTip(tr("Show margins of printable area"));
+    connect(printableAreaAction, SIGNAL(triggered()), this, SLOT(showPrintableArea()));
+    file.close();
+}
+*/
 
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
-    initLuaState();
     langManager = new LanguageManager(programPath);
 
     createActions();
+    initLuaState(programPath);
     createTabs();
 
     readSettings();
@@ -42,9 +457,34 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 }
 
 //! create lua state
-void MainWindow::initLuaState(){
+void MainWindow::initLuaState(QString programPath){
     this->L = luaL_newstate();
+
+    //! Load config from config_app.lua
+    lua_State *L = getLuaState();
+    luaL_openlibs(L);
+    int width, height; QString style;
+    QDir dir = QDir(programPath + CONFIG_DIR);
+    //QFileInfoList configs = dir.entryInfoList(QStringList("*.lua"), QDir::Files | QDir::NoSymLinks);
+    QFileInfo configFile(dir.absolutePath()+ QDir::separator() + "config_app.lua");
+
+    p_window = this;
+    //! Register function for lua
+    lua_register(L, "setstyle", setstyle);
+    //...shortcuts
+    lua_register(L, "l_newAction", l_newAction);
+    lua_register(L, "l_openAction", l_openAction);
+    lua_register(L, "l_revertAction", l_revertAction);
     //...
+
+    //! Loading config file
+    loadConfig(L, qPrintable(configFile.absoluteFilePath()), &width, &height, &style);
+    qDebug() << configFile.absoluteFilePath() << "width: " << width << " height: " << height << "\n style: " << style;
+    //window size
+    resize(width, height);
+    //CSS style
+    //w.setStyleSheet(style);
+    //w.setStyleSheet();
 }
 
 //! give lua state with configuration
