@@ -89,10 +89,10 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
 
 BlockGroup::~BlockGroup()
 {
+    delete txt->rc;
     docScene = 0;
     root = 0;
-    txt->setVisible(false);
-    txt=0;
+    txt = 0;
 }
 
 void BlockGroup::setContent(QString content)
@@ -621,11 +621,9 @@ void BlockGroup::changeMode(QList<QAction *> actionList)
     if(isVisible())
     {
         txt->setPlainText(this->toText());
-//        txt->setPos(this->pos());
         txt->rc->setPos(this->pos());
-        txt->rc->setRect(txt->boundingRect().adjusted(-10,-10,+10,+10));
         txt->rc->setScale(this->scale());
-        txt->setScale(this->scale());
+        txt->rc->setRect(txt->boundingRect().adjusted(-10,-10,+10,+10));
         txt->setFocus();
         txt->rc->setVisible(true);
         txt->setVisible(true);
