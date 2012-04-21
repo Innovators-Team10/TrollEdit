@@ -653,7 +653,7 @@ void MainWindow::createActions()
         textstring = file.readLine();
         textstring.remove(6,1);
         closeTabAction->setShortcut((textstring));
-        connect(closeTabAction, SIGNAL(triggered()), this, SLOT(closeTab()));
+        connect(closeTabAction, SIGNAL(triggered()), this, SLOT(closeTab()));   //Not working yet
         addAction(closeTabAction);
 
 
