@@ -1,6 +1,7 @@
+<pre>                           <img  src="http://innovators-team10.github.com/images/trolledit.png" align="middle" alt="logo"></img></pre>
+ 
 TrollEdit - Graphically Enhanced Text Editor
-=========
-
+-----
 [![Build Status](https://secure.travis-ci.org/Innovators-Team10/TrollEdit.png?branch=dev)](http://travis-ci.org/Innovators-Team10/TrollEdit)
 
 TrollEdit is a Qt based text editor developed by students at Slovak University of Technology.
@@ -39,16 +40,24 @@ cmake --build . --target install
 
 The result will be in the `TrollEdit` directory of the source. On Apple the result is an application bundle.
 
+Repo Contents
+-----
+* `data` -          contents grammars for programming language and CSS configuration file for design of TrollEdit
+* `dependencies` -  contents git submodules for libraries LPeg, LuaJIT
+* `res` -           contents icons and images for user controls 
+* `src` -           contents source code (.h, .cpp)
+* `ui` -            contents user interface for widgets 
+* `.gitmodules` -   file for loading git submodules 
+* `.travis.yml` -   script file for CI
+* `CmakeList.txt` - script file for build of program 
+
 Links
 -----
 
 Slovak University of Technology:
 http://www.fiit.stuba.sk/generate_page.php?page_id=749
 
-Students project page (in Slovak)
-http://labss2.fiit.stuba.sk/TeamProject/2011/team10is-si/index.html
-
-Project page (in English):
+Project page: 
 http://innovators-team10.github.com
 
 Detailed Install instructions:

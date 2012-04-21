@@ -76,7 +76,8 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     computeTextSize();
     setAcceptDrops(true);
     setFlag(QGraphicsItem::ItemIsMovable);
-    setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
+    setPen(QPen(QBrush(Qt::black),1, Qt::DashLine)); //also color for filename
+    
     
     runParalelized = false;
     groupRootEl = 0;
