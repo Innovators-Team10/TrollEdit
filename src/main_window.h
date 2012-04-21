@@ -53,6 +53,7 @@ public:
     // for file menu
     QAction *newAction;
     QAction *newTabAction;
+    QAction *closeTabAction;
     QAction *openAction;
     QAction *revertAction;
     QAction *saveAction;
@@ -87,6 +88,7 @@ public:
     QAction *homePageAction;
     QAction *helpAction;
     QAction *aboutAction;
+    QAction *tipsAction;
     QAction *updateAction;
     QAction *bugReportAction;
 
@@ -163,6 +165,7 @@ private slots:
     void open();
     void openRecentFile();
     void about();
+    void tipsAndTricks();
     void help();
     void homePage();
     void update();

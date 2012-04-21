@@ -13,7 +13,9 @@
 #include "document_scene.h"
 #include "language_manager.h"
 #include "setting.h"
+
 #include "abouttrolledit.h"
+#include "tips_tricks.h"
 #include "analyzer.h"
 #include "block_group.h"
 #include <QTableWidget>
@@ -638,6 +640,23 @@ void MainWindow::createActions()
         connect(plainEditAction, SIGNAL(triggered()), this, SLOT(showPreviewWrapper()));
         groupActions->addAction(plainEditAction);
 
+        // new Tab
+        newTabAction = new QAction(this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        newTabAction->setShortcut((textstring));
+        connect(newTabAction, SIGNAL(triggered()), this, SLOT(newTab()));
+        addAction(newTabAction);
+
+        // close Tab
+        closeTabAction = new QAction(this);
+        textstring = file.readLine();
+        textstring.remove(6,1);
+        closeTabAction->setShortcut((textstring));
+        connect(closeTabAction, SIGNAL(triggered()), this, SLOT(closeTab()));   //Not working yet
+        addAction(closeTabAction);
+
+
         //! clear search results
         QIcon clearIcon(":/icons/close");
         clearAction = new QAction(clearIcon, tr("Clea&n Search"), this);
@@ -674,6 +693,11 @@ void MainWindow::createActions()
     aboutAction = new QAction(aboutIcon,tr("&About"), this);
     aboutAction->setToolTip(tr("Show application's about box"));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
+
+    //! tips and tricks
+    tipsAction = new QAction(aboutIcon,tr("&Tips and Tricks"), this);
+    tipsAction->setToolTip(tr("Show tips and tricks"));
+    connect(tipsAction, SIGNAL(triggered()), this, SLOT(tipsAndTricks()));
 
     //! update
     updateAction = new QAction(tr("&Check for update"), this);
@@ -1007,6 +1031,7 @@ void MainWindow::createMenus()
     helpMenu->addSeparator();
     helpMenu->addAction(helpAction);
     helpMenu->addAction(aboutAction);
+    helpMenu->addAction(tipsAction);
     helpMenu->addSeparator();
     helpMenu->addAction(updateAction);
     helpMenu->addAction(bugReportAction);
@@ -1020,7 +1045,7 @@ void MainWindow::setShort()
     QPushButton *Savebutton = new QPushButton("OK", set_shortcuts);
     QPushButton *Closebutton = new QPushButton("Close", set_shortcuts);
 
-    m_table = new QTableWidget(7, 2, set_shortcuts);
+    m_table = new QTableWidget(9, 2, set_shortcuts);
 
     m_table->setHorizontalHeaderItem(0, new QTableWidgetItem("Function"));
     m_table->setHorizontalHeaderItem(1, new QTableWidgetItem("Shortcut"));
@@ -1031,6 +1056,8 @@ void MainWindow::setShort()
     m_table->setItem(4,0, new QTableWidgetItem("Close"));
     m_table->setItem(5,0, new QTableWidgetItem("Print"));
     m_table->setItem(6,0, new QTableWidgetItem("Edit plain text"));
+    m_table->setItem(7,0, new QTableWidgetItem("New tab"));
+    m_table->setItem(8,0, new QTableWidgetItem("Close tab"));
 
     QFile file(":/files/shortcutsFile");
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -1088,6 +1115,10 @@ void MainWindow::savedShortcuts()
     printPdfAction->setShortcut((textstring));
     textstring = m_table->item(6,1)->text();
     plainEditAction->setShortcut((textstring));
+    textstring = m_table->item(7,1)->text();
+    newTabAction->setShortcut((textstring));
+    textstring = m_table->item(8,1)->text();
+    closeTabAction->setShortcut((textstring));
     set_shortcuts->close();
 }
 
@@ -1950,6 +1981,14 @@ void MainWindow::about()
 void MainWindow::homePage()
 {
     QDesktopServices::openUrl(QUrl("http://innovators-team10.github.com"));
+}
+
+
+//! show Tips and Tricks
+void MainWindow::tipsAndTricks()
+{
+    tips_tricks *aboutWindow = new tips_tricks;
+    aboutWindow->showWindow();
 }
 
 //! html help in new tab
