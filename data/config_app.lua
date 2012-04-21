@@ -108,8 +108,19 @@ style = "QMainWindow {"
                     .."QStatusBar{ "
                         .."color: black;"
                     .."}"
-                .."QMessageBox{" 
+                .."QMessageBox{"
                 .."background-color: silver;"
                 .."}"
 
 setstyle(style)
+
+-- shortcuts
+shortcuts = {
+				newAction = {"CTRL+N", "Create a new file"},
+				openAction = {"CTRL+O", "Open an existing file"},
+				revertAction ={"CTRL+R", "Revert to last save"}
+			}
+
+--l_newAction(shortcuts.newAction[1], shortcuts.newAction[2])
+--l_openAction(shortcuts.openAction[1], shortcuts.openAction[2])
+--l_revertAction(shortcuts.revertAction[1], shortcuts.revertAction[2])
