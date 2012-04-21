@@ -42,6 +42,7 @@ TextGroup::TextGroup(BlockGroup *block, DocumentScene *scene)
 
 TextGroup::~TextGroup()
 {
+    this->rc = 0;
     this->block=0;
     this->scene=0;
 }
@@ -106,8 +107,6 @@ void TextGroup::redo()
 
 void TextGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-//        this->setPos(0,0);
-        rc->setRect(this->boundingRect().adjusted(-10,-10,+10,+10));
     if( (this->hasFocus() || this->isUnderMouse()) || (rc->hasFocus() || rc->isUnderMouse()) ){
         QPen pen = QPen(Qt::DashLine);
         pen.setColor(Qt::black);

@@ -48,95 +48,8 @@ public:
     QComboBox* getScriptBox();
 	lua_State* getLuaState();	QList<QAction *> getActionList();
 
-public slots:
-    void open(QString fileName);
-    void setModified(bool flag);
-    void setCurrentFile(BlockGroup *group);
-
-signals:
-    void apply(QBrush *brush, QPen *pen);
-
-private slots:
-    void closeGroupWrapper();
-    void revertGroupWrapper();
-    void saveGroupWrapper();
-    void saveGroupAsWrapper();
-    void saveAllGroupsWrapper();
-    void saveGroupAsWithoutDocWrapper();
-    void closeAllGroupsWrapper();
-    void showPreviewWrapper();
-    void cleanGroupWrapper();
-
-    void newFile();
-    void newTab();
-    void closeTab(int );
-    void tabChanged(int );
-    void open();
-    void openRecentFile();
-    void about();
-    void help();
-    void homePage();
-    void update();
-    void bugReport();
-
-    void langChanged(QString);
-    void search();
-    void search2();
-    void options();
-    void taskList();
-    void fullScreen();
-    void undo();
-    void redo();
-    void cut();
-    void copy();
-    void paste();
-    void delet();
-    void selectAll();
-    void find();
-    void find_Replace();
-    void showCmd();
-    void newWindow();
-    void zoomIn();
-    void zoomOut();
-    void split();
-    void snapshot();
-    void bugList();
-
-    void basicToolbar();
-    void formatToolbars();
-    void toolsToolbar();
-    void editorToolbar();
-    void setBottomDock();
-    void setRightDock();
-    void createEditorToolbars();
-    void createToolsToolbars();
-    void createFormatingToolbars();
-
-    void changeFont();
-    void sizeFont();
-    void setBold();
-    void setItalic();
-    void attachFile();
-    void setLanguageLua();
-    void setLanguageC();
-    void setLanguageXml();
-
-    void printPdf();
-    void swMetrics();
-    void showPrintableArea();
-    void setShort();
-    void savedShortcuts();
-    void closeShortcuts();
-    void wInit();
-
-protected:
-    void closeEvent(QCloseEvent *event);
-
-private:
-    lua_State* L;                   //! load configuration from lua
     enum { MaxRecentFiles = 6 };
     QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
-    
     // for file menu
     QAction *newAction;
     QAction *newTabAction;
@@ -223,6 +136,95 @@ private:
     QToolBar *toolsToolbars;
     QToolBar *formatingToolbars;
 
+
+public slots:
+    void open(QString fileName);
+    void setModified(bool flag);
+    void setCurrentFile(BlockGroup *group);
+
+signals:
+    void apply(QBrush *brush, QPen *pen);
+
+private slots:
+    void closeGroupWrapper();
+    void revertGroupWrapper();
+    void saveGroupWrapper();
+    void saveGroupAsWrapper();
+    void saveAllGroupsWrapper();
+    void saveGroupAsWithoutDocWrapper();
+    void closeAllGroupsWrapper();
+    void showPreviewWrapper();
+    void cleanGroupWrapper();
+
+    void newFile();
+    void newTab();
+    void closeTab(int );
+    void tabChanged(int );
+    void open();
+    void openRecentFile();
+    void about();
+    void help();
+    void homePage();
+    void update();
+    void bugReport();
+
+    void langChanged(QString);
+    void search();
+    void search2();
+    void options();
+    void taskList();
+    void fullScreen();
+    void undo();
+    void redo();
+    void cut();
+    void copy();
+    void paste();
+    void delet();
+    void selectAll();
+    void find();
+    void find_Replace();
+    void showCmd();
+    void newWindow();
+    void zoomIn();
+    void zoomOut();
+    void split();
+    void snapshot();
+    void bugList();
+
+    void basicToolbar();
+    void formatToolbars();
+    void toolsToolbar();
+    void editorToolbar();
+    void setBottomDock();
+    void setRightDock();
+    void createEditorToolbars();
+    void createToolsToolbars();
+    void createFormatingToolbars();
+
+    void changeFont();
+    void sizeFont();
+    void setBold();
+    void setItalic();
+    void attachFile();
+    void setLanguageLua();
+    void setLanguageC();
+    void setLanguageXml();
+
+    void printPdf();
+    void swMetrics();
+    void showPrintableArea();
+    void setShort();
+    void savedShortcuts();
+    void closeShortcuts();
+    void wInit();
+
+protected:
+    void closeEvent(QCloseEvent *event);
+
+private:
+    lua_State* L;                   //! load configuration from lua
+
+
     QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;
@@ -268,7 +270,7 @@ private:
     QGraphicsView* createView();
     QTableWidget *m_table;
 
-    void initLuaState();
+    void initLuaState(QString programPath);
     void createActions();
     void createMenus();
     void createGlobalActions();
