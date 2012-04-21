@@ -126,7 +126,7 @@ public slots:
     void moveFrom(Block *block, int key, int cursorPos);
     void updateSize();
     TreeElement* analazyAllInThread (QString text);
-    void updateAllInThread ();
+    void updateAllInThreads ();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

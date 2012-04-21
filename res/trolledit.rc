@@ -1,22 +1,28 @@
-0  ICON  "..\\res\\trolledit.ico"
+﻿#include "../src/trolledit.h"
+0  ICON  "..\\res\\trolledit_app.ico"
 
 1 VERSIONINFO
- FILEVERSION 0,1,0,0
- PRODUCTVERSION 0,1,0,0
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "040904b0"
-        BEGIN
-            VALUE "Comments", "www.trolledit.org"
-            VALUE "CompanyName", "trolledit.org"
-            VALUE "FileDescription", "TrollEdit - Graphically Enhanced Text Editor."
-            VALUE "FileVersion", "0.1.0"
-            VALUE "LegalCopyright", "Copyright © TrollEdit."
-            VALUE "OriginalFilename", "trolledit.exe"
-            VALUE "ProductName", "TrollEdit - Graphically Enhanced Text Editor."
-            VALUE "ProductVersion", "0.1.0"
-            VALUE "PrivateBuild", "Official Build"
-        END
-    END
-END
+ FILEVERSION TROLLEDIT_VERSION_MAJOR,TROLLEDIT_VERSION_MINOR,TROLLEDIT_VERSION_PATCH,TROLLEDIT_VERSION_BUILD
+ PRODUCTVERSION TROLLEDIT_VERSION_MAJOR,TROLLEDIT_VERSION_MINOR,TROLLEDIT_VERSION_PATCH,TROLLEDIT_VERSION_BUILD
+{
+  BLOCK "StringFileInfo"
+  {
+    BLOCK "040904B0"
+    {
+      VALUE "Comments",         TROLLEDIT_DOMAIN
+      VALUE "CompanyName",      TROLLEDIT_VENDOR
+      VALUE "FileDescription",  TROLLEDIT_VENDOR
+      VALUE "FileVersion",      TROLLEDIT_VERSION
+      VALUE "LegalCopyright",   "Copyright (c) " TROLLEDIT_VENDOR
+      VALUE "OriginalFilename", TROLLEDIT_NAME ".exe"
+      VALUE "InternalName",     TROLLEDIT_NAME
+      VALUE "ProductName",      TROLLEDIT_LONGNAME
+      VALUE "ProductVersion",   TROLLEDIT_VERSION
+      VALUE "PrivateBuild",     "Official Build"
+    }
+  }
+  BLOCK "VarFileInfo"
+  {
+      VALUE "Translation", 0x0409, 0x04B0
+  }
+}

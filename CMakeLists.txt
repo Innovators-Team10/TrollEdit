@@ -11,9 +11,11 @@ cmake_minimum_required ( VERSION 2.8 )
 # --------------
 
 set ( TROLLEDIT_NAME "TrollEdit" )
+set ( TROLLEDIT_LONGNAME "TrollEdit - Graphically Enhanced Text Editor" )
 set ( TROLLEDIT_VERSION_MAJOR "1" )
 set ( TROLLEDIT_VERSION_MINOR "3" )
-set ( TROLLEDIT_VERSION_PATCH "3" )
+set ( TROLLEDIT_VERSION_PATCH "4" )
+set ( TROLLEDIT_VERSION_BUILD "0" )
 set ( TROLLEDIT_VERSION "${TROLLEDIT_VERSION_MAJOR}.${TROLLEDIT_VERSION_MINOR}.${TROLLEDIT_VERSION_PATCH}" )
 set ( TROLLEDIT_VENDOR "TrollEdit Dev Team" )
 set ( TROLLEDIT_COPYRIGHT_YEAR "2012" )
@@ -33,9 +35,9 @@ set ( INSTALL_PLUGIN bin)
 set ( INSTALL_QTCONF bin)
 
 # Warnings for Debug mode
-if ( CMAKE_COMPILER_IS_GNUCXX )
-  set ( CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Werror" )
-endif ()
+#if ( CMAKE_COMPILER_IS_GNUCXX )
+#  set ( CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Werror" )
+#endif ()
 
 # Default build type
 if ( NOT CMAKE_BUILD_TYPE )
@@ -131,17 +133,17 @@ if ( APPLE )
   set ( MACOSX_BUNDLE_LONG_VERSION_STRING "${TROLLEDIT_NAME} ${TROLLEDIT_VERSION}" )
   set ( MACOSX_BUNDLE_SHORT_VERSION_STRING "${TROLLEDIT_VERSION}" )
   set ( MACOSX_BUNDLE_COPYRIGHT "${TROLLEDIT_COPYRIGHT_YEAR} ${TROLLEDIT_VENDOR}" )
-  set ( MACOSX_BUNDLE_ICON_FILE "trolledit.icns" )
+  set ( MACOSX_BUNDLE_ICON_FILE "trolledit_app.icns" )
   set ( MACOSX_BUNDLE_GUI_IDENTIFIER "${TROLLEDIT_DOMAIN_SECOND}.${TROLLEDIT_DOMAIN_FIRST}.${TROLLEDIT_NAME}" )
   set ( MACOSX_BUNDLE_BUNDLE_NAME "${TROLLEDIT_NAME}" )
 
   # CPack Settings
   set ( CPACK_GENERATOR "DragNDrop" )
-  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/res/trolledit.icns" )
+  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/res/trolledit_pkg.icns" )
   set ( CPACK_PACKAGE_FILE_NAME "${TROLLEDIT_NAME}-${TROLLEDIT_VERSION}" )
 
   # OSX Specific resurces
-  install ( FILES res/trolledit.icns DESTINATION ${INSTALL_RES} )
+  install ( FILES res/trolledit_app.icns DESTINATION ${INSTALL_RES} )
 endif ()
 
 # Windows specific overrides
@@ -156,26 +158,26 @@ if ( WIN32 )
   set ( CPACK_PACKAGE_FILE_NAME "${TROLLEDIT_NAME}-${TROLLEDIT_VERSION}" )
   set ( CPACK_PACKAGE_EXECUTABLES "${TROLLEDIT_NAME}" "${TROLLEDIT_NAME}" )
   set ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}\\\\LICENSE.txt" )
-  
+
   # NSIS branding
   set ( CPACK_NSIS_INSTALLED_ICON_NAME "${INSTALL_BIN}\\\\${TROLLEDIT_NAME}${CMAKE_EXECUTABLE_SUFFIX}" )
   set ( CPACK_NSIS_DISPLAY_NAME "${TROLLEDIT_NAME}" )
   set ( CPACK_NSIS_HELP_LINK "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
   set ( CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
   set ( CPACK_NSIS_CONTACT "http:\\\\\\\\${TROLLEDIT_DOMAIN}" )
-  set ( CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit.ico" )
-  set ( CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit.ico" )
-  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\logo2.png" )
+  set ( CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit_pkg.ico" )
+  set ( CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\trolledit_rmv.ico" )
+  set ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\res\\\\logo2.bmp" )
 endif ()
 
 # ---------------
 # Build TrollEdit
 # ---------------
 
-# Definitions
-add_definitions ( 
-  -DTROLLEDIT_VERSION=\"${TROLLEDIT_VERSION}\" 
-)
+# Generate trolledit.h
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/src/trolledit.h.in 
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/trolledit.h
+                 @ONLY )
 
 # Include Paths
 include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${LUA_INCLUDE_DIR} )
@@ -216,9 +218,9 @@ install ( TARGETS ${TROLLEDIT_NAME}
   RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT Runtime )
   
 install ( FILES ${TROLLEDIT_LICENSE} ${TROLLEDIT_README} 
-  DESTINATION ${INSTALL_DATA} )
+  DESTINATION ${INSTALL_DATA} COMPONENT Data)
 install ( DIRECTORY data/ 
-  DESTINATION ${INSTALL_DATA} )
+  DESTINATION ${INSTALL_DATA} COMPONENT Data)
 
 # Install built in Lua unless we are building an OSX Bundle
 if ( USE_BUILTIN_LUA )
@@ -228,7 +230,7 @@ if ( USE_BUILTIN_LUA )
   # Install all dependencies
   install ( DIRECTORY ${DEP_BIN}/
     DESTINATION ${INSTALL_DEPS}
-    COMPONENT Runtime
+    COMPONENT Dependencies
     USE_SOURCE_PERMISSIONS
   )
 endif ()
@@ -267,9 +269,7 @@ endif ()
 # Packing
 # -------
 
-include ( CPack )
-set ( CPACK_MONOLITHIC_INSTALL ON )
-set ( CPACK_INCLUDE_TOPLEVEL_DIRECTORY ON )
+set ( CPACK_MONOLITHIC_INSTALL 1 )
 set ( CPACK_STRIP_FILES ON )
 set ( CPACK_BINARY_DRAGNDROP ON )
 set ( CPACK_PACKAGE_VERSION_MAJOR "${TROLLEDIT_VERSION_MAJOR}" )
@@ -278,3 +278,5 @@ set ( CPACK_PACKAGE_VERSION_PATCH "${TROLLEDIT_VERSION_PATCH}" )
 set ( CPACK_PACKAGE_VERSION "${TROLLEDIT_VERSION}" )
 set ( CPACK_PACKAGE_VENDOR "${TROLLEDIT_VENDOR}" )
 set ( CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/${TROLLEDIT_README}" )
+#set ( CPACK_COMPONENTS_ALL Runtime Dependencies Data )
+include ( CPack )

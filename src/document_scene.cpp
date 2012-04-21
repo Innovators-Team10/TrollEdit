@@ -595,10 +595,16 @@ void DocumentScene::wheelEvent(QGraphicsSceneWheelEvent *event)
         update();
 
         if (delta > 0)
+        {
             currentGroup->setScale(currentGroup->scale() * delta);
+            currentGroup->getTextGroup()->setScale(currentGroup->getTextGroup()->scale() * delta);
+        }
 
         if (delta < 0)
+        {
             currentGroup->setScale(currentGroup->scale() / -delta);
+            currentGroup->getTextGroup()->setScale(currentGroup->getTextGroup()->scale() / -delta);
+        }
 
         event->accept();
         adjustSceneRect();
@@ -623,10 +629,16 @@ void DocumentScene::adjustScale(qreal delta)
         qDebug("delta: %f", delta);
         update();
         if (delta > 0)
+        {
             currentGroup->setScale(currentGroup->scale() * delta);
+            currentGroup->getTextGroup()->setScale(currentGroup->getTextGroup()->scale() * delta);
+        }
 
         if (delta < 0)
+        {
             currentGroup->setScale(currentGroup->scale() / -delta);
+            currentGroup->getTextGroup()->setScale(currentGroup->getTextGroup()->scale() / -delta);
+        }
         adjustSceneRect();
     }
 }

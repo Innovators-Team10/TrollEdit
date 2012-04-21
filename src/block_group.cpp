@@ -141,23 +141,12 @@ void BlockGroup::setRoot(Block *newRoot)
     clearSearchResults();
     root->updateBlock(false);
 
-    /**
-     * @todo Parallelism for updateBlock(). Divide foreach loop and objects in docBlocks into more threads.
-     * Problem - problem using pointers/references in QtConcurrent :(
-     * @todo Add decision whether to use paralleled computation or not
-     */
-//    QList<DocBlock*> docBlocksList = docBlocks();
-//    QList<QSharedPointer<DocBlock> *> pointerList;
+    QList<DocBlock*> docBlocksList = docBlocks();
     
-    foreach (DocBlock *dbl, docBlocks())
+    foreach (DocBlock *dbl, docBlocksList)
     {
-//        QSharedPointer<DocBlock> *pointerToDocBlock = new QSharedPointer<DocBlock>(dbl);
-//        pointerList.push_back(pointerToDocBlock);
-        
         dbl->updateBlock(false);
     }
-//    qDebug("pointerList - length - %d", pointerList.length());
-//    QtConcurrent::blockingMap(docBlocksList, this->updateDocBlockInMap());
 
     updateSize();
 }
@@ -784,6 +773,15 @@ void BlockGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     {
         painter->setPen(pen());
         painter->drawRect(rect().adjusted(2,2,-2,-2));
+
+        QFont font = painter->font() ;
+        font.setPointSize ( 12 );
+        font.setWeight(QFont::DemiBold);
+        painter->setFont(font);
+        QStringList list = this->getFilePath().split(QString(QDir::separator()));
+        QPoint new_point = QPoint(widget->pos().x() - 10 ,widget->pos().y() - 5);
+        painter->drawText(new_point, list.at(list.size()-1) );
+        scene()->update();
     }
 }
 
@@ -910,9 +908,9 @@ void BlockGroup::analyzeAll(QString text)
     try 
     {
         if (runParalelized == true) {
-            bool connected = QObject::connect(&watcher, SIGNAL(finished()), this, SLOT(updateAllInThread()));
+            bool connected = QObject::connect(&watcher, SIGNAL(finished()), this, SLOT(updateAllInThreads()));
             future = QtConcurrent::run(this, &BlockGroup::analazyAllInThread, text);    
-            watcher.setFuture(future);
+            watcher.setFuture(future); //! this is the line, on which function is run in thread
             qDebug() << "Connected:" << connected;
         }
         else {
@@ -959,7 +957,7 @@ TreeElement* BlockGroup::analazyAllInMaster (QString text)
  * This function is invoked after analysis in thread is done.
  * New Root element is set and all blocks are updated.
  */
-void BlockGroup::updateAllInThread () 
+void BlockGroup::updateAllInThreads () 
 {
     if (groupRootEl != 0) {
         mutex.lock();

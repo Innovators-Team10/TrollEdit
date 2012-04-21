@@ -76,9 +76,7 @@ private slots:
     void about();
     void help();
     void homePage();
-    void showLicense();
     void update();
-    void aboutVersion();
     void bugReport();
 
     void langChanged(QString);
@@ -177,9 +175,7 @@ private:
     QAction *helpAction;
     QAction *aboutAction;
     QAction *updateAction;
-    QAction *versionAction;
     QAction *bugReportAction;
-    QAction *showLicenseAction;
 
     // for view menu
     QAction *fullScreenAction;
@@ -245,10 +241,8 @@ private:
 
     QWidget *notepad;
 
-    QDialog *aboutVersionWindow;
-    QLabel *aboutVersionLabel;
-    QVBoxLayout *outer;
-    QTextEdit *aboutVersionTextEdit;
+    QDirModel *model;
+    QTreeView *tree ;
 
     QDialog *setOptions;
     QListWidget *zoznam;
@@ -257,7 +251,6 @@ private:
     QDockWidget *dock;
     QTextEdit *text;
     QDockWidget *dock1;
-    QTextEdit *text1;
 
 
     LanguageManager *langManager;
