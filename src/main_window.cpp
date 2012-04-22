@@ -14,6 +14,7 @@
 #include "language_manager.h"
 #include "setting.h"
 #include "abouttrolledit.h"
+#include "tips_tricks.h"
 #include "analyzer.h"
 #include "block_group.h"
 #include <QTableWidget>
@@ -675,6 +676,11 @@ void MainWindow::createActions()
     aboutAction->setToolTip(tr("Show application's about box"));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 
+    //! tips and tricks
+    tipsAction = new QAction(aboutIcon,tr("&Tips and Tricks"), this);
+    tipsAction->setToolTip(tr("Show tips and tricks"));
+    connect(tipsAction, SIGNAL(triggered()), this, SLOT(tipsAndTricks()));
+
     //! update
     updateAction = new QAction(tr("&Check for update"), this);
     updateAction->setToolTip(tr("Check new updates"));
@@ -1007,6 +1013,7 @@ void MainWindow::createMenus()
     helpMenu->addSeparator();
     helpMenu->addAction(helpAction);
     helpMenu->addAction(aboutAction);
+    helpMenu->addAction(tipsAction);
     helpMenu->addSeparator();
     helpMenu->addAction(updateAction);
     helpMenu->addAction(bugReportAction);
@@ -1978,6 +1985,13 @@ void MainWindow::update()
     QMessageBox::information(this,"title","On Function is working!");
 }
 
+
+//! show Tips and Tricks
+void MainWindow::tipsAndTricks()
+{
+    tips_tricks *aboutWindow = new tips_tricks;
+    aboutWindow->showWindow();
+}
 
 // for send bugs report
 void MainWindow::bugReport()

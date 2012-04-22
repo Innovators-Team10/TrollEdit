@@ -89,6 +89,7 @@ public:
     QAction *aboutAction;
     QAction *updateAction;
     QAction *bugReportAction;
+    QAction *tipsAction;
 
     // for view menu
     QAction *fullScreenAction;
@@ -190,6 +191,7 @@ private slots:
     void split();
     void snapshot();
     void bugList();
+    void tipsAndTricks();
 
     void basicToolbar();
     void formatToolbars();

@@ -2,6 +2,7 @@
 #define TIPS_TRICKS_H
 
 #include <QWidget>
+#include <QtGui>
 
 namespace Ui {
 class tips_tricks;
@@ -17,6 +18,12 @@ public:
     
 private:
     Ui::tips_tricks *ui;
+
+
+public slots:
+    void showWindow();
+
+private slots:
 };
 
 #endif // TIPS_TRICKS_H
