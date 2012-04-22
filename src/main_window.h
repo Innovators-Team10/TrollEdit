@@ -24,15 +24,9 @@ extern "C" {
     #include "lauxlib.h"
 }
 
-typedef struct pokus
-{
-        int test;
-} POKUS;
-
-
 class DocumentScene;
 class LanguageManager;
-class BlockGroup;
+class BlockManager;
 class QTableWidget;
 class QTableWidgetItem;
 class QDialog;
@@ -42,6 +36,12 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+    enum MODE
+    {
+        Text = 0, Graphic = 1,
+    };
+    MODE mode;
+
     MainWindow(QString programPath, QWidget *parent = 0);
     DocumentScene* getScene();
     LanguageManager* getLangManager();
@@ -51,7 +51,7 @@ public:
 public slots:
     void open(QString fileName);
     void setModified(bool flag);
-    void setCurrentFile(BlockGroup *group);
+    void setCurrentFile(BlockManager *group);
 
 signals:
     void apply(QBrush *brush, QPen *pen);
@@ -282,7 +282,7 @@ private:
     void showArea();
     void hideArea();
     QPointF startPoint;
-    BlockGroup *selectedGroup;
+    BlockManager *selectedGroup;
 
     void readSettings();
     void writeSettings();

@@ -28,28 +28,22 @@ const QPointF BlockGroup::OFFSET_INSERT = QPointF(8, 0); // offset while draging
 const QString GRAMMAR_DIR = "/../share/trolledit/grammars";
 
 
-BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
-    : QGraphicsRectItem(0, scene)
+BlockGroup::BlockGroup(BlockManager *parent)
+    : BlockManager(parent->getText(),parent->getFile(), parent->getDocScene())
 {
     //this->analyzer = analyzer;
 //    qDebug() << scene->main->getScriptBox()->currentText();
 //    qDebug() << "filename split" << file.split(".")[1];
-    qDebug() << "grammar = " << scene->main->getLangManager()->languages.value("C");
+    qDebug() << "grammar = " << getDocScene()->main->getLangManager()->languages.value("C");
  //   qDebug() << "file" << file.split(".")[1];
     Analyzer *a;
-    if(text.isEmpty()){
-        a=new Analyzer(scene->main->getLangManager()->getLanguage(file.toLower()));
-        a->readSnippet(scene->main->getLangManager()->snippetFile);
+    if(getText().isEmpty()){
+        a=new Analyzer(getDocScene()->main->getLangManager()->getLanguage(getFile().toLower()));
+        a->readSnippet(getDocScene()->main->getLangManager()->snippetFile);
     }else{
-        a=new Analyzer(scene->main->getLangManager()->getLanguage(file.split(".")[1]));
+        a=new Analyzer(getDocScene()->main->getLangManager()->getLanguage(getFile().split(".")[1]));
     }
     this->analyzer = a;
-    this->docScene = scene;
-
-    txt = new TextGroup(this, docScene);
-    docScene->addItem(txt);
-    txt->setVisible(false);
-
     highlight = true;
 
     // create insert cues
@@ -68,7 +62,7 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     lastLine = -1;
     selected = 0;
     lastXPos = -1;
-    modified = true;
+    setModified(true);
     searched = false;
     smoothTextAnimation = false;
     foldableBlocks.clear();
@@ -77,28 +71,26 @@ BlockGroup::BlockGroup(QString text, QString file, DocumentScene *scene)
     setAcceptDrops(true);
     setFlag(QGraphicsItem::ItemIsMovable);
     setPen(QPen(QBrush(Qt::red),1, Qt::DashLine));
+    this->setVisible(true);
     
     runParalelized = false;
     groupRootEl = 0;
 
     time.start();
 
-    analyzeAll(text);
-    docScene->update();
+    analyzeAll(getText());
+    getDocScene()->update();
 }
 
 BlockGroup::~BlockGroup()
 {
-    docScene = 0;
     root = 0;
-    txt->setVisible(false);
-    txt=0;
 }
 
 void BlockGroup::setContent(QString content)
 {
     analyzeAll(content);
-    docScene->update();
+    getDocScene()->update();
 }
 
 /**
@@ -124,14 +116,14 @@ void BlockGroup::setRoot(Block *newRoot)
     lastLine = -1;
     selected = 0;
     lastXPos = -1;
-    modified = true;
+    setModified(true);
     foldableBlocks.clear();
     // set new root
     root = newRoot;
     root->setPos(20, 0);
     // select add cursor and update
 
-    if (docScene->selectedGroup() == this)
+    if (getDocScene()->selectedGroup() == this)
     {
         selectBlock(root);
         root->getFirstLeaf()->textItem()->setTextCursorPos(0);
@@ -147,17 +139,7 @@ void BlockGroup::setRoot(Block *newRoot)
     {
         dbl->updateBlock(false);
     }
-
     updateSize();
-}
-
-void BlockGroup::setModified(bool flag)
-{
-    if (flag != modified)
-    {
-        modified = flag;
-        docScene->groupWasModified(this);
-    }
 }
 
 void BlockGroup::computeTextSize()
@@ -201,11 +183,6 @@ void BlockGroup::setBlockIn(Block *block, int line)
     }
 
     lastLine = line;
-}
-
-TextGroup* BlockGroup::getTextGroup()
-{
-    return this->txt;
 }
 
 bool BlockGroup::addFoldable(Block *block)
@@ -274,7 +251,8 @@ QList<DocBlock*> BlockGroup::docBlocks() const
 Block *BlockGroup::blockAt(QPointF scenePos) const
 {
     qWarning("BlockGroup::blockAt() is probably not working");
-    QGraphicsItem *item = docScene->itemAt(scenePos);
+    DocumentScene *scene=((BlockManager*)this)->getDocScene();
+    QGraphicsItem *item = scene->itemAt(scenePos);
 
     if (item == 0)
         return 0;
@@ -610,62 +588,9 @@ void BlockGroup::moveCursorUpDown(Block *start, bool moveUp, int from)
         return;
     }
 
-    docScene->time.restart();
+    getDocScene()->time.restart();
     Block *target = addTextCursorAt(scenePos);
     selectBlock(target, true);
-}
-
-// changes the mode and disables/enables the editing actions in the menu
-void BlockGroup::changeMode(QList<QAction *> actionList)
-{
-    if(isVisible())
-    {
-        txt->setPlainText(this->toText());
-        txt->setPos(this->pos().x(),this->pos().y());
-        txt->setScale(this->scale());
-        txt->setFocus();
-        txt->setVisible(true);
-        this->setVisible(false);
-        docScene->selectGroup(this);
-        docScene->update();
-
-        for (int i=0; i<actionList.size(); i++)
-            actionList.at(i)->setEnabled(true);
-    }
-    else
-    {
-        txt->setVisible(false);
-        this->setContent(txt->toPlainText());
-        this->setPos(txt->pos().x(),txt->pos().y());
-        this->updateSize();
-        this->setVisible(true);
-        this->updateSize();
-        docScene->update();
-
-        for (int i=0; i<actionList.size(); i++)
-            actionList.at(i)->setEnabled(false);
-    }
-}
-
-void BlockGroup::changeMode(){
-    if(isVisible()){
-        txt->setPlainText(this->toText());
-        txt->setPos(this->pos().x(),this->pos().y());
-        txt->setScale(this->scale());
-        txt->setFocus();
-        txt->setVisible(true);
-        this->setVisible(false);
-        docScene->selectGroup(this);
-        docScene->update();
-    }else{
-        txt->setVisible(false);
-        this->setContent(txt->toPlainText());
-        this->setPos(txt->pos().x(),txt->pos().y());
-        this->updateSize();
-        this->setVisible(true);
-        this->updateSize();
-        docScene->update();
-    }
 }
 
 void BlockGroup::updateSize()
@@ -693,7 +618,7 @@ void BlockGroup::updateSize()
     rect.setTopLeft(QPointF());
     rect.adjust(-20, -20, 20, 20);
     setRect(rect);
-    docScene->update();
+    getDocScene()->update();
 }
 
 void BlockGroup::showInsertLine(InsertLine type, QPointF scenePos)
@@ -769,7 +694,7 @@ void BlockGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 {
     Q_UNUSED(widget);
 
-    if (docScene->selectedGroup() == this)
+    if (getDocScene()->selectedGroup() == this)
     {
         painter->setPen(pen());
         painter->drawRect(rect().adjusted(2,2,-2,-2));
@@ -814,7 +739,7 @@ Block *BlockGroup::reanalyze(Block *block, QPointF cursorPos)
     selectBlock(target);
     qDebug("block selection: %d", time.restart());
     // return new block at requested position
-    docScene->update();
+    getDocScene()->update();
 
     return selected;
 }
@@ -1058,7 +983,7 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
                 }
             }
             root->updateBlock();
-            docScene->update();
+            getDocScene()->update();
             break;
         case Qt::Key_Delete :
             if (selected != 0)
@@ -1082,7 +1007,7 @@ void BlockGroup::keyPressEvent(QKeyEvent *event)
 
 void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton){
+/*    if (event->button() == Qt::LeftButton){
         if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier)
         {
             changeMode(getTextGroup()->scene->getWindow()->getActionList());
@@ -1107,7 +1032,7 @@ void BlockGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
         event->ignore();
     }
 
-    docScene->selectGroup(this);
+    docScene->selectGroup(this);*/
 }
 
 void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
@@ -1116,7 +1041,7 @@ void BlockGroup::dropEvent(QGraphicsSceneDragDropEvent *event) // todo refactor
     {
         showInsertLine(None, QPointF());
 
-        Block *selected = docScene->selectedGroup()->selectedBlock();
+        Block *selected = ((BlockGroup*)getDocScene()->selectedGroup())->selectedBlock();
 
         if (selected == 0)
         {
@@ -1275,7 +1200,7 @@ void BlockGroup::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
 
-    if (docScene->itemAt(event->scenePos()) == this) //! clicked directly on group
+    if (getDocScene()->itemAt(event->scenePos()) == this) //! clicked directly on group
     {
         setPos(30, 30);
         event->accept();

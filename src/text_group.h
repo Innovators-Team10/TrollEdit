@@ -11,19 +11,17 @@
 #include <QObject>
 #include <QGraphicsTextItem>
 #include <QGraphicsSceneMouseEvent>
+#include "blockmanager.h"
 
-class DocumentScene;
-class BlockGroup;
+class BlockManager;
 
-class TextGroup : public QGraphicsTextItem
+class TextGroup : public BlockManager, public QGraphicsTextItem
 {
 
 public:
-    TextGroup(BlockGroup *block, DocumentScene *scene);
+    TextGroup(BlockManager *block);
     ~TextGroup();
 
-    DocumentScene *scene;
-    BlockGroup *block;
     QGraphicsRectItem *rc;
     void copy();
     void paste();

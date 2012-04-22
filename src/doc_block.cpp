@@ -42,7 +42,7 @@ DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)    //! manual creation
     setPos(pos);
     setVisible(true);
     locked = true;
-    highlightFormat = group->docScene->getFormatFor(element->getType());
+    highlightFormat = group->getDocScene()->getFormatFor(element->getType());
     highlight(highlightFormat);
 
     // add arrow
@@ -96,7 +96,7 @@ DocBlock::DocBlock(QString text, TreeElement* el, Block* parentBlock, BlockGroup
 
     setVisible(true);
     locked = false;
-    highlightFormat = group->docScene->getFormatFor(element->getType());
+    highlightFormat = group->getDocScene()->getFormatFor(element->getType());
     highlight(highlightFormat);
 
     // add arrow

@@ -171,15 +171,15 @@ void Block::assignHighlighting(TreeElement *el)
 {
     if (el->isLeaf())
     {
-        highlightFormat = group->docScene->getDefaultFormat();
+        highlightFormat = group->getDocScene()->getDefaultFormat();
 
         if (el->getParent())
         {
             QString parentType = el->getParent()->getType();
 
-            if (group->docScene->hasFormatFor(parentType) && !el->getParent()->getType().startsWith("funct_"))
+            if (group->getDocScene()->hasFormatFor(parentType) && !el->getParent()->getType().startsWith("funct_"))
             {
-                highlightFormat = group->docScene->getFormatFor(parentType);
+                highlightFormat = group->getDocScene()->getFormatFor(parentType);
             }
         }
 
@@ -187,9 +187,9 @@ void Block::assignHighlighting(TreeElement *el)
     }
     else
     {
-        if (group->docScene->hasFormatFor(el->getType()))
+        if (group->getDocScene()->hasFormatFor(el->getType()))
         {
-            QPair<QFont, QColor> highlightFormat = group->docScene->getFormatFor(el->getType());
+            QPair<QFont, QColor> highlightFormat = group->getDocScene()->getFormatFor(el->getType());
 
             if (!el->getType().compare("funct_call"))
             {
@@ -828,7 +828,7 @@ void Block::textChanged()
             // remove highlighting if text changed
             if (element->getType() != text && ! edited)
             {
-                highlight(group->docScene->getDefaultFormat());
+                highlight(group->getDocScene()->getDefaultFormat());
                 edited = true;
             }
 
@@ -889,14 +889,14 @@ void Block::mousePressEvent(QGraphicsSceneMouseEvent *event)
         {
             selected = group->reanalyze(this, event->scenePos());
             selected->startDragPos = event->pos();
-            selected->group->docScene->selectGroup(selected->group);
+            selected->group->getDocScene()->selectGroup(selected->group);
         }
         else
         {
             group->selectBlock(this, true);
             addTextCursorAt(event->pos());
             startDragPos = event->pos();
-            group->docScene->selectGroup(group);
+            group->getDocScene()->selectGroup(group);
         }
     }
     else
@@ -1510,7 +1510,7 @@ void Block::setFolded(bool fold)
 
         foldButton->foldText.clear();
         myTextItem = new TextItem(text, this, true);
-        highlight(group->docScene->getDefaultFormat());
+        highlight(group->getDocScene()->getDefaultFormat());
         child = firstChild;
         firstChild = 0;
     }

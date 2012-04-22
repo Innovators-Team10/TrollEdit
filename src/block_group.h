@@ -21,40 +21,33 @@
 #include <QMutex>
 
 #include "analyzer.h"
-#include "text_group.h"
+#include "blockmanager.h"
 
 class Block;
 class DocBlock;
 class DocumentScene;
 class FoldButton;
 
-class BlockGroup : public QObject, public QGraphicsRectItem
+class BlockGroup : public BlockManager, public QGraphicsRectItem
 {
     Q_OBJECT
 
 
 public:
-    BlockGroup(QString text, QString file, DocumentScene *scene);
+    BlockGroup(BlockManager *manager);
 
     ~BlockGroup();
 
-    enum { Type = UserType + 2 };
     enum InsertLine
     {
         None = 0, Horizontal = 1, Vertical = 2,
     };
+    enum { Type = UserType + 2 };
 
     // main properties
     int type() const { return Type; }
     Block *mainBlock() const {return root;}
     int getLastLine() const {return lastLine;}
-    QString getFilePath() const {return fileName;}
-    void setFileName(QString newFileName) {fileName = newFileName;}
-    bool isModified() const {return modified;}
-    void setModified(bool flag);
-    void setContent(QString content);
-    void changeMode(QList<QAction *> actionList);
-    void changeMode();
 
     // block management
     Block *getBlockIn(int line) const;
@@ -68,7 +61,6 @@ public:
     Block* blockAt(QPointF scenePos) const;
     int lineAt(QPointF scenePos) const;
     Block *addTextCursorAt(QPointF scenePos);
-    TextGroup *getTextGroup();
 
     DocBlock *addDocBlock(QPointF scenePos);
     QList<DocBlock*> docBlocks() const;
@@ -113,7 +105,6 @@ public:
     int TAB_LENGTH;
     qreal CHAR_HEIGHT, CHAR_WIDTH;
 
-    DocumentScene *docScene;    //! my scene
     bool highlight;
 
 signals:
@@ -142,12 +133,10 @@ private:
     void setRoot(Block *newRoot);
     void moveCursorUpDown(Block *start, bool moveUp, int from);
     void moveCursorLeftRight(Block *start, bool moveRight);
-
+    void setContent(QString content);
     void computeTextSize();
 
     // fields
-    TextGroup *txt;
-    QString fileName;           //! name of currently loaded file
     Analyzer *analyzer;         //! my analyzer
     Block *root;                //! main (root) block
     Block *selected;            //! currently selected block
@@ -156,7 +145,6 @@ private:
     QSet<Block*> foldableBlocks;//! foldable blocks, only 1 per line allowed
     qreal lastXPos;
     QGraphicsLineItem *horizontalLine, *verticalLine; //! insertion cues
-    bool modified;
     QHash<int, QGraphicsRectItem*> highlightingRects;
     bool searched;
 

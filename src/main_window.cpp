@@ -15,7 +15,9 @@
 #include "setting.h"
 #include "abouttrolledit.h"
 #include "analyzer.h"
+#include "blockmanager.h"
 #include "block_group.h"
+#include "text_group.h"
 #include <QTableWidget>
 #include <QFont>
 #include <QPushButton>
@@ -27,6 +29,7 @@
 
 MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(parent)
 {
+    mode=Graphic;
     initLuaState();
     langManager = new LanguageManager(programPath);
 
@@ -826,8 +829,8 @@ QGraphicsView* MainWindow::createView()
     DocumentScene *scene = new DocumentScene(this);
     scene->setHighlighting(langManager->getConfigData());
     connect(scene, SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
-    connect(scene, SIGNAL(fileSelected(BlockGroup*)),
-            this, SLOT(setCurrentFile(BlockGroup*))); // CHECK
+    connect(scene, SIGNAL(fileSelected(BlockManager*)),
+            this, SLOT(setCurrentFile(BlockManager*)));
     view->setScene(scene);
     return view;
 }
@@ -918,7 +921,7 @@ void MainWindow::closeTab(int position){
 
 void MainWindow::tabChanged(int position)
 {
-    BlockGroup *group=getScene()->selectedGroup();
+    BlockManager *group=getScene()->selectedGroup();
         if(group==0){
             setCurrentFile(0);
             return;
@@ -977,7 +980,7 @@ void MainWindow::setModified(bool flag)
     revertAction->setEnabled(flag);
 }
 
-void MainWindow::setCurrentFile(BlockGroup *group)
+void MainWindow::setCurrentFile(BlockManager *group)
 {
     QString fileName;
     QString lang;
@@ -985,7 +988,9 @@ void MainWindow::setCurrentFile(BlockGroup *group)
     if (group != 0)
     {
         fileName = group->getFilePath();
-        lang = group->getAnalyzer()->getLanguageName();
+        if(group->getMode()==Graphic){
+            lang = ((BlockGroup*)group)->getAnalyzer()->getLanguageName();
+        }
         selectedGroup = group;
     }
     else
@@ -1114,8 +1119,14 @@ void MainWindow::printPdf()
     }
     else
     {
-        startPoint = selectedGroup->pos();
-        endCondition = startPoint.y() + selectedGroup->rect().height();
+        if(selectedGroup->getMode()==MainWindow::Graphic){
+            startPoint = ((BlockGroup*)selectedGroup)->pos();
+            endCondition = startPoint.y() + ((BlockGroup*)selectedGroup)->rect().height();
+        } else{
+//            startPoint = ((TextGroup*)selectedGroup)->pos();
+//            endCondition = startPoint.y() + ((TextGroup*)selectedGroup)->rect().height();
+            return;
+        }
     }
 
     int x = startPoint.x() - 30;
@@ -1159,7 +1170,11 @@ void MainWindow::showPrintableArea()
     }
     else
     {
-        startPoint = selectedGroup->pos();
+        if(selectedGroup->getMode()==MainWindow::Graphic){
+            startPoint = ((BlockGroup*)selectedGroup)->pos();
+        }else{
+            startPoint = ((TextGroup*)selectedGroup)->pos();
+        }
     }
 
     //! frame setting
@@ -1238,37 +1253,37 @@ void MainWindow::openRecentFile()
 
 void MainWindow::undo()
 {
-    getScene()->selectedGroup()->getTextGroup()->undo();
+    ((TextGroup*)getScene()->selectedGroup())->undo();
 }
 
 void MainWindow::redo()
 {
-    getScene()->selectedGroup()->getTextGroup()->redo();
+    ((TextGroup*)getScene()->selectedGroup())->redo();
 }
 
 void MainWindow::cut()
 {
-    getScene()->selectedGroup()->getTextGroup()->cut();
+    ((TextGroup*)getScene()->selectedGroup())->cut();
 }
 
 void MainWindow::copy()
 {
-    getScene()->selectedGroup()->getTextGroup()->copy();
+    ((TextGroup*)getScene()->selectedGroup())->copy();
 }
 
 void MainWindow::paste()
 {
-    getScene()->selectedGroup()->getTextGroup()->paste();
+    ((TextGroup*)getScene()->selectedGroup())->paste();
 }
 
 void MainWindow::delet()
 {
-    getScene()->selectedGroup()->getTextGroup()->deleteFunction();
+    ((TextGroup*)getScene()->selectedGroup())->deleteFunction();
 }
 
 void MainWindow::selectAll()
 {
-    getScene()->selectedGroup()->getTextGroup()->selectAll();
+    ((TextGroup*)getScene()->selectedGroup())->selectAll();
 }
 
 //! window for find keyword

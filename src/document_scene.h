@@ -13,7 +13,7 @@
 #include <QUrl>
 
 class Analyzer;
-class BlockGroup;
+class BlockManager;
 class MainWindow;
 
 class DocumentScene : public QGraphicsScene
@@ -22,30 +22,30 @@ class DocumentScene : public QGraphicsScene
 
 signals:
     void modified(bool flag);
-    void fileSelected(BlockGroup *group);
+    void fileSelected(BlockManager *group);
 
 public slots:
     void newGroup(QString extension);
     void loadGroup(QString fileName, QString extension);
-    void revertGroup(BlockGroup *group = 0);
-    void saveGroup(QString fileName = "", BlockGroup *group = 0, bool noDocs = false);
-    void saveGroupAs(BlockGroup *group = 0);
+    void revertGroup(BlockManager *group = 0);
+    void saveGroup(QString fileName = "", BlockManager *group = 0, bool noDocs = false);
+    void saveGroupAs(BlockManager *group = 0);
     void saveAllGroups();
-    void saveGroupAsWithoutDoc(BlockGroup *group = 0);
-    void closeGroup(BlockGroup *group = 0);
+    void saveGroupAsWithoutDoc(BlockManager *group = 0);
+    void closeGroup(BlockManager *group = 0);
     void closeAllGroups();
-    void setGroupLang(Analyzer *newAnalyzer, BlockGroup *group = 0);
-    void showPreview(BlockGroup *group = 0);
-    void findText(QString searchStr, BlockGroup *group = 0);
-    void cleanGroup(BlockGroup *group = 0);
+    void setGroupLang(Analyzer *newAnalyzer, BlockManager *group = 0);
+    void showPreview(BlockManager *group = 0);
+    void findText(QString searchStr, BlockManager *group = 0);
+    void cleanGroup(BlockManager *group = 0);
 
 public:
     MainWindow *main;
     DocumentScene(MainWindow *parent);
     void update(const QRectF &rect = QRectF());
-    void selectGroup(BlockGroup *group = 0);
-    BlockGroup *selectedGroup() const {return currentGroup;}
-    void groupWasModified(BlockGroup *group);
+    void selectGroup(BlockManager *group = 0);
+    BlockManager *selectedGroup() const {return blockManager;}
+    void groupWasModified(BlockManager *group);
 
     void setHighlighting(const QList<QPair<QString, QHash<QString, QString> > > configData);
     bool hasFormatFor(QString key) const;
@@ -72,13 +72,13 @@ protected:
 
 private:
     MainWindow *window;
-    QList<BlockGroup*> groups;
-    BlockGroup *currentGroup;
+    QList<BlockManager*> groups;
+    BlockManager *blockManager;
 
     QHash<QString, QPair<QFont, QColor> > highlighting;
 
     void adjustSceneRect();
-    BlockGroup* getBlockGroup();
+    BlockManager* getBlockManager();
     bool toBool(QString textBool);
 };
 
