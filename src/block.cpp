@@ -1337,7 +1337,7 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 
     if (showing)  //! background
     {
-        painter->fillPath(path, Qt::white);
+        painter->fillPath(path, group->docScene->getFormatFor("background_style").second);//Qt::white
 
         if (level > 0)
         {
@@ -1349,15 +1349,14 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 
     if (isSearchResult) //! search background
     {
-        QColor color;
-        color.setNamedColor("yellow");
+        QColor color = group->docScene->getFormatFor("search_result_style").second;
         color.setAlpha(150);
         painter->fillRect(0, 4, rect.width(), rect.height() - 2*4, color);
     }
 
     if (pointed) //! hover background
     {
-        QColor color = Qt::red;
+        QColor color = group->docScene->getFormatFor("background_hover_style").second;//Qt::red;
         color.setAlpha(80);
         painter->fillPath(path, color);
     }
@@ -1375,9 +1374,9 @@ void Block::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 QColor Block::getHoverColor() const
 {
     if (element->isUnknown())
-        return Qt::green;
+        return group->docScene->getFormatFor("hover_unknown_style").second;//Qt::green;
     else
-        return Qt::blue;
+        return group->docScene->getFormatFor("hover_style").second;//Qt::blue;
 }
 
 void Block::setShowing(bool newState, Block *until)
