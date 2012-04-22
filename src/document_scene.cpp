@@ -836,7 +836,7 @@ void DocumentScene::dropEvent(QGraphicsSceneDragDropEvent *event)
     }
     else if (event->mimeData()->hasText())
     {
-        if(currentGroup->isVisible())
+        if(currentGroup != 0  && currentGroup->isVisible())
         {
             QString str = event->mimeData()->text();
             str = str.mid(0, 4);
