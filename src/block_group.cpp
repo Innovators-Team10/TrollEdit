@@ -920,6 +920,7 @@ void BlockGroup::analyzeAll(QString text)
         else {
             TreeElement* rootEl = analazyAllInMaster(text);
             updateAllInMaster(rootEl);
+//            runParalelized = true;
         }        
     }
     catch (...) 
@@ -952,8 +953,7 @@ TreeElement* BlockGroup::analazyAllInThread (QString text)
  */
 TreeElement* BlockGroup::analazyAllInMaster (QString text)  
 {
-    qDebug("analazyAllInMaster");
-    runParalelized = true;
+    qDebug("analazyAllInMaster");    
     return analyzer->analyzeFull(text);
 }
 
