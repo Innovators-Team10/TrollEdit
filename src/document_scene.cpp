@@ -85,18 +85,18 @@ void DocumentScene::loadGroup(QString fileName, QString extension)
     BlockManager *manager;
     if(fileName.startsWith("Unknown")){
         if(main->mode==MainWindow::Text){
-            manager =(TextGroup*) new BlockManager(content, extension, this);
+            manager = new TextGroup(new BlockManager(content, extension, this));
             manager->mode=MainWindow::Text;
         } else if(main->mode==MainWindow::Graphic){
-            manager = (BlockGroup*)new BlockManager(content, extension, this);
+            manager = new BlockGroup(new BlockManager(content, extension, this));
             manager->mode=MainWindow::Graphic;
         }
     }else{
         if(main->mode==MainWindow::Text){
-            manager = (TextGroup*)new BlockManager(content, fileName, this);
+            manager = new TextGroup(new BlockManager(content, fileName, this));
             manager->mode=MainWindow::Text;
         } else if(main->mode==MainWindow::Graphic){
-            manager = (BlockGroup*)new BlockManager(content, fileName, this);
+            manager = new BlockGroup(new BlockManager(content, fileName, this));
             manager->mode=MainWindow::Graphic;
         }
     }
