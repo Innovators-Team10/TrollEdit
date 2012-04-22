@@ -1,11 +1,19 @@
-cfg_keys = {"text_style", "comment_style", "keyword", 
-"line_comment", "multiline_comment", "doc_comment", "string_constant", "character_constant", 
-"number_constant", "label", "header_file", "funct_call", 
-"assignment_operator", "binary_operator", "prefix_operator", "postfix_operator", 
+cfg_keys = {"text_style", "comment_style", "keyword",
+"hover_style", "hover_unknown_style", "background_style", "background_hover_style", "search_result_style",
+"line_comment", "multiline_comment", "doc_comment", "string_constant", "character_constant",
+"number_constant", "label", "header_file", "funct_call",
+"assignment_operator", "binary_operator", "prefix_operator", "postfix_operator",
 "markup_tag", "attribute_key", "attribute_value",  "funct_definition", "done", "undone", "todo_list"}
 
 text_style = {family="courier", size="12", color="black", bold="false", italic="false", underline="false"}
 comment_style = {base="text_style", family="verdana", italic="true", color="teal"}
+
+hover_style = {base="", color="green"}
+hover_unknown_style = {base="", color="blue"}
+background_style = {base="", color="white"}
+background_hover_style = {base="", color="blue"}
+search_result_style = {base="", color="yellow"}
+--focus_style = {bold="true", color="red"}
 
 keyword = {base="text_style", color="blue"}
 comment = {base="comment_style"}

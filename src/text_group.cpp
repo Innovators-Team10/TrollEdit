@@ -107,6 +107,7 @@ void TextGroup::redo()
 
 void TextGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    this->rc->setRect(this->boundingRect().adjusted(-10,-10,+10,+10));
     if( (this->hasFocus() || this->isUnderMouse()) || (rc->hasFocus() || rc->isUnderMouse()) ){
         QPen pen = QPen(Qt::DashLine);
         pen.setColor(Qt::black);
