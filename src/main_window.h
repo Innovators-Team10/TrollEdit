@@ -102,7 +102,7 @@ public:
     QAction *toolsToolbarAction;
     QAction *editorToolbarAction;
     QAction *setBottomDockAction;
-    QAction *setRightDockAction;
+    QAction *fileBrowserAction;
 
     // for tools menu
     QAction *shortAction;
@@ -198,7 +198,7 @@ private slots:
     void toolsToolbar();
     void editorToolbar();
     void setBottomDock();
-    void setRightDock();
+    void fileBrowser();
     void createEditorToolbars();
     void createToolsToolbars();
     void createFormatingToolbars();
