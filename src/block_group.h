@@ -84,6 +84,8 @@ public:
     void analyzeAll(QString text);
     bool reanalyzeBlock(Block* block);
     QString toText(bool noDocs = false) const;
+    QString toHTML(bool noDocs = false) const;
+    QString toTextDoc(bool noDocs = false) const;
     
     // paralelism
     QFutureWatcher<TreeElement*> watcher;

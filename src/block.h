@@ -103,6 +103,8 @@ public:
     virtual void updateGeometryAfter(bool doAnimation = true);
     void animate();
 
+    QPair<QFont, QColor> highlightFormat; //! format of my text (if any)
+
 public slots:
     void textFocusChanged(QFocusEvent* event);
     virtual void textChanged();
@@ -157,8 +159,6 @@ protected:
 
     FoldButton *foldButton;
     QTimer *timer;              //! hover timer
-
-    QPair<QFont, QColor> highlightFormat; //! format of my text (if any)
 
     QPointF startDragPos; //! used to determine drag start
 
