@@ -621,7 +621,19 @@ void BlockGroup::changeMode(QList<QAction *> actionList)
 {
     if(isVisible())
     {
-        txt->setPlainText(this->toText());
+        //txt->showHTML = true;
+        if(txt->showHTML == true){
+            QTextDocument *d = new QTextDocument();
+            d->setHtml(this->toHTML());
+            QTextOption to;
+            to.setFlags(QTextOption::AddSpaceForLineAndParagraphSeparators);
+            d->setDefaultTextOption(to);
+            txt->setDocument(d);
+            //txt->setHtml(this->toHTML());
+            //txt->setDocument(this->toTextDoc());
+        }else{
+            txt->setPlainText(this->toText());
+        }
         txt->rc->setPos(this->pos());
         txt->rc->setScale(this->scale());
         txt->rc->setRect(txt->boundingRect().adjusted(-10,-10,+10,+10));
@@ -999,6 +1011,16 @@ void BlockGroup::updateAllInMaster (TreeElement* rootEl)
 QString BlockGroup::toText(bool noDocs) const
 {
     return root->getElement()->getText(noDocs);
+}
+
+QString BlockGroup::toHTML(bool noDocs) const
+{
+    return root->getElement()->getHTML(noDocs);
+}
+
+QString BlockGroup::toTextDoc(bool noDocs) const
+{
+    return root->getElement()->getTextDoc(noDocs);
 }
 
 QList<Block*> BlockGroup::blocklist_cast(QList<QGraphicsItem*> list)

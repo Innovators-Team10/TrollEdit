@@ -1,4 +1,4 @@
-/** 
+/**
 * @file tree_element.cpp
 * @author Team 04 Ufopak + Team 10 Innovators
 * @version 
@@ -490,6 +490,120 @@ QString TreeElement::getText(bool noComments) const
     {
         if (docBl == 0 || !noComments)
             text.append("\n");                      //! add line break if needed
+    }
+//qDebug() << text;
+    return text;
+}
+
+QString TreeElement::getHTML(bool noComments) const
+{
+    QString text;
+    DocBlock *docBl = 0;
+
+    if (isFloating()) docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
+
+    QString spacesStr = QString().fill(' ', spaces);
+
+    if (isLeaf())
+    {
+        text = type;                            //! get my text
+        if (docBl != 0)
+        {
+            if (noComments)
+                text = "";
+            else
+                text = docBl->convertToText();      //! get text of docblock
+        }
+    }
+    else
+    {
+        if (docBl != 0 && !noComments){
+            text.append(docBl->convertToText());    //! get text of docblock
+
+        }
+        foreach (TreeElement *e, getChildren())
+        {
+            if(e->getBlock() != 0){// "<font color=\"red\">Red Text</font>"
+                text.append( "<font color=\""+ e->getBlock()->highlightFormat.second.name() +"\">");
+            }else{
+                text.append( "<font color=\"black\">");
+            }
+            text.replace("<<","&lt;<");
+            //qDebug() << text;
+            text.append(e->getHTML(noComments));          //! get child texts
+            text.append("</font>");
+        }
+
+        //text.replace("\n", "\n"+spacesStr);     //! indent after each line break
+        text.replace("\n", "<br>"+spacesStr);     //! indent after each line break
+    }
+
+    text.prepend(spacesStr);                    //! indent my text
+
+    if (lineBreaking)
+    {
+        if (docBl == 0 || !noComments){
+            //text.append("\n");                      //! add line break if needed
+            text.append("<br>");                      //! add line break if needed
+        }
+    }
+//qDebug() << text;
+
+    return text;
+}
+
+QString TreeElement::getTextDoc(bool noComments) const
+{
+    QTextDocument doc;
+    QString text;
+    DocBlock *docBl = 0;
+
+    if (isFloating()) docBl = qgraphicsitem_cast<DocBlock*>(myBlock);
+
+    QString spacesStr = QString().fill(' ', spaces);
+
+    if (isLeaf())
+    {
+        text = type;                            //! get my text
+        if (docBl != 0)
+        {
+            if (noComments)
+                text = "";
+            else
+                text = docBl->convertToText();      //! get text of docblock
+        }
+    }
+    else
+    {
+        if (docBl != 0 && !noComments){
+            text.append(docBl->convertToText());    //! get text of docblock
+
+        }
+        foreach (TreeElement *e, getChildren())
+        {
+            if(e->getBlock() != 0){// "<font color=\"red\">Red Text</font>"
+                text.append( "<font color=\""+ e->getBlock()->highlightFormat.second.name() +"\">");
+            }else{
+                text.append( "<font color=\"black\">");
+            }
+            text.replace("<<","&lt;<");
+            //qDebug() << text;
+            text.append(e->getHTML(noComments));          //! get child texts
+            text.append("</font>");
+        }
+
+        //text.replace("\n", "\n"+spacesStr);     //! indent after each line break
+        text.replace("\n", "<br>"+spacesStr);     //! indent after each line break
+    }
+
+    text.prepend(spacesStr);                    //! indent my text
+
+    if (lineBreaking)
+    {
+        if (docBl == 0 || !noComments){
+            //text.append("\n");                      //! add line break if needed
+            text.append("<br>");                      //! add line break if needed
+        }
     }
 //qDebug() << text;
     return text;
