@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>702</width>
-    <height>490</height>
+    <height>494</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,7 +56,7 @@ QTabBar::tab:!selected
   }</string>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -97,9 +97,6 @@ QTabBar::tab:!selected
        </rect>
       </property>
      </widget>
-     <zorder>comboBox_2</zorder>
-     <zorder>label_2</zorder>
-     <zorder>comboBox_2</zorder>
     </widget>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="geometry">
@@ -113,6 +110,32 @@ QTabBar::tab:!selected
      <property name="title">
       <string>Import/ export </string>
      </property>
+     <widget class="QPushButton" name="pushButton_6">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PushButton</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_7">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>60</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>PushButton</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QGroupBox" name="groupBox">
      <property name="geometry">
@@ -210,6 +233,16 @@ QTabBar::tab:!selected
      </property>
      <property name="text">
       <string>Remove</string>
+     </property>
+    </widget>
+    <widget class="QTableView" name="tableView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>671</width>
+       <height>301</height>
+      </rect>
      </property>
     </widget>
    </widget>
