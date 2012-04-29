@@ -71,6 +71,8 @@ public:
      TreeElement *getParent() const;
      QString getType() const;
      QString getText(bool noComments = false) const;
+     QString getHTML(bool noComments = false) const;
+     QString getTextDoc(bool noComments = false) const;
      TreeElement *getAncestorWhereLast() const;
      TreeElement *getAncestorWhereFirst() const;
 

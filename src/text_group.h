@@ -33,6 +33,9 @@ public:
     void undo();
     void redo();
 
+    bool showHTML;
+
+    void keyReleaseEvent(QKeyEvent *event);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 signals:
