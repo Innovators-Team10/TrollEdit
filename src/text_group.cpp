@@ -1,4 +1,4 @@
-/** 
+/**
 * @file text_group.cpp
 * @author Team 04 Ufopak + Team 10 Innovators
 * @version 
@@ -21,6 +21,7 @@ TextGroup::TextGroup(BlockGroup *block, DocumentScene *scene)
 {
     this->block = block;
     this->scene = scene;
+    this->showHTML = false;
 
 //    this->setPlainText(block->toText());
     this->setPos(block->pos().x(),block->pos().y());
@@ -125,4 +126,24 @@ void TextGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         scene->update();
 
     QGraphicsTextItem::paint(painter, option, widget);
+}
+
+void TextGroup::keyReleaseEvent(QKeyEvent *event)
+{
+    if(this->showHTML == true){
+        if( (event->key() == Qt::Key_Up) || (event->key() == Qt::Key_Down) )
+        {
+            QTextCursor *cursor = new QTextCursor(this->textCursor());
+            int startPos = cursor->position();
+            //qDebug() << "pos: " << startPos;
+            //replace(" ","&nbsp;")
+            this->block->setContent(this->toPlainText());
+            this->setHtml(this->block->toHTML());
+            //qDebug() << "setcur: " << cursor->position();
+            this->setFocus();
+            cursor->setPosition(startPos);
+            this->setTextCursor(*cursor);
+        }
+    }
+    QGraphicsTextItem::keyReleaseEvent(event);
 }
