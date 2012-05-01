@@ -17,6 +17,9 @@ public:
     
 private:
     Ui::bottomDock *ui;
+
+public slots:
+    void showWindow();
 };
 
 #endif // BOTTOMDOCK_H

@@ -109,7 +109,7 @@ style = "QMainWindow {"
                         .."color: black;"
                     .."}"
                 .."QMessageBox{"
-                .."background-color: silver;"
+                .."background-color: #C2C2C2;"
                 .."}"
 
 setstyle(style)

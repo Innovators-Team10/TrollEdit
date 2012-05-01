@@ -22,6 +22,7 @@ public slots:
     void showSetting();
 
 private slots:
+    void on_pushButton_4_clicked();
 };
 
 #endif // SETTING_H

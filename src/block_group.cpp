@@ -621,7 +621,7 @@ void BlockGroup::changeMode(QList<QAction *> actionList)
 {
     if(isVisible())
     {
-        //txt->showHTML = true;
+        txt->showHTML = true;
         if(txt->showHTML == true){
             QTextDocument *d = new QTextDocument();
             d->setHtml(this->toHTML());

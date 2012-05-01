@@ -14,6 +14,7 @@
 #include "language_manager.h"
 #include "setting.h"
 #include "abouttrolledit.h"
+#include "bottomdock.h"
 #include "tips_tricks.h"
 #include "analyzer.h"
 #include "block_group.h"
@@ -279,6 +280,7 @@ void MainWindow::createActions()
         connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroupsWrapper()));
 
         //! print pdf
+        // nefunguje
         QIcon printIcon(":/icons/print.png");
         printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
         textstring = file.readLine();
@@ -776,7 +778,7 @@ void MainWindow::createToolBars()
         formatToolBar->addSeparator();
 
         formatToolBar->addAction(plainEditAction);
-        formatToolBar->addAction(printableAreaAction);
+        //formatToolBar->addAction(printableAreaAction);
         formatToolBar->addAction(printPdfAction);
         
         formatToolBar->addSeparator();
@@ -1454,13 +1456,12 @@ void MainWindow::setBottomDock()
     dock = new QDockWidget(tr("Buttom dock"), this);
     dock->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dock->setFeatures(QDockWidget::DockWidgetClosable);
-    dock->setStyle(new QPlastiqueStyle);
+    dock->setStyleSheet("QDockWidget{"
+                        "Background-color:transparent;}");
 
     //! add tab to buttom dockpanel
-    QTabWidget *tabView = new QTabWidget();
-    tabView->addTab (new QTextEdit,("&Task list"));
-    tabView->addTab(new QTextEdit,("&Bug list"));
-    dock->setWidget(tabView);
+    bottomDock *bDock = new bottomDock;
+    dock->setWidget(bDock);
     addDockWidget(Qt::BottomDockWidgetArea, dock);
 }
 

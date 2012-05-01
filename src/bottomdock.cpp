@@ -12,3 +12,8 @@ bottomDock::~bottomDock()
 {
     delete ui;
 }
+
+void bottomDock::showWindow()
+{
+    this->show();
+}

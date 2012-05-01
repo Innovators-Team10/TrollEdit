@@ -15,6 +15,11 @@ setting::~setting()
 
 void setting::showSetting()
 {
-    this->setFixedSize(758,479);
+    this->setFixedSize(700,490);
     this->show();
+}
+
+void setting::on_pushButton_4_clicked()
+{
+    this->close();
 }
