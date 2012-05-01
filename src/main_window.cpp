@@ -434,17 +434,17 @@ void MainWindow::createActions()
     connect(setBottomDockAction, SIGNAL(triggered()), this, SLOT(setBottomDock()));
 
     //! right dock panel - filebrowser
-    fileBrowserAction = new QAction(tr("&File browser"), this);
-    fileBrowserAction->setStatusTip(tr("View file browser in right a dock"));
+    fileBrowserAction = new QAction(tr("&File Browser"), this);
+    fileBrowserAction->setStatusTip(tr("View File Browser in right a dock"));
     fileBrowserAction->setCheckable(true);
     connect(fileBrowserAction, SIGNAL(triggered()), this, SLOT(fileBrowser()));
 
     //! fullscreen
     QIcon fullScreenIcon(":/icons/fullScreen.png");
-    fullScreenAction = new QAction(fullScreenIcon,tr("&FullScreen"), this);
+    fullScreenAction = new QAction(fullScreenIcon,tr("&Fullscreen"), this);
     fullScreenAction->setShortcut(tr("F8"));
     fullScreenAction->setCheckable(true);
-    fullScreenAction->setStatusTip(tr("View full screen"));
+    fullScreenAction->setStatusTip(tr("View Fullscreen"));
     connect(fullScreenAction, SIGNAL(triggered()), this, SLOT(fullScreen()));
 
     //! new window
@@ -464,9 +464,10 @@ void MainWindow::createActions()
     zoomOutAction->setStatusTip(tr("Zoom out "));
     connect(zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
 
-    //! split
-    splitAction = new QAction(tr("&Split"), this);
-    splitAction->setStatusTip(tr("Split a workspace "));
+    //! cancel fullscreen
+    splitAction = new QAction(tr("&Cancel Fullscreen"), this);
+    splitAction->setShortcut(tr("F9"));
+    splitAction->setStatusTip(tr("Cancel Fullscreen "));
     splitAction->setCheckable(true);
     connect(splitAction, SIGNAL(triggered()), this, SLOT(split()));
 
@@ -1453,7 +1454,9 @@ void MainWindow::editorToolbar()
 //! bottom dockpanel - for bug,task list
 void MainWindow::setBottomDock()
 {
-    dock = new QDockWidget(tr("Buttom dock"), this);
+     QMessageBox::information(this,"Information","On Function is working!");
+
+    /*dock = new QDockWidget(tr("Buttom dock"), this);
     dock->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dock->setFeatures(QDockWidget::DockWidgetClosable);
     dock->setStyleSheet("QDockWidget{"
@@ -1462,7 +1465,7 @@ void MainWindow::setBottomDock()
     //! add tab to buttom dockpanel
     bottomDock *bDock = new bottomDock;
     dock->setWidget(bDock);
-    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    addDockWidget(Qt::BottomDockWidgetArea, dock);*/
 }
 
 //! right dockpanel - for fileBrowser
@@ -1638,8 +1641,9 @@ void MainWindow::update()
 //! show Tips and Tricks
 void MainWindow::tipsAndTricks()
 {
-    tips_tricks *aboutWindow = new tips_tricks;
-    aboutWindow->showWindow();
+     QMessageBox::information(this,"Information","On Function is working!");
+    //tips_tricks *aboutWindow = new tips_tricks;
+    //aboutWindow->showWindow();
 }
 
 //! for send bugs report
