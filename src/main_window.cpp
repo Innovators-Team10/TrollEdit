@@ -1047,6 +1047,7 @@ void MainWindow::createTabs()
     //! button addTab
     QIcon addTabIcon(":/icons/plusTab.png");
     QPushButton *m_addButton = new QPushButton(addTabIcon,"", this);
+    m_addButton->setShortcut(tr("CTRL+T"));
     m_addButton->setObjectName("addButton");
 
     //! set style for button- add tab
@@ -1641,9 +1642,9 @@ void MainWindow::update()
 //! show Tips and Tricks
 void MainWindow::tipsAndTricks()
 {
-     QMessageBox::information(this,"Information","On Function is working!");
-    //tips_tricks *aboutWindow = new tips_tricks;
-    //aboutWindow->showWindow();
+     //QMessageBox::information(this,"Information","On Function is working!");
+    tips_tricks *aboutWindow = new tips_tricks;
+    aboutWindow->showWindow();
 }
 
 //! for send bugs report

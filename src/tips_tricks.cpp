@@ -16,7 +16,7 @@ tips_tricks::~tips_tricks()
 
 void tips_tricks::showWindow()
 {
-    this->setFixedSize(400,400);
+    this->setFixedSize(645,325);
     this->show();
 }
 

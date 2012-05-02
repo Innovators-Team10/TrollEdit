@@ -2,21 +2,123 @@
 <ui version="4.0">
  <class>tips_tricks</class>
  <widget class="QWidget" name="tips_tricks">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>719</width>
-    <height>434</height>
+    <width>643</width>
+    <height>322</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Tips &amp; Tricks</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../res/resources.qrc">
+    <normaloff>:/icons/info.png</normaloff>:/icons/info.png</iconset>
   </property>
   <property name="toolTip">
    <string/>
   </property>
+  <property name="styleSheet">
+   <string notr="true"> </string>
+  </property>
+  <widget class="QGraphicsView" name="aphicsView">
+   <property name="geometry">
+    <rect>
+     <x>6</x>
+     <y>8</y>
+     <width>633</width>
+     <height>271</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+   <property name="lineWidth">
+    <number>1</number>
+   </property>
+  </widget>
+  <widget class="QCommandLinkButton" name="commandLinkButton">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>280</y>
+     <width>41</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>Next </string>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"> </string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset resource="../res/resources.qrc">
+     <normaloff>:/icons/redo.png</normaloff>:/icons/redo.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>27</width>
+     <height>27</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QCommandLinkButton" name="commandLinkButton_2">
+   <property name="geometry">
+    <rect>
+     <x>540</x>
+     <y>280</y>
+     <width>41</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>Back</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset resource="../res/resources.qrc">
+     <normaloff>:/icons/undo.png</normaloff>:/icons/undo.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>27</width>
+     <height>27</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>120</y>
+     <width>311</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="../res/resources.qrc">:/img/tips.png</pixmap>
+   </property>
+  </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../res/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

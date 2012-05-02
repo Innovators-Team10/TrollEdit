@@ -18,6 +18,7 @@ public:
     
 private:
     Ui::tips_tricks *ui;
+    QGraphicsView *graphicsView;
 
 
 public slots:
