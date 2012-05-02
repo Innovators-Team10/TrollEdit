@@ -7,7 +7,9 @@ c = os.date("//created %d.%m.%Y") .. [[
 
 #include<stdio.h>
 
-int main(int argc, char *argv[] )  {
+int main(int argc, char *argv[] )  
+{
+    printf("Hi, I´am TrollEdit");
 	return 0;
 }
 ]]

@@ -106,17 +106,18 @@ void TextGroup::redo()
     keyPressEvent(event);
 }
 
+//! for plain text
 void TextGroup::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    this->rc->setRect(this->boundingRect().adjusted(-10,-10,+10,+10));
+    this->rc->setRect(this->boundingRect().adjusted(-15,-15,+15,+15));
     if( (this->hasFocus() || this->isUnderMouse()) || (rc->hasFocus() || rc->isUnderMouse()) ){
-        QPen pen = QPen(Qt::DashLine);
-        pen.setColor(Qt::black);
+        QPen pen = QPen(Qt::SolidLine);
+        pen.setColor(Qt::red);
         painter->setPen(pen);
-        painter->drawRect(boundingRect().adjusted(-10,-10,+10,+10));
+        painter->drawRect(boundingRect().adjusted(-15,-15,+15,+15));
 
         QFont font = painter->font() ;
-        font.setPointSize ( 8 );
+        font.setPointSize (8);
         font.setWeight(QFont::DemiBold);
         painter->setFont(font);
         QStringList list = block->getFilePath().split(QString(QDir::separator()));

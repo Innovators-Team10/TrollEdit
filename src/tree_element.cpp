@@ -13,7 +13,7 @@
 
 
 const char *TreeElement::WHITE_EL = "whites";
-const char *TreeElement::UNKNOWN_EL = "unknown";
+const char *TreeElement::UNKNOWN_EL = "Unknown";
 const char *TreeElement::NEWLINE_EL = "nl";
 const bool TreeElement::DYNAMIC = false;        //! dynamicke spracovanie AST - now work with nodes and deep
 
