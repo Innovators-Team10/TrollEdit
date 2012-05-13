@@ -1,5 +1,5 @@
 -- configuration file
-width = 1200
+width = 1024
 height = 675
 style = "QMainWindow {"
                         .."color: black;"
