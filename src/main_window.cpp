@@ -1472,15 +1472,22 @@ void MainWindow::setBottomDock()
 //! right dockpanel - for fileBrowser
 void MainWindow::fileBrowser()
 {
-      dock1 = new QDockWidget(tr("File browser tree"), this);
-      dock1->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-      dock1->setFeatures(QDockWidget::DockWidgetClosable);
-      dock1->setStyle(new QPlastiqueStyle);
-      model = new QDirModel();
-      tree = new QTreeView(dock1);
-      tree->setModel(model);
-      dock1->setWidget(tree);
-      addDockWidget(Qt::RightDockWidgetArea, dock1);
+    try
+    {
+        dock1 = new QDockWidget(tr("File browser tree"), this);
+        dock1->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+        dock1->setFeatures(QDockWidget::DockWidgetClosable);
+        dock1->setStyle(new QPlastiqueStyle);
+        model = new QDirModel();
+        tree = new QTreeView(dock1);
+        tree->setModel(model);
+        dock1->setWidget(tree);
+        addDockWidget(Qt::RightDockWidgetArea, dock1);
+    }
+    catch(...)
+    {
+        //nothing
+    }
 }
 
 //! full screen
