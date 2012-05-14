@@ -25,6 +25,8 @@ public slots:
     void showWindow();
 
 private slots:
+    void on_commandLinkButton_clicked();
+    void on_commandLinkButton_2_clicked();
 };
 
 #endif // TIPS_TRICKS_H

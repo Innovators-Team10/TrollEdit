@@ -48,6 +48,10 @@
         <file>printArea.png</file>
         <file>bold.png</file>
         <file>italic.png</file>
+        <file>f9.png</file>
+        <file>tipsIcon.png</file>
+        <file>tree.png</file>
+        <file>newWindow.png</file>
     </qresource>
     <qresource prefix="/img">
         <file alias="logoSmall">logo.png</file>

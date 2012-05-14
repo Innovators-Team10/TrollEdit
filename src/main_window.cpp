@@ -338,7 +338,8 @@ void MainWindow::createActions()
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 
     //! tips and tricks
-    tipsAction = new QAction(tr("&Tips and Tricks"), this);
+    QIcon tipIcon(":/icons/tipsIcon.png");
+    tipsAction = new QAction(tipIcon,tr("&Tips and Tricks"), this);
     tipsAction->setToolTip(tr("Show tips and tricks"));
     connect(tipsAction, SIGNAL(triggered()), this, SLOT(tipsAndTricks()));
 
@@ -434,7 +435,8 @@ void MainWindow::createActions()
     connect(setBottomDockAction, SIGNAL(triggered()), this, SLOT(setBottomDock()));
 
     //! right dock panel - filebrowser
-    fileBrowserAction = new QAction(tr("&File Browser"), this);
+    QIcon fileTreeIcon(":/icons/tree.png");
+    fileBrowserAction = new QAction(fileTreeIcon,tr("&File Browser"), this);
     fileBrowserAction->setStatusTip(tr("View File Browser in right a dock"));
     fileBrowserAction->setCheckable(true);
     connect(fileBrowserAction, SIGNAL(triggered()), this, SLOT(fileBrowser()));
@@ -447,8 +449,17 @@ void MainWindow::createActions()
     fullScreenAction->setStatusTip(tr("View Fullscreen"));
     connect(fullScreenAction, SIGNAL(triggered()), this, SLOT(fullScreen()));
 
+    //! cancel fullscreen
+    QIcon fullScreenIcon2(":/icons/f9.png");
+    splitAction = new QAction(fullScreenIcon2,tr("&Cancel Fullscreen"), this);
+    splitAction->setShortcut(tr("F9"));
+    splitAction->setStatusTip(tr("Cancel Fullscreen "));
+    splitAction->setCheckable(true);
+    connect(splitAction, SIGNAL(triggered()), this, SLOT(split()));
+
     //! new window
-    newWindowAction = new QAction(tr("&New window"), this);
+    QIcon newWindowIcon(":/icons/newWindow.png");
+    newWindowAction = new QAction(newWindowIcon,tr("&New window"), this);
     newWindowAction->setStatusTip(tr("Create new instance an application "));
     connect(newWindowAction, SIGNAL(triggered()), this, SLOT(newWindow()));
 
@@ -463,13 +474,6 @@ void MainWindow::createActions()
     zoomOutAction = new QAction(zoomOutIcon,tr("&Zoom Out"), this);
     zoomOutAction->setStatusTip(tr("Zoom out "));
     connect(zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
-
-    //! cancel fullscreen
-    splitAction = new QAction(tr("&Cancel Fullscreen"), this);
-    splitAction->setShortcut(tr("F9"));
-    splitAction->setStatusTip(tr("Cancel Fullscreen "));
-    splitAction->setCheckable(true);
-    connect(splitAction, SIGNAL(triggered()), this, SLOT(split()));
 
     //! CMD
     QIcon cmdIcon(":/icons/cmd.png");
