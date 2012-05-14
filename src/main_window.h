@@ -52,7 +52,7 @@ public:
     enum { MaxRecentFiles = 6 };
     QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
 
-    // for file menu
+    //! for file menu
     QAction *newAction;
     QAction *newTabAction;
     QAction *openAction;
@@ -74,7 +74,7 @@ public:
     QAction *setBoldAction;
     QAction *setItalicAction;
 
-    // for edit menu
+    //! for edit menu
     QAction *undoAction;
     QAction *redoAction;
     QAction *cutAction;
@@ -85,7 +85,7 @@ public:
     QAction *findAction;
     QAction *find_ReplaceAction;
 
-    // for help menu
+    //! for help menu
     QAction *homePageAction;
     QAction *helpAction;
     QAction *aboutAction;
@@ -93,7 +93,7 @@ public:
     QAction *bugReportAction;
     QAction *tipsAction;
 
-    // for view menu
+    //! for view menu
     QAction *fullScreenAction;
     QAction *newWindowAction;
     QAction *zoomInAction;
@@ -105,7 +105,7 @@ public:
     QAction *setBottomDockAction;
     QAction *fileBrowserAction;
 
-    // for tools menu
+    //! for tools menu
     QAction *shortAction;
     QAction *optionsAction;
     QAction *metricsAction;
@@ -119,7 +119,7 @@ public:
     QAction *textItalicAction;
     QAction *textUnderlineAction;
 
-    // items for menu
+    //! items for menu
     QMenu *fileMenu;
     QMenu *editMenu;
     QMenu *viewMenu;
@@ -130,7 +130,7 @@ public:
     QMenu *setToolbarsMenu;
     QMenu *panelsMenu;
 
-    // tollbars
+    //! tollbars
     QToolBar *formatToolBar;
     QToolBar *editorToolbars;
     QToolBar *toolsToolbars;
@@ -219,7 +219,7 @@ private:
     QLineEdit *searchLineEdit;
     QDialog *set_shortcuts;
 
-    // for function a find
+    //! for function a find
     QDialog *findWindow;
     QPushButton *findButton;
     QLabel *findLabel;
@@ -232,7 +232,7 @@ private:
     QDialog *setOptions;
     QListWidget *zoznam;
 
-    //for dock panels
+    //! for dock panels
     QDockWidget *dock;
     QTextEdit *text;
     QDockWidget *dock1;

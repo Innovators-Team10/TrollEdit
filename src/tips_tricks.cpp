@@ -20,8 +20,6 @@ void tips_tricks::showWindow()
     this->show();
 }
 
-//! load conf. file for tips and tricks
-
 //! button next
 void tips_tricks::on_commandLinkButton_clicked()
 {
@@ -31,5 +29,5 @@ void tips_tricks::on_commandLinkButton_clicked()
 //! button back
 void tips_tricks::on_commandLinkButton_2_clicked()
 {
-    QMessageBox::information(this,"title","On Function is working!");
+
 }

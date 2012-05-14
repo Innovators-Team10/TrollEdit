@@ -265,62 +265,60 @@ void MainWindow::createActions()
     connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWrapper()));
     groupActions->addAction(saveAsAction);
 
+    saveAsNoDocAction = new QAction(tr("Save Without Comments"), this); // ??? is this used ???
+    saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
+    connect(saveAsNoDocAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWithoutDocWrapper()));
+    groupActions->addAction(saveAsNoDocAction);
 
-        saveAsNoDocAction = new QAction(tr("Save Without Comments"), this); // ??? is this used ???
-        saveAsNoDocAction->setToolTip(tr("Save file without any comments"));
-        connect(saveAsNoDocAction, SIGNAL(triggered()), this, SLOT(saveGroupAsWithoutDocWrapper()));
-        groupActions->addAction(saveAsNoDocAction);
+    //! save all
+    QIcon saveAllIcon(":/icons/saveAll.png");
+    saveAllAction = new QAction(saveAllIcon,tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
+    saveAllAction->setToolTip(tr("Save all files"));
+    connect(saveAllAction, SIGNAL(triggered()), this, SLOT(saveAllGroupsWrapper()));
 
-        //! save all
-        QIcon saveAllIcon(":/icons/saveAll.png");
-        saveAllAction = new QAction(saveAllIcon,tr("Save All"), this); // works for 1 tab ??? does saveAllGroups work as it should ???
-        saveAllAction->setToolTip(tr("Save all files"));
-        connect(saveAllAction, SIGNAL(triggered()), this, SLOT(saveAllGroupsWrapper()));
+    //! close
+    QIcon closeIcon(":/icons/closeFile.png");
+    closeAction = new QAction(closeIcon, tr("&Close File"), this);
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    closeAction->setShortcut((textstring));
+    closeAction->setToolTip(tr("Close file"));
+    connect(closeAction, SIGNAL(triggered()), this, SLOT(closeGroupWrapper()));
+    groupActions->addAction(closeAction);
 
-        //! close
-        QIcon closeIcon(":/icons/closeFile.png");
-        closeAction = new QAction(closeIcon, tr("&Close File"), this);
-        textstring = file.readLine();
-        textstring.remove(6,1);
-        closeAction->setShortcut((textstring));
-        closeAction->setToolTip(tr("Close file"));
-        connect(closeAction, SIGNAL(triggered()), this, SLOT(closeGroupWrapper()));
-        groupActions->addAction(closeAction);
+    //! close all
+    closeAllAction = new QAction(tr("Close All"), this);
+    closeAllAction->setToolTip(tr("Close all files"));
+    connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroupsWrapper()));
 
-        //! close all
-        closeAllAction = new QAction(tr("Close All"), this);
-        closeAllAction->setToolTip(tr("Close all files"));
-        connect(closeAllAction, SIGNAL(triggered()), this, SLOT(closeAllGroupsWrapper()));
+    //! print pdf
+    // nefunguje
+    QIcon printIcon(":/icons/print.png");
+    printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    printPdfAction->setShortcut((textstring));
+    printPdfAction->setToolTip(tr("Print scene to PDF"));
+    connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
+    groupActions->addAction(printPdfAction);
 
-        //! print pdf
-        // nefunguje
-        QIcon printIcon(":/icons/print.png");
-        printPdfAction = new QAction(printIcon, tr("&Print PDF"), this);
-        textstring = file.readLine();
-        textstring.remove(6,1);
-        printPdfAction->setShortcut((textstring));
-        printPdfAction->setToolTip(tr("Print scene to PDF"));
-        connect(printPdfAction, SIGNAL(triggered()), this, SLOT(printPdf()));
-        groupActions->addAction(printPdfAction);
+    //! show plain text editor
+    QIcon editIcon(":/icons/textMode");
+    plainEditAction = new QAction(editIcon, tr("&Edit Plain Text"), this);
+    textstring = file.readLine();
+    textstring.remove(6,1);
+    plainEditAction->setShortcut((textstring));
+    plainEditAction->setToolTip(tr("Edit file as plain text"));
+    connect(plainEditAction, SIGNAL(triggered()), this, SLOT(showPreviewWrapper()));
+    groupActions->addAction(plainEditAction);
 
-        //! show plain text editor
-        QIcon editIcon(":/icons/textMode");
-        plainEditAction = new QAction(editIcon, tr("&Edit Plain Text"), this);
-        textstring = file.readLine();
-        textstring.remove(6,1);
-        plainEditAction->setShortcut((textstring));
-        plainEditAction->setToolTip(tr("Edit file as plain text"));
-        connect(plainEditAction, SIGNAL(triggered()), this, SLOT(showPreviewWrapper()));
-        groupActions->addAction(plainEditAction);
-
-        //! clear search results
-        QIcon clearIcon(":/icons/close");
-        clearAction = new QAction(clearIcon, tr("Clea&n Search"), this);
-        //clearAction->setShortcut(tr("CTRL+S"));
-        clearAction->setToolTip(tr("Clean search results"));
-        connect(clearAction, SIGNAL(triggered()), this, SLOT(cleanGroupWrapper()));
-        groupActions->addAction(clearAction);
-
+    //! clear search results
+    QIcon clearIcon(":/icons/close");
+    clearAction = new QAction(clearIcon, tr("Clea&n Search"), this);
+    //clearAction->setShortcut(tr("CTRL+S"));
+    clearAction->setToolTip(tr("Clean search results"));
+    connect(clearAction, SIGNAL(triggered()), this, SLOT(cleanGroupWrapper()));
+    groupActions->addAction(clearAction);
 
     //! recent files
     for (int i = 0; i < MaxRecentFiles; ++i)
@@ -576,13 +574,12 @@ void MainWindow::createActions()
     file.close();
 }
 
-//! Items in MenuBar
-
 QList<QAction *> MainWindow::getActionList()
 {
     return actionList;
 }
 
+//! Items in MenuBar
 void MainWindow::createMenus()
 {
     //! file menu
@@ -606,7 +603,6 @@ void MainWindow::createMenus()
 
     for (int i = 0; i < MaxRecentFiles; ++i)
     fileMenu->addAction(recentFileActions[i]);
-
     fileMenu->addSeparator();
     fileMenu->addAction(exitAction);
 
@@ -651,9 +647,8 @@ void MainWindow::createMenus()
     generateMenu= tollsMenu->addMenu(tr("&Generate to"));
     generateMenu->addAction(printPdfAction);
     generateMenu->addAction(snapshotAction);
-    
+
     tollsMenu->addAction(shortAction);
-    
     tollsMenu->addSeparator();
     tollsMenu->addAction(optionsAction);
 
@@ -670,7 +665,6 @@ void MainWindow::createMenus()
 }
 
 //! functions for Shortcusts --------------------------------------------------------------------------
-
 void MainWindow::setShort()
 {
     set_shortcuts = new QDialog();
@@ -713,7 +707,6 @@ void MainWindow::setShort()
     QObject::connect(Closebutton, SIGNAL(clicked()),this,SLOT(closeShortcuts()));
 }
 
-
 void MainWindow::savedShortcuts()
 {
     QFile file(":/files/shortcutsFile");
@@ -754,6 +747,7 @@ void MainWindow::closeShortcuts()
 }
 //! End functions for Shortucts -------------------------------------------------------------------------------
 
+//! Toolbars --------------------------------------------------------------------------------------------------
 void MainWindow::createToolBars()
 {
     try
@@ -857,6 +851,9 @@ void MainWindow::createToolsToolbars()
     }
 }
 
+//! End of Toolbars --------------------------------------------------------------------------------------------------
+
+
 QGraphicsView* MainWindow::createView()
 {
     QGraphicsView *view = new QGraphicsView();
@@ -885,14 +882,14 @@ void MainWindow::newTab()
     QString* numb=new QString("");
     numb->setNum(count);
     name->append(numb);
-    QWidget* widget=createView(); // get QGraphicView
+    QWidget* widget=createView(); //! get QGraphicView
 
     QGraphicsView* view=(QGraphicsView *) widget;
     DocumentScene* dScene=(DocumentScene *) view->scene();
     dScene->main=this;
 
     tabWidget->addTab(widget, *name);
-    tabWidget->setCurrentWidget(widget); // focus on new tab
+    tabWidget->setCurrentWidget(widget); //! focus on new tab
     return;
 }
 
@@ -907,7 +904,7 @@ void MainWindow::newFile()
     else
     {
         DocumentScene* dScene=getScene();
-        if(dScene==0)  // this should not ever happen
+        if(dScene==0)
         {
             qDebug("newFile() Error: dScene = null");
             return;
@@ -935,7 +932,7 @@ void MainWindow::load(QString fileName)
     Analyzer *analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
     DocumentScene* dScene=getScene();
     if(dScene==0)
-    { // this should not ever happen
+    {
         qDebug("load() Error: dScene = null");
         return;
     }
@@ -1012,7 +1009,6 @@ void MainWindow::createTabs()
     this->setCentralWidget(tabWidget);
 }
 
-
 void MainWindow::setModified(bool flag)
 {
     setWindowModified(flag);
@@ -1031,7 +1027,6 @@ void MainWindow::setCurrentFile(BlockGroup *group)
         lang = group->getAnalyzer()->getLanguageName();
         selectedGroup = group;
     }
-
     else
     {
         lang = "";
@@ -1106,9 +1101,7 @@ void MainWindow::open(QString fileName)
 
         while (files.size() > MaxRecentFiles)
             files.removeLast();
-
         settings.setValue("recentFileList", files);
-
         updateRecentFileActions();
         load(fileName);
     }
@@ -1134,7 +1127,6 @@ void MainWindow::printPdf()
     QString fileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
 
     if (fileName.isEmpty()) return;
-
     int resolution = 1200;
     QPrinter printer(QPrinter::HighResolution);
     //    printer.setOrientation(QPrinter::Landscape);
@@ -1400,6 +1392,7 @@ void MainWindow::setBottomDock()
     bottomDock *bDock = new bottomDock;
     dock->setWidget(bDock);
     addDockWidget(Qt::BottomDockWidgetArea, dock);*/
+     // ešte sa experimentuje z UI
 }
 
 //! right dockpanel - for fileBrowser
@@ -1464,13 +1457,11 @@ void MainWindow::split()
     this->showNormal();
     formatToolBar->show();
 }
-
 //! END OF FUNCTIONS FOR VIEW MENU ------------------------------------------------------------------------
 
 
 
 //! FUNTIONS FOR TOOLS MENU ---------------------------------------------------------------------------------
-
 //! genarate to snapshot
 void MainWindow::snapshot()
 {
@@ -1515,12 +1506,10 @@ void MainWindow::showCmd()
         QMessageBox::information(this,"Warning","Cmd not could be found!");
     }
 }
-
 //! END OF FUNCTIONS FOR TOOLS MENU ------------------------------------------------------------------------
 
 
 //! FUNTIONS FOR HELP MENU ----------------------------------------------------------------------------------
-
 //! about TrollEdit
 void MainWindow::about()
 {
@@ -1564,7 +1553,6 @@ void MainWindow::update()
 //! show Tips and Tricks
 void MainWindow::tipsAndTricks()
 {
-     //QMessageBox::information(this,"Information","On Function is working!");
     tips_tricks *aboutWindow = new tips_tricks;
     aboutWindow->showWindow();
 }
@@ -1574,7 +1562,6 @@ void MainWindow::bugReport()
 {
     QDesktopServices::openUrl(QUrl("mailto:tp-team-10@googlegroups.com?subject=[TrollEdit]--report_bug&body=Descripe Yours problem:",QUrl::TolerantMode));
 }
-
 //! END OF FUNCTIONS FOR HELP MENU -------------------------------------------------------------------------
 
 
