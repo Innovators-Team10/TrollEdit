@@ -18,7 +18,8 @@
 #include <QList>
 #include <QTableView>
 
-extern "C" {
+extern "C"
+{
     #include "lua.h"
     #include "lualib.h"
     #include "lauxlib.h"
@@ -50,6 +51,7 @@ public:
 
     enum { MaxRecentFiles = 6 };
     QActionGroup *groupActions;     //! used to disable subset of actions when no group is selected
+
     // for file menu
     QAction *newAction;
     QAction *newTabAction;
@@ -98,7 +100,6 @@ public:
     QAction *zoomOutAction;
     QAction *splitAction;
     QAction *basicToolbarAction;
-    QAction *formatToolbarAction;
     QAction *toolsToolbarAction;
     QAction *editorToolbarAction;
     QAction *setBottomDockAction;
@@ -108,9 +109,7 @@ public:
     QAction *shortAction;
     QAction *optionsAction;
     QAction *metricsAction;
-    QAction *setCAction;
-    QAction *setLuaAction;
-    QAction *setXmlAction;
+
     QAction *showCmdAction;
     QAction *snapshotAction;
     QAction *bugListAction;
@@ -128,14 +127,13 @@ public:
     QMenu *helpMenu;
     QMenu *generateMenu;
     QMenu *toolbarsMenu;
-    QMenu *languageMenu;
     QMenu *setToolbarsMenu;
     QMenu *panelsMenu;
 
+    // tollbars
     QToolBar *formatToolBar;
     QToolBar *editorToolbars;
     QToolBar *toolsToolbars;
-    QToolBar *formatingToolbars;
 
 
 public slots:
@@ -194,24 +192,14 @@ private slots:
     void tipsAndTricks();
 
     void basicToolbar();
-    void formatToolbars();
     void toolsToolbar();
     void editorToolbar();
     void setBottomDock();
     void fileBrowser();
     void createEditorToolbars();
     void createToolsToolbars();
-    void createFormatingToolbars();
 
-    void changeFont();
-    void sizeFont();
-    void setBold();
-    void setItalic();
     void attachFile();
-    void setLanguageLua();
-    void setLanguageC();
-    void setLanguageXml();
-
     void printPdf();
     void swMetrics();
     void showPrintableArea();
@@ -225,16 +213,11 @@ protected:
 
 private:
     lua_State* L;                   //! load configuration from lua
-
-
     QTabWidget *tabWidget;
     QSplashScreen *ico;
     QComboBox *scriptsBox;
     QLineEdit *searchLineEdit;
     QDialog *set_shortcuts;
-
-    QFontComboBox *setFont;
-    QComboBox *setSizeFont;
 
     // for function a find
     QDialog *findWindow;
@@ -242,8 +225,6 @@ private:
     QLabel *findLabel;
     QLineEdit *findLineEdit;
     QHBoxLayout *layout;
-
-    QWidget *notepad;
 
     QDirModel *model;
     QTreeView *tree ;
@@ -255,7 +236,6 @@ private:
     QDockWidget *dock;
     QTextEdit *text;
     QDockWidget *dock1;
-
 
     LanguageManager *langManager;
 

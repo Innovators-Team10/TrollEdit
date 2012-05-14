@@ -28,7 +28,8 @@
 
 #define CONFIG_DIR "/../share/trolledit"
 
-extern "C" {
+extern "C"
+{
     #include "lua.h"
     #include "lualib.h"
     #include "lauxlib.h"
@@ -53,14 +54,16 @@ void loadConfig(lua_State *L, const char *fname, int *w, int *h, QString *style)
     *h = lua_tointeger(L, -1);
 }
 
-static int setstyle(lua_State *L) {
+static int setstyle(lua_State *L)
+{
     QString str = lua_tostring(L, 1); /* get argument */
     p_window->setStyleSheet(str);
     return 0;                         /* number of results in LUA*/
 }
 
 //...Shortcuts
-static int l_newAction(lua_State *L) {
+static int l_newAction(lua_State *L)
+{
     QString str = lua_tostring(L, 1);
     QString tool_str = lua_tostring(L, 2);
 
@@ -74,7 +77,8 @@ static int l_newAction(lua_State *L) {
     return 0;
 }
 
-static int l_openAction(lua_State *L) {
+static int l_openAction(lua_State *L)
+{
     QString str = lua_tostring(L, 1);
     QString tool_str = lua_tostring(L, 2);
 
@@ -87,7 +91,8 @@ static int l_openAction(lua_State *L) {
     return 0;
 }
 
-static int l_revertAction(lua_State *L) {
+static int l_revertAction(lua_State *L)
+{
     QString str = lua_tostring(L, 1);
     QString tool_str = lua_tostring(L, 2);
 
@@ -115,7 +120,8 @@ MainWindow::MainWindow(QString programPath, QWidget *parent) : QMainWindow(paren
 }
 
 //! create lua state
-void MainWindow::initLuaState(QString programPath){
+void MainWindow::initLuaState(QString programPath)
+{
     this->L = luaL_newstate();
 
     //! Load config from config_app.lua
@@ -138,55 +144,62 @@ void MainWindow::initLuaState(QString programPath){
     //! Loading config file
     loadConfig(L, qPrintable(configFile.absoluteFilePath()), &width, &height, &style);
     qDebug() << configFile.absoluteFilePath() << "width: " << width << " height: " << height << "\n style: " << style;
-    //window size
     resize(width, height);
-    //CSS style
-    //w.setStyleSheet(style);
-    //w.setStyleSheet();
 }
 
 //! give lua state with configuration
-lua_State* MainWindow::getLuaState(){
+lua_State* MainWindow::getLuaState()
+{
     return this->L;
 }
 
 //! wrapper slots
 //! in most functions is dynamically detected current BlockGroup,
 //! so they are called with parameter 0
-void MainWindow::closeGroupWrapper(){
+void MainWindow::closeGroupWrapper()
+{
     getScene()->closeGroup(getScene()->selectedGroup());
 }
 
-void MainWindow::revertGroupWrapper(){
+void MainWindow::revertGroupWrapper()
+{
     getScene()->revertGroup(getScene()->selectedGroup());
 }
 
-void MainWindow::saveGroupWrapper(){
+void MainWindow::saveGroupWrapper()
+{
     getScene()->saveGroup(getScene()->selectedGroup()->getFilePath(),0,false);
 }
 
-void MainWindow::saveGroupAsWrapper(){
+void MainWindow::saveGroupAsWrapper()
+{
     getScene()->saveGroupAs(0);
 }
 
-void MainWindow::saveAllGroupsWrapper(){
+void MainWindow::saveAllGroupsWrapper()
+{
     getScene()->saveAllGroups();
 }
 
-void MainWindow::saveGroupAsWithoutDocWrapper(){
+void MainWindow::saveGroupAsWithoutDocWrapper()
+{
     getScene()->saveGroupAsWithoutDoc(0);
 }
 
-void MainWindow::closeAllGroupsWrapper(){
+void MainWindow::closeAllGroupsWrapper()
+{
     getScene()->closeAllGroups();
 }
 
-void MainWindow::showPreviewWrapper(){
+void MainWindow::showPreviewWrapper()
+{
     getScene()->selectedGroup()->changeMode(actionList);
 //    getScene()->showPreview(0); // povodny edit plain text, zobrazi okno s plain textom
 }
 
-void MainWindow::cleanGroupWrapper(){
+void MainWindow::cleanGroupWrapper()
+{
+    searchLineEdit->clear();
     getScene()->cleanGroup(0);
 }
 
@@ -364,21 +377,6 @@ void MainWindow::createActions()
     shortAction->setStatusTip(tr("Setting shortcuts"));
     connect(shortAction, SIGNAL(triggered()), this, SLOT(setShort()));
 
-    //! set Lua language
-    setLuaAction = new QAction(tr("&Lua"), this);
-    setLuaAction->setStatusTip(tr("Set Lua language"));
-    connect(setLuaAction, SIGNAL(triggered()), this, SLOT(setLanguageLua()));
-
-    //! set C language
-    setCAction = new QAction(tr("&C"), this);
-    setCAction->setStatusTip(tr("Set C language"));
-    connect(setCAction, SIGNAL(triggered()), this, SLOT(setLanguageC()));
-
-    //! set Xml language
-    setXmlAction = new QAction(tr("&Xml"), this);
-    setXmlAction->setStatusTip(tr("Set Xml language"));
-    connect(setXmlAction, SIGNAL(triggered()), this, SLOT(setLanguageXml()));
-
     //! generate snapshot
     snapshotAction = new QAction(tr("&Snapshot"), this);
     snapshotAction->setStatusTip(tr("Generate snapshot"));
@@ -412,11 +410,6 @@ void MainWindow::createActions()
     basicToolbarAction = new QAction(tr("&Basic"), this);
     basicToolbarAction->setStatusTip(tr("Set basic toolbar"));
     connect(basicToolbarAction, SIGNAL(triggered()), this, SLOT(basicToolbar()));
-
-    //! format toolbar
-    formatToolbarAction = new QAction(tr("&Format"), this);
-    formatToolbarAction->setStatusTip(tr("Set format toolbar"));
-    connect(formatToolbarAction, SIGNAL(triggered()), this, SLOT(formatToolbars()));
 
     //! tools toolbar
     toolsToolbarAction = new QAction(tr("&Tools"), this);
@@ -640,7 +633,6 @@ void MainWindow::createMenus()
     //! submenu toolbars
     setToolbarsMenu = viewMenu->addMenu("&Toolbars");
     setToolbarsMenu->addAction(basicToolbarAction);
-    setToolbarsMenu->addAction(formatToolbarAction);
     setToolbarsMenu->addAction(toolsToolbarAction);
     setToolbarsMenu->addAction(editorToolbarAction);
     viewMenu->addSeparator();
@@ -655,11 +647,6 @@ void MainWindow::createMenus()
     tollsMenu->addAction(showCmdAction);
     tollsMenu->addAction(metricsAction);
     tollsMenu->addSeparator();
-    //! submenu language
-    languageMenu = tollsMenu->addMenu(tr("&Language"));
-    languageMenu->addAction(setCAction);
-    languageMenu->addAction(setLuaAction);
-    languageMenu->addAction(setXmlAction);
     //! submenu generate
     generateMenu= tollsMenu->addMenu(tr("&Generate to"));
     generateMenu->addAction(printPdfAction);
@@ -767,7 +754,6 @@ void MainWindow::closeShortcuts()
 }
 //! End functions for Shortucts -------------------------------------------------------------------------------
 
-
 void MainWindow::createToolBars()
 {
     try
@@ -775,7 +761,6 @@ void MainWindow::createToolBars()
         //! basic toolbar
         formatToolBar = addToolBar(tr("Basic"));
         formatToolBar->setMovable(true);
-
         formatToolBar->addAction(newAction);
         formatToolBar->addAction(openAction);
         formatToolBar->addAction(saveAction);
@@ -785,15 +770,13 @@ void MainWindow::createToolBars()
         formatToolBar->addAction(plainEditAction);
         //formatToolBar->addAction(printableAreaAction);
         formatToolBar->addAction(printPdfAction);
-        
         formatToolBar->addSeparator();
 
         scriptsBox = new QComboBox();
         scriptsBox->setMaxVisibleItems(10);
         //! Style Combox for language
         scriptsBox->setStyle(new QPlastiqueStyle);
-
-
+        scriptsBox->setToolTip(tr("Select grammars"));
         scriptsBox->addItems(langManager->getLanguages());
         connect(scriptsBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(langChanged(QString)));
         formatToolBar->addWidget(scriptsBox);
@@ -808,6 +791,7 @@ void MainWindow::createToolBars()
                                        "font-style: italic;"
                                        "border-radius: 5px;"
                                        "}");
+
         connect(searchLineEdit, SIGNAL(editingFinished()), this, SLOT(search()));
         formatToolBar->addWidget(searchLineEdit);
         formatToolBar->addAction(clearAction);
@@ -872,61 +856,6 @@ void MainWindow::createToolsToolbars()
         QMessageBox::information(this,"Error","Tools toolbars!");
     }
 }
-
-void MainWindow::createFormatingToolbars()
-{
-    try
-    {
-        //! format toolbar
-        formatingToolbars = addToolBar(tr("Format"));
-        formatingToolbars->setMovable(true);
-        setFont = new QFontComboBox();
-        setFont->setStyle(new QPlastiqueStyle);
-        connect(setFont,SIGNAL(currentIndexChanged(QString)), this, SLOT(changeFont(QString)));
-        formatingToolbars->addWidget(setFont);
-
-        setSizeFont = new QComboBox();
-        setSizeFont->setStyle(new QPlastiqueStyle);
-        setSizeFont->addItem("6");
-        setSizeFont->addItem("8");
-        setSizeFont->addItem("10");
-        setSizeFont->addItem("12");
-        setSizeFont->addItem("14");
-        setSizeFont->addItem("16");
-        setSizeFont->addItem("18");
-        setSizeFont->addItem("20");
-        connect(setSizeFont,SIGNAL(currentIndexChanged(QString)), this, SLOT(sizeFont(QString)));
-        formatingToolbars->addWidget(setSizeFont);
-        formatingToolbars->addAction(setBoldAction);
-        formatingToolbars->addAction(setItalicAction);
-    }
-
-    catch(...)
-    {
-        QMessageBox::information(this,"Error","Format toolbars!");
-    }
-}
-
-void MainWindow::changeFont()
-{
-   QMessageBox::information(this,"title","On Function is working!");
-}
-
-void MainWindow::sizeFont()
-{
-   QMessageBox::information(this,"title","On Function is working!");
-}
-
-void MainWindow::setBold()
-{
-   QMessageBox::information(this,"title","On Function is working!");
-}
-
-void MainWindow::setItalic()
-{
-   QMessageBox::information(this,"title","On Function is working!");
-}
-
 
 QGraphicsView* MainWindow::createView()
 {
@@ -1005,10 +934,15 @@ void MainWindow::load(QString fileName)
 {
     Analyzer *analyzer = langManager->getAnalyzerFor(QFileInfo(fileName).suffix());
     DocumentScene* dScene=getScene();
-    if(dScene==0){ // this should not ever happen
+    if(dScene==0)
+    { // this should not ever happen
         qDebug("load() Error: dScene = null");
         return;
-    }else{
+    }
+
+    else
+
+    {
         qDebug() << "load() filename=" << fileName;
      //   qDebug(fileName);
         dScene->loadGroup(fileName, QFileInfo(fileName).suffix());
@@ -1028,10 +962,12 @@ void MainWindow::closeTab(int position){
 void MainWindow::tabChanged(int position)
 {
     BlockGroup *group=getScene()->selectedGroup();
-        if(group==0){
+        if(group==0)
+        {
             setCurrentFile(0);
             return;
         }
+
         else
         {
             setCurrentFile(group);
@@ -1056,10 +992,8 @@ void MainWindow::createTabs()
 
     //! set style for button- add tab
     m_addButton->setStyleSheet("background-color: transparent;");
-
     connect(m_addButton, SIGNAL(clicked()), this, SLOT(newTab()));
     tabWidget->setCornerWidget(m_addButton, Qt::TopLeftCorner);
-
     QWidget* widget=createView(); // get QGraphicView
     QGraphicsView* view=(QGraphicsView *) widget;
     DocumentScene* dScene=(DocumentScene *) view->scene();
@@ -1071,7 +1005,6 @@ void MainWindow::createTabs()
     createMenus();
     createToolBars();
     statusBar();
-
     QIcon homeIcon(":/icons/home.png");
     tabWidget->addTab(widget,homeIcon, "Start page");
     tabWidget->setCurrentWidget(widget); // focus on new tab
@@ -1098,6 +1031,7 @@ void MainWindow::setCurrentFile(BlockGroup *group)
         lang = group->getAnalyzer()->getLanguageName();
         selectedGroup = group;
     }
+
     else
     {
         lang = "";
@@ -1110,13 +1044,13 @@ void MainWindow::setCurrentFile(BlockGroup *group)
         setWindowFilePath(fileName);
         groupActions->setEnabled(false);
         searchLineEdit->setEnabled(false);
-//        scriptsBox->setEnabled(true);
+        // scriptsBox->setEnabled(true);
     }
     else
     {
         groupActions->setEnabled(true);
         searchLineEdit->setEnabled(true);
-//        scriptsBox->setEnabled(false);
+        // scriptsBox->setEnabled(false);
 
         if (scriptsBox->currentText() != lang)
         {
@@ -1239,7 +1173,7 @@ void MainWindow::printPdf()
 
     if(printableAreaAction->isChecked()) hideArea();
 
-//    for(int i=0; i<10; i++){
+    // for(int i=0; i<10; i++){
     while(endCondition)
     {
         scene->render(&painter, rect, rect2, Qt::KeepAspectRatio);
@@ -1393,6 +1327,7 @@ void MainWindow::find()
                               "font-style: italic;"
                               "border-radius: 6px;"
                               "}");
+
   findButton = new QPushButton("Find");
   findButton->setStyle(new QPlastiqueStyle);
 
@@ -1436,12 +1371,6 @@ void MainWindow::find_Replace()
 void MainWindow::basicToolbar()
 {
     QMessageBox::information(this,"title","On Function is working!");
-}
-
-//! formating toolbar
-void MainWindow::formatToolbars()
-{
-    createFormatingToolbars();
 }
 
 //! tools toolbar
@@ -1541,24 +1470,6 @@ void MainWindow::split()
 
 
 //! FUNTIONS FOR TOOLS MENU ---------------------------------------------------------------------------------
-
-//! set Lua language
-void MainWindow:: setLanguageLua()
-{
-    QMessageBox::information(this,"title","On Function is working!");
-}
-
-//! set C language
-void MainWindow:: setLanguageC()
-{
-    QMessageBox::information(this,"title","On Function is working!");
-}
-
-//! set Xml language
-void MainWindow:: setLanguageXml()
-{
-    QMessageBox::information(this,"title","On Function is working!");
-}
 
 //! genarate to snapshot
 void MainWindow::snapshot()
