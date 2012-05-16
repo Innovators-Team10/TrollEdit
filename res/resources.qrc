@@ -58,5 +58,6 @@
         <file alias="newWay">newWay_text.png</file>
         <file alias="startScreen">startPage-logo.png</file>
         <file>tips.png</file>
+        <file>stu.png</file>
     </qresource>
 </RCC>

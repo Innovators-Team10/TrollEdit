@@ -24,9 +24,9 @@
    <string/>
   </property>
   <property name="styleSheet">
-   <string notr="true"> </string>
+   <string notr="true"/>
   </property>
-  <widget class="QGraphicsView" name="aphicsView">
+  <widget class="QGraphicsView" name="gaphicsView">
    <property name="geometry">
     <rect>
      <x>6</x>
@@ -58,7 +58,7 @@
     <string>Next </string>
    </property>
    <property name="styleSheet">
-    <string notr="true"> </string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string/>

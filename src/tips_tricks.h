@@ -19,7 +19,7 @@ public:
 private:
     Ui::tips_tricks *ui;
     QGraphicsView *graphicsView;
-
+    QLabel *label_2;
 
 public slots:
     void showWindow();
