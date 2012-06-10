@@ -1,4 +1,4 @@
-<pre>                           <img  src="http://innovators-team10.github.com/images/trolledit.png" align="middle" alt="logo"></img></pre>
+<pre>                           <img  src="http://innovators-team10.github.com/images/TrollEdit_logo.png" align="middle" alt="logo"></img></pre>
  
 TrollEdit - Graphically Enhanced Text Editor
 -----
