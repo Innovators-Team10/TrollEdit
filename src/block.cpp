@@ -9,6 +9,7 @@
 
 #include "block.h"
 #include "fold_button.h"
+#include "close_button.h"
 #include "block_group.h"
 #include "doc_block.h"
 #include "text_item.h"
@@ -159,6 +160,10 @@ Block::Block(TreeElement *el, Block *parentBlock, BlockGroup *blockGroup)
 
     if (parent == 0)
         setVisible(false);
+
+    if(this->getElement()->getType() == "line_comment" ||
+            this->getElement()->getType() == "multiline_comment")
+        closeButton = new CloseButton(this);
 }
 
 Block::~Block()

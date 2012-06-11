@@ -15,6 +15,7 @@
 #include "document_scene.h"
 #include "block_group.h"
 #include "fold_button.h"
+#include "close_button.h"
 
 DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)    //! manual creation
     : Block(new TreeElement("doc_comment", true, true), 0, parentgroup)
@@ -48,6 +49,8 @@ DocBlock::DocBlock(QPointF pos, BlockGroup *parentgroup)    //! manual creation
     // add arrow
     arrow = 0;
     addArrowTo(arrowTarget);
+
+    closeButton = new CloseButton(this);
 }
 
 DocBlock::DocBlock(QString text, TreeElement* el, Block* parentBlock, BlockGroup *parentgroup)

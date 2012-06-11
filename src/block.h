@@ -17,6 +17,7 @@
 class TreeElement;
 class BlockGroup;
 class FoldButton;
+class CloseButton;
 class TextItem;
 class DocBlock;
 
@@ -158,6 +159,7 @@ protected:
     Block *nextSib, *prevSib, *firstChild;    //! links
 
     FoldButton *foldButton;
+    CloseButton *closeButton;
     QTimer *timer;              //! hover timer
 
     QPointF startDragPos; //! used to determine drag start
