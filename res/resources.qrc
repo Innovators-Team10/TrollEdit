@@ -9,6 +9,7 @@
         <file alias="splash">splashScreen.png</file>
         <file alias="plus">foldPlus.png</file>
         <file alias="minus">foldMinus.png</file>
+        <file alias="closeButton">close.png</file>
     </qresource>
     <qresource prefix="/files">
         <file alias="shortcutsFile">ConfigFiles/shortcuts.ini</file>

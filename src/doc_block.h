@@ -15,6 +15,7 @@
 class TreeElement;
 class DocumentScene;
 class FoldButton;
+class CloseButton;
 class TextItem;
 class Arrow;
 
