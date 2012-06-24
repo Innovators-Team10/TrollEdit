@@ -20,7 +20,7 @@ CloseButton::CloseButton(Block *parentBlock)
     Q_ASSERT(parentBlock != 0);
 
     setAcceptHoverEvents(true);
-    close = QPixmap(":/closeButton");
+    close = QPixmap(":/closeButton.png");
     myBlock = parentBlock;
 
     setPixmap(close);

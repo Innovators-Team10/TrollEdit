@@ -6,10 +6,10 @@
         <file alias="text">text.png</file>
         <file alias="image">image.png</file>
         <file alias="weblink">weblink.png</file>
-        <file alias="splash">splashScreen.png</file>
         <file alias="plus">foldPlus.png</file>
         <file alias="minus">foldMinus.png</file>
-        <file alias="closeButton">close.png</file>
+        <file alias="splash">splashScreen.png</file>
+        <file>closeButton.png</file>
     </qresource>
     <qresource prefix="/files">
         <file alias="shortcutsFile">ConfigFiles/shortcuts.ini</file>
@@ -53,11 +53,9 @@
         <file>newWindow.png</file>
     </qresource>
     <qresource prefix="/img">
-        <file alias="logoSmall">logo.png</file>
-        <file alias="logoBig">logo2.png</file>
-        <file alias="logoBiggest">logo3.png</file>
-        <file alias="newWay">newWay_text.png</file>
-        <file alias="startScreen">startPage-logo.png</file>
         <file>tips.png</file>
+        <file alias="startScreen">startPage.png</file>
+        <file>trolledit.png</file>
+        <file>tipShortcut.png</file>
     </qresource>
 </RCC>

@@ -23,11 +23,11 @@ void tips_tricks::showWindow()
 //! button next
 void tips_tricks::on_commandLinkButton_clicked()
 {
-    QMessageBox::information(this,"title","On Function is working!");
+   //
 }
 
 //! button back
 void tips_tricks::on_commandLinkButton_2_clicked()
 {
-
+  //
 }

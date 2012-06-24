@@ -316,7 +316,7 @@ void DocBlock::addWebLink(QUrl url)
     // add web icon
     QTextCursor cursor = QTextCursor(myTextItem->document());
     cursor.document()->setPlainText(" ");
-    cursor.insertImage(QImage(":/weblink.png"));
+    cursor.insertImage(QImage(":/weblink"));
 
     path = url.toString();
     QString str = path;
@@ -531,7 +531,7 @@ void DocBlock::setFolded(bool fold)
         {
             QTextCursor cursor = QTextCursor(myTextItem->document());
             cursor.document()->setPlainText(" ");
-            cursor.insertImage(QImage(":/image.png"));
+            cursor.insertImage(QImage(":/image"));
             cursor.insertText(QFileInfo(path).fileName());
         }
         else

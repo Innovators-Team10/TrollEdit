@@ -68,7 +68,7 @@ static int l_newAction(lua_State *L)
     QString tool_str = lua_tostring(L, 2);
 
     //! new
-    QIcon newIcon(":/icons/new.png");
+    QIcon newIcon(":/icons/newFile.png");
     p_window->newAction = new QAction(newIcon, "&New", p_window);
     p_window->newAction->setShortcut(str);
     p_window->newAction->setToolTip(tool_str);//tr("Create a new file")
@@ -997,8 +997,6 @@ void MainWindow::createTabs()
     dScene->main=this;
 
     dScene->addPixmap(QPixmap(":/img/startScreen"));
-    QPixmap obr(":/img/newWay");
-    dScene->addPixmap(obr)->setPos(184,335);
     createMenus();
     createToolBars();
     statusBar();
@@ -1520,7 +1518,22 @@ void MainWindow::about()
 //! show TrollEdit web page
 void MainWindow::homePage()
 {
-    QDesktopServices::openUrl(QUrl("http://innovators-team10.github.com"));
+
+    newTab();
+    QWebView *view = new QWebView();
+    QToolBar *helpToolBar = new QToolBar(tr("&Navigation"),view);
+
+    helpToolBar->addAction(view->pageAction(QWebPage::Back));
+    helpToolBar->addAction(view->pageAction(QWebPage::Forward));
+    helpToolBar->addAction(view->pageAction(QWebPage::Reload));
+    helpToolBar->addAction(view->pageAction(QWebPage::Stop));
+    view->load(QUrl("http://innovators-team10.github.com"));
+    view->resize(1000,500);
+    tabWidget->setTabText(tabWidget->currentIndex(),"Home page");
+    QIcon helpsIcon(":/icons/home.png");
+    tabWidget->setTabIcon(tabWidget->currentIndex(),helpsIcon);
+    DocumentScene* dScene=getScene();
+    dScene->addWidget(view);
 }
 
 //! html help in new tab

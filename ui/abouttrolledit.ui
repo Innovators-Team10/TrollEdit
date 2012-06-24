@@ -21,9 +21,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>80</y>
+     <y>10</y>
      <width>741</width>
-     <height>391</height>
+     <height>461</height>
     </rect>
    </property>
    <property name="autoFillBackground">
@@ -71,7 +71,7 @@ QTabBar::tab:!selected
        <x>0</x>
        <y>0</y>
        <width>737</width>
-       <height>361</height>
+       <height>431</height>
       </rect>
      </property>
      <property name="readOnly">
@@ -82,12 +82,13 @@ QTabBar::tab:!selected
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/img/trolledit.png&quot; /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:16pt; font-weight:600; color:#000000;&quot;&gt;What is TrollEdit?&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;TrollEdit is a Qt based text editor developed by students at Slovak University of Technology &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;The main goal of the project is to teach students open source development and team management. TrollEdit itself is an experiment to utilize full AST code analysis during writing of code. This can have benefits in various common tasks such as moving blocks of code, syntax checking, syntax highlighting etc.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;________________________&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Version: &lt;/span&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;1.3.4.2&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Build date: &lt;/span&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;15-04-2012&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Version: &lt;/span&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;1.3.4.4&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Build date: 24&lt;/span&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;-06-2012&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Language: &lt;/span&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;english&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:12pt;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Contact: &lt;/span&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;trolledit@googlegroups.com&lt;/span&gt;&lt;/p&gt;
@@ -106,7 +107,7 @@ p, li { white-space: pre-wrap; }
        <x>0</x>
        <y>0</y>
        <width>737</width>
-       <height>361</height>
+       <height>431</height>
       </rect>
      </property>
      <property name="autoFillBackground">
@@ -158,7 +159,7 @@ p, li { white-space: pre-wrap; }
        <x>0</x>
        <y>0</y>
        <width>737</width>
-       <height>361</height>
+       <height>431</height>
       </rect>
      </property>
      <property name="readOnly">
@@ -173,10 +174,10 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14pt; color:#7f0000;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt;QT SDK &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#000000;&quot;&gt;(multiplatform framewrok)&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11pt; color:#000000;&quot;&gt;  &lt;/span&gt;&lt;a href=&quot;http://qt.nokia.com/&quot;&gt;&lt;span style=&quot; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;http://qt.nokia.com/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt;QtCreator &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#000000;&quot;&gt;(IDE for Qt)&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt; color:#000000;&quot;&gt;  &lt;/span&gt;&lt;a href=&quot;http://qt.nokia.com/&quot;&gt;&lt;span style=&quot; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;http://qt.nokia.com/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:11pt; color:#000000;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt;C++ &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#000000;&quot;&gt;(programming language)&lt;/span&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt; color:#000000;&quot;&gt;   &lt;/span&gt;&lt;a href=&quot;http://www.cplusplus.com/&quot;&gt;&lt;span style=&quot; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;http://www.cplusplus.com/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt;LUA &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#000000;&quot;&gt;(scripting language)&lt;/span&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11pt; color:#000000;&quot;&gt;  &lt;/span&gt;&lt;a href=&quot;http://www.lua.org/&quot;&gt;&lt;span style=&quot; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;http://www.lua.org/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14pt; color:#000000;&quot;&gt;&lt;/p&gt;
@@ -185,8 +186,6 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt;LuaJit &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#000000;&quot;&gt;(library for LUA)&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11pt; color:#000000;&quot;&gt;   &lt;/span&gt;&lt;a href=&quot;http://luajit.org/&quot;&gt;&lt;span style=&quot; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;http://luajit.org/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt;C++&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14pt; color:#000000;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt;Cmake &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#000000;&quot;&gt;(build system)&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14pt; color:#000000;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-size:12pt; color:#000000;&quot;&gt; &lt;/span&gt;&lt;a href=&quot;http://www.cmake.org/&quot;&gt;&lt;span style=&quot; font-size:11pt; text-decoration: underline; color:#0000ff;&quot;&gt;http://www.cmake.org/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
@@ -206,7 +205,7 @@ p, li { white-space: pre-wrap; }
        <x>0</x>
        <y>0</y>
        <width>737</width>
-       <height>361</height>
+       <height>431</height>
       </rect>
      </property>
      <property name="layoutDirection">
@@ -224,15 +223,12 @@ p, li { white-space: pre-wrap; }
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC1&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-size:16pt; font-weight:600; color:#000000;&quot;&gt;rollEdit License&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC3&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:8pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC4&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;rollEdit is licensed under the terms of the MIT license reproduced below.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC5&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;his means that TrollEdit is free software and can be used for both academic&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC6&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;a&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;nd commercial purposes at absolutely no cost.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC7&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC8&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;=&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;==============================================================================&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC9&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC10&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;C&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;opyright (C) 2009-2012 TrollEdit.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC11&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC8&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;-&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;----------------------------------------------&lt;/span&gt;&lt;a name=&quot;LC9&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC10&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;C&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;opyright (C) 2009-2012 TrollEdit.&lt;/span&gt;&lt;a name=&quot;LC11&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC12&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;P&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;ermission is hereby granted, free of charge, to any person obtaining a copy&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC13&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;o&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;f this software and associated documentation files (the &amp;quot;Software&amp;quot;), to deal&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC14&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;i&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;n the Software without restriction, including without limitation the rights&lt;/span&gt;&lt;/p&gt;
@@ -249,8 +245,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC25&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;A&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;UTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC26&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;L&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;IABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC27&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;O&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;UT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC28&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;HE SOFTWARE.&lt;/span&gt;&lt;a name=&quot;LC29&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:8pt;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC30&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:8pt;&quot;&gt;=&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:8pt;&quot;&gt;==============================================================================&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;LC28&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;T&lt;/span&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:10pt;&quot;&gt;HE SOFTWARE.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </widget>
@@ -264,7 +259,7 @@ p, li { white-space: pre-wrap; }
        <x>0</x>
        <y>0</y>
        <width>737</width>
-       <height>361</height>
+       <height>431</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -275,22 +270,6 @@ p, li { white-space: pre-wrap; }
      </property>
     </widget>
    </widget>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>171</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="pixmap">
-    <pixmap resource="../res/resources.qrc">:/img/logoSmall</pixmap>
-   </property>
   </widget>
  </widget>
  <resources>

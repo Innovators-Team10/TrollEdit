@@ -24,9 +24,9 @@
    <string/>
   </property>
   <property name="styleSheet">
-   <string notr="true"> </string>
+   <string notr="true"/>
   </property>
-  <widget class="QGraphicsView" name="aphicsView">
+  <widget class="QGraphicsView" name="graphicsView">
    <property name="geometry">
     <rect>
      <x>6</x>
@@ -58,7 +58,7 @@
     <string>Next </string>
    </property>
    <property name="styleSheet">
-    <string notr="true"> </string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string/>
@@ -103,17 +103,17 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>120</y>
-     <width>311</width>
-     <height>81</height>
+     <x>50</x>
+     <y>10</y>
+     <width>581</width>
+     <height>281</height>
     </rect>
    </property>
    <property name="text">
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap resource="../res/resources.qrc">:/img/tips.png</pixmap>
+    <pixmap resource="../res/resources.qrc">:/img/tipShortcut.png</pixmap>
    </property>
   </widget>
  </widget>
