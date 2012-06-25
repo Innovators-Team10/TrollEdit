@@ -1,4 +1,4 @@
-<pre>                           <img  src="http://innovators-team10.github.com/images/trolledit.png" align="middle" alt="logo"></img></pre>
+<pre>                           <img  src="http://innovators-team10.github.com/images/TrollEdit_logo.png" align="middle" alt="logo"></img></pre>
  
 TrollEdit - Graphically Enhanced Text Editor
 -----
@@ -67,3 +67,6 @@ Contact
 -------
 
 tp-team-10@googlegroups.com 
+
+
+<a href="https://github.com/downloads/Innovators-Team10/TrollEdit/TrollEdit-1.3.4.exe"><img  src="http://innovators-team10.github.com/images/download.png" align="middle" alt="download-logo"></img></a>
