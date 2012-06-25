@@ -13,7 +13,6 @@
     </qresource>
     <qresource prefix="/files">
         <file alias="shortcutsFile">ConfigFiles/shortcuts.ini</file>
-        <file alias="aboutThisVersion">ConfigFiles/aboutVersion.conf</file>
     </qresource>
     <qresource prefix="/icons">
         <file>plusTab.png</file>
@@ -51,11 +50,14 @@
         <file>tipsIcon.png</file>
         <file>tree.png</file>
         <file>newWindow.png</file>
+        <file>icons/home.png</file>
+        <file>icons/link.png</file>
+        <file>icons/mail.png</file>
+        <file>icons/team.png</file>
     </qresource>
     <qresource prefix="/img">
-        <file>tips.png</file>
-        <file alias="startScreen">startPage.png</file>
-        <file>trolledit.png</file>
         <file>tipShortcut.png</file>
+        <file alias="startScreen">startPage.png</file>
+        <file>shortCuts.png</file>
     </qresource>
 </RCC>

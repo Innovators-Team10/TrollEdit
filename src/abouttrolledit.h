@@ -23,7 +23,6 @@ private:
 
 public slots:
     void showWindow();
-    void loadVersionInfo();
 
 private slots:
 

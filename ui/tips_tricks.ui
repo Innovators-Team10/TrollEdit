@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../res/resources.qrc">
-    <normaloff>:/icons/info.png</normaloff>:/icons/info.png</iconset>
+    <normaloff>:/icons/tipsIcon.png</normaloff>:/icons/tipsIcon.png</iconset>
   </property>
   <property name="toolTip">
    <string/>
@@ -105,15 +105,18 @@
     <rect>
      <x>50</x>
      <y>10</y>
-     <width>581</width>
-     <height>281</height>
+     <width>561</width>
+     <height>261</height>
     </rect>
    </property>
    <property name="text">
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap resource="../res/resources.qrc">:/img/tipShortcut.png</pixmap>
+    <pixmap resource="../res/resources.qrc">:/img/shortCuts.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

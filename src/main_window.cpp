@@ -361,8 +361,8 @@ void MainWindow::createActions()
 
     //! home page
     QIcon homeIcon(":/icons/home.png");
-    homePageAction = new QAction(homeIcon,tr("&Home page"), this);
-    homePageAction->setToolTip(tr("Open home page of TrollEdit"));
+    homePageAction = new QAction(homeIcon,tr("&Web page"), this);
+    homePageAction->setToolTip(tr("Open web page of TrollEdit"));
     connect(homePageAction, SIGNAL(triggered()), this, SLOT(homePage()));
 
     //! bugs report
@@ -1529,7 +1529,7 @@ void MainWindow::homePage()
     helpToolBar->addAction(view->pageAction(QWebPage::Stop));
     view->load(QUrl("http://innovators-team10.github.com"));
     view->resize(1000,500);
-    tabWidget->setTabText(tabWidget->currentIndex(),"Home page");
+    tabWidget->setTabText(tabWidget->currentIndex(),"Web page");
     QIcon helpsIcon(":/icons/home.png");
     tabWidget->setTabIcon(tabWidget->currentIndex(),helpsIcon);
     DocumentScene* dScene=getScene();
