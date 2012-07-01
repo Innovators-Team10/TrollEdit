@@ -24,7 +24,7 @@ script:
 # Try running tests and packing
 after_script:
   - ctest
-  - cpack
+
 
 # Notify the me if needed
 notifications:
