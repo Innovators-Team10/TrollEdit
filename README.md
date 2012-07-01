@@ -69,4 +69,4 @@ Contact
 tp-team-10@googlegroups.com 
 
 
-<a href="https://github.com/downloads/Innovators-Team10/TrollEdit/TrollEdit-1.3.4.exe"><img  src="http://innovators-team10.github.com/images/down_instal.png" align="middle" alt="download-logo"></img></a>
+<a href="https://github.com/downloads/Innovators-Team10/TrollEdit/TrollEdit-1.3.4.exe"><img  src="http://innovators-team10.github.com/img/down_instal.png" align="middle" alt="download-logo"></img></a>
