@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     app.setStartDragDistance(app.startDragDistance() * 2);
 
     // set splashScreen
-    QPixmap pixmap(":/splash");
+    QPixmap pixmap(":/img/splash");
     QSplashScreen splashScreen(pixmap,Qt::WindowStaysOnTopHint);
 
     // find the directory of the program
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     splashScreen.show();
  
-    w.setWindowIcon (QIcon(":/icon16"));
+    w.setWindowIcon (QIcon(":/icon"));
     w.show();
 
     QTimer::singleShot(2000, &splashScreen, SLOT(close()));

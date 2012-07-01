@@ -1547,7 +1547,7 @@ void MainWindow::help()
         helpToolBar->addAction(view->pageAction(QWebPage::Forward));
         helpToolBar->addAction(view->pageAction(QWebPage::Reload));
         helpToolBar->addAction(view->pageAction(QWebPage::Stop));
-        view->load(QUrl("http://innovators-team10.github.com/u-manual_simple.html"));
+        view->load(QUrl("http://innovators-team10.github.com/help/simple_help.html"));
         view->resize(1000,500);
         tabWidget->setTabText(tabWidget->currentIndex(),"On-line help");
         QIcon helpsIcon(":/icons/help.png");

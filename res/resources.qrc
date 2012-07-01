@@ -1,15 +1,13 @@
 <RCC>
     <qresource prefix="/">
-        <file alias="icon32">icon32.png</file>
-        <file alias="icon16">icon16.png</file>
         <file alias="link">link.png</file>
         <file alias="text">text.png</file>
         <file alias="image">image.png</file>
         <file alias="weblink">weblink.png</file>
         <file alias="plus">foldPlus.png</file>
         <file alias="minus">foldMinus.png</file>
-        <file alias="splash">splashScreen.png</file>
         <file>closeButton.png</file>
+        <file alias="icon">icons/trollEdit_icons.png</file>
     </qresource>
     <qresource prefix="/files">
         <file alias="shortcutsFile">ConfigFiles/shortcuts.ini</file>
@@ -56,8 +54,8 @@
         <file>icons/team.png</file>
     </qresource>
     <qresource prefix="/img">
-        <file>tipShortcut.png</file>
-        <file alias="startScreen">startPage.png</file>
-        <file>shortCuts.png</file>
+        <file alias="splash">img/splashScreen.png</file>
+        <file>img/shortCuts.png</file>
+        <file alias="startScreen">img/startPage.png</file>
     </qresource>
 </RCC>
