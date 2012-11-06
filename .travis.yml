@@ -29,7 +29,7 @@ after_script:
 # Notify the me if needed
 notifications:
   recipients:
-    - tp-team-10@googlegroups.com
+    - trolledit@googlegroups.com
   email:
-    on_success: always
+    on_success: change
     on_failure: always
